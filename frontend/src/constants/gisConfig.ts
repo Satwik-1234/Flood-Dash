@@ -18,8 +18,8 @@ const BASE = import.meta.env.BASE_URL || '/';
 export const GEO_LAYERS = {
   INDIA_DISTRICTS:  `${BASE}geo/india_districts.geojson`,
   INDIA_STATES:     `${BASE}geo/india_states.geojson`,
-  INDIA_RIVERS:     `${BASE}geo/india_hydrorivers.geojson`,
-  INDIA_BASINS:     `${BASE}geo/india_hydrobasins_lev5.geojson`,
+  INDIA_RIVERS:     `${BASE}geo/india_rivers.geojson`,
+  INDIA_BASINS:     `${BASE}geo/india_basins.geojson`,
 } as const;
 
 export const WMS_ENDPOINTS = {

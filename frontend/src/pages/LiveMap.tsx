@@ -96,12 +96,48 @@ export const LiveMap: React.FC = () => {
     map.current.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
     map.current.on('load', () => {
-      const m = map.current;
-      if (!m) return;
+      const m = map.current!;
 
-      // Bhuvan WMS removed — blocked by CORS in browser. Use scraper pipeline for LULC.
+      // ── River basin polygons (bottom layer) ───────────────────────────────
+      m.addSource('india-basins', { type: 'geojson', data: GEO_LAYERS.INDIA_BASINS });
+      m.addLayer({
+        id: 'basins-fill',
+        type: 'fill',
+        source: 'india-basins',
+        paint: { 'fill-color': ['get', 'fill_color'], 'fill-opacity': 0.07 },
+      });
+      m.addLayer({
+        id: 'basins-outline',
+        type: 'line',
+        source: 'india-basins',
+        paint: {
+          'line-color': ['get', 'fill_color'],
+          'line-width': 1.2,
+          'line-opacity': 0.4,
+          'line-dasharray': [4, 3],
+        },
+      });
+      m.addLayer({
+        id: 'basins-label',
+        type: 'symbol',
+        source: 'india-basins',
+        minzoom: 5,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-size': 11,
+          'text-font': ['Open Sans Regular'],
+          'text-letter-spacing': 0.1,
+          'text-transform': 'uppercase',
+        },
+        paint: {
+          'text-color': ['get', 'fill_color'],
+          'text-opacity': 0.65,
+          'text-halo-color': 'rgba(255,255,255,0.9)',
+          'text-halo-width': 1.5,
+        },
+      });
 
-      // 2. INDIA DISTRICTS GEOJSON (Choropleth)
+      // ── Districts choropleth ──────────────────────────────────────────────
       m.addSource('india-districts', {
         type: 'geojson',
         data: GEO_LAYERS.INDIA_DISTRICTS,
@@ -161,7 +197,7 @@ export const LiveMap: React.FC = () => {
         layout: { 'visibility': activeLayers.rivers ? 'visible' : 'none' }
       });
 
-      // 5. GAUGING STATIONS (Pravhatattva Core)
+      // ── CWC gauging stations (professional hydrological marker style) ──────
       m.addSource('cwc-stations', {
         type: 'geojson',
         data: {
@@ -169,31 +205,60 @@ export const LiveMap: React.FC = () => {
           features: stations?.map(s => ({
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
-            properties: { ...s }
+            properties: { 
+              ...s,
+              risk_ratio: s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0 
+            }
           })) || []
         }
       });
+      // Outer halo — glows for stations near/above warning
+      m.addLayer({
+        id: 'stations-halo',
+        type: 'circle',
+        source: 'cwc-stations',
+        filter: ['>=', ['get', 'risk_ratio'], 0.85],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 10, 8, 17, 12, 24],
+          'circle-color': [
+            'case',
+            ['>=', ['get', 'risk_ratio'], 1.0], '#991B1B',
+            ['>=', ['get', 'risk_ratio'], 0.85], '#9A3412',
+            '#166534'
+          ],
+          'circle-opacity': 0.18,
+          'circle-stroke-width': 0,
+        },
+      });
+      // Main circle
       m.addLayer({
         id: 'stations-point',
         type: 'circle',
         source: 'cwc-stations',
         paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            5, 4,
-            10, 12
-          ],
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 5, 8, 8, 12, 12],
           'circle-color': [
             'case',
-            ['>=', ['/', ['get', 'current_water_level_m'], ['max', ['get', 'danger_level_m'], 0.01]], 1.0], '#991B1B',
-            ['>=', ['/', ['get', 'current_water_level_m'], ['max', ['get', 'danger_level_m'], 0.01]], 0.8], '#9A3412',
-            ['>=', ['/', ['get', 'current_water_level_m'], ['max', ['get', 'warning_level_m'], 0.01]], 1.0], '#854D0E',
+            ['>=', ['get', 'risk_ratio'], 1.0], '#991B1B',
+            ['>=', ['get', 'risk_ratio'], 0.85], '#9A3412',
             '#166534'
           ],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff'
+          'circle-stroke-width': 2.5,
+          'circle-stroke-color': '#fff',
+          'circle-opacity': 1,
         },
-        layout: { 'visibility': activeLayers.stations ? 'visible' : 'none' }
+      });
+      // Inner white dot — classic gauging point symbol
+      m.addLayer({
+        id: 'stations-inner',
+        type: 'circle',
+        source: 'cwc-stations',
+        minzoom: 6,
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 2, 10, 3, 14, 4],
+          'circle-color': '#fff',
+          'circle-opacity': 0.95,
+        },
       });
 
       m.on('click', 'stations-point', (e) => {
@@ -267,7 +332,10 @@ export const LiveMap: React.FC = () => {
         features: stations.map(s => ({
           type: 'Feature',
           geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
-          properties: { ...s }
+          properties: { 
+            ...s,
+            risk_ratio: s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0
+          }
         }))
       });
     }
