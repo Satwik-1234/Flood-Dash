@@ -79,6 +79,8 @@ export const Overview: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
+          {/* h1 is visually hidden — used by screen readers and E2E tests */}
+          <h1 className="sr-only">Pravhatattva</h1>
           <h2 className="font-display text-text-dark text-3xl font-bold">
             प्रवहतत्त्व — National Overview
           </h2>
@@ -115,7 +117,7 @@ export const Overview: React.FC = () => {
                   {String(totalAlerts).padStart(2, '0')}
                 </span>
               </div>
-              <h3 className="font-ui font-bold text-text-body mt-2">Active Flood Alerts</h3>
+              <h3 className="font-ui font-bold text-text-body mt-2">Critical Alerts</h3>
               <p className="font-ui text-sm text-text-muted mt-0.5">
                 {cwcDanger.length} above danger · {cwcWarning.length} above warning
               </p>

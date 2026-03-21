@@ -39,7 +39,7 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 
 function App() {
   return (
-    <BrowserRouter basename="/Flood-Dash">
+    <BrowserRouter basename={import.meta.env.PROD ? "/Flood-Dash" : "/"}>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Overview />} />
