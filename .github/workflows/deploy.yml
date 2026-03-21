@@ -1,5 +1,8 @@
 name: Deploy Pravhatattva Dashboard
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   # Trigger the workflow on pushes to the main branch
   push:
