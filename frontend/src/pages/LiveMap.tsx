@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { StationPopup } from '../components/map/StationPopup';
 import { CWCStationData } from '../api/schemas';
-import { useCWCStations } from '../hooks/useTelemetry';
+import { useCWCStations, useCWCAboveWarning, useCWCAboveDanger } from '../hooks/useTelemetry';
 import { SpinnerGap, MapTrifold, SquaresFour, Info } from 'phosphor-react';
 import { 
   INDIA_CENTER, 
@@ -19,6 +19,8 @@ export const LiveMap: React.FC = () => {
   const map = useRef<maplibregl.Map | null>(null);
   
   const { data: stations, isLoading } = useCWCStations();
+  const { data: cwcWarningMap = [] } = useCWCAboveWarning();
+  const { data: cwcDangerMap = [] } = useCWCAboveDanger();
   const [selectedStation, setSelectedStation] = useState<CWCStationData | null>(null);
   const [activeLayers, setActiveLayers] = useState({
     lulc: true,
@@ -85,7 +87,8 @@ export const LiveMap: React.FC = () => {
       // 2. INDIA DISTRICTS GEOJSON (Choropleth)
       m.addSource('india-districts', {
         type: 'geojson',
-        data: GEO_LAYERS.INDIA_DISTRICTS
+        data: GEO_LAYERS.INDIA_DISTRICTS,
+        promoteId: 'DT_CEN_CD'
       });
       m.addLayer({
         id: 'districts-fill',
@@ -93,15 +96,16 @@ export const LiveMap: React.FC = () => {
         source: 'india-districts',
         paint: {
           'fill-color': [
-            'match', ['get', 'risk_level'],
-            1, '#10b981', // Normal
-            2, '#f59e0b', // Watch
-            3, '#f97316', // Warning
-            4, '#ef4444', // Alert
-            5, '#7f1d1d', // Emergency
-            'rgba(255,255,255,0.05)' // Default
+            'case',
+            ['==', ['feature-state', 'risk'], 5], '#500000',
+            ['==', ['feature-state', 'risk'], 4], '#991B1B',
+            ['==', ['feature-state', 'risk'], 3], '#9A3412',
+            ['==', ['feature-state', 'risk'], 2], '#854D0E',
+            ['==', ['feature-state', 'risk'], 1], '#166534',
+            'rgba(100,116,139,0.08)'
           ],
-          'fill-opacity': 0.2
+          'fill-opacity': 0.65,
+          'fill-outline-color': 'rgba(255,255,255,0.08)'
         },
         layout: { 'visibility': activeLayers.districts ? 'visible' : 'none' }
       });
@@ -163,10 +167,11 @@ export const LiveMap: React.FC = () => {
             10, 12
           ],
           'circle-color': [
-            'step', ['get', 'current_water_level_m'],
-            '#10b981', // Normal
-            400, '#f59e0b', // Watch (arbitrary high value for demo logic)
-            500, '#ef4444'  // Danger
+            'case',
+            ['>=', ['/', ['get', 'current_water_level_m'], ['max', ['get', 'danger_level_m'], 0.01]], 1.0], '#991B1B',
+            ['>=', ['/', ['get', 'current_water_level_m'], ['max', ['get', 'danger_level_m'], 0.01]], 0.8], '#9A3412',
+            ['>=', ['/', ['get', 'current_water_level_m'], ['max', ['get', 'warning_level_m'], 0.01]], 1.0], '#854D0E',
+            '#166534'
           ],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff'
@@ -207,6 +212,38 @@ export const LiveMap: React.FC = () => {
       });
     }
   }, [stations]);
+
+  // Apply risk levels to district features via feature-state
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !m.isStyleLoaded()) return;
+    if (!m.getSource('india-districts')) return;
+
+    // Build risk lookup by district name (case-insensitive)
+    const riskByDistrict = new Map<string, number>();
+
+    cwcDangerMap.forEach(s => {
+      if (s.district) riskByDistrict.set(s.district.toLowerCase(), 4);
+    });
+    cwcWarningMap.forEach(s => {
+      if (s.district && !riskByDistrict.has(s.district.toLowerCase())) {
+        riskByDistrict.set(s.district.toLowerCase(), 3);
+      }
+    });
+
+    // Apply feature-state to matching district features
+    const features = m.querySourceFeatures('india-districts');
+    features.forEach(f => {
+      const districtName = (f.properties?.['DISTRICT'] ?? '').toLowerCase();
+      const risk = riskByDistrict.get(districtName) ?? 0;
+      if (f.id !== undefined) {
+        m.setFeatureState(
+          { source: 'india-districts', id: f.id },
+          { risk }
+        );
+      }
+    });
+  }, [cwcWarningMap, cwcDangerMap]);
 
   // Handle layer visibility changes
   useEffect(() => {

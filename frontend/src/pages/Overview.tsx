@@ -1,178 +1,228 @@
 import React from 'react';
 import { 
-  WarningCircle, 
-  MapPin, 
-  CloudRain, 
-  Buildings,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  WarningOctagon
+  WarningCircle, MapPin, CloudRain, Buildings,
+  ArrowUpRight, ArrowDownRight, Clock, WarningOctagon
 } from 'phosphor-react';
 import { Link } from 'react-router-dom';
 
-import { useCWCAboveWarning, useCWCAboveDanger, useCWCInflowStations } from '../hooks/useTelemetry';
+import { useCWCAboveWarning, useCWCAboveDanger, useCWCInflowStations, useIMDWarnings } from '../hooks/useTelemetry';
 
-const KPI_METRICS = [
-  {
-    title: 'Critical Alerts',
-    value: '04',
-    subtitle: 'Active Risk L4/L5',
-    icon: WarningCircle,
-    trend: '+2',
-    trendType: 'danger',
-    color: 'suk-fire',
-    bg: 'risk-5',
-    link: '/alerts'
-  },
-  {
-    title: 'Active CWC Stations',
-    value: '1,428',
-    subtitle: 'Across India',
-    icon: MapPin,
-    trend: '98%',
-    trendType: 'success',
-    color: 'suk-forest',
-    bg: 'risk-1',
-    link: '/rivers'
-  },
-  {
-    title: '24h Rainfall Avg.',
-    value: '42.5',
-    unit: 'mm',
-    subtitle: 'Maharashtra Basin',
-    icon: CloudRain,
-    trend: '+12%',
-    trendType: 'warning',
-    color: 'suk-river',
-    bg: 'bg-surface-2',
-    link: '/rain'
-  },
-  {
-    title: 'Districts Affected',
-    value: '12',
-    subtitle: 'Inundation > 15%',
-    icon: Buildings,
-    trend: 'Stable',
-    trendType: 'neutral',
-    color: 'suk-amber',
-    bg: 'risk-3',
-    link: '/dist'
+// ── CWC flood situation → Pravhatattva risk level ──────────────────────────
+function cwcToRisk(situation?: string): number {
+  switch ((situation ?? '').toUpperCase()) {
+    case 'EXTREME':      return 5;
+    case 'SEVERE':       return 4;
+    case 'ABOVE_NORMAL': return 3;
+    case 'NORMAL':       return 1;
+    default:             return 2;
   }
-];
+}
 
-const RECENT_ALERTS = [
-  {
-    id: 'ALT-101',
-    basin: 'Panchganga River',
-    district: 'Kolhapur',
-    level: 5,
-    message: 'Extreme flood condition. Water level 41.5ft (Danger Mark: 39ft). Evacuation protocols initiated.',
-    time: '12 mins ago'
-  },
-  {
-    id: 'ALT-102',
-    basin: 'Krishna River',
-    district: 'Sangli',
-    level: 4,
-    message: 'Severe flood situation. Level rising steadily 1.2cm/hr.',
-    time: '45 mins ago'
-  },
-  {
-    id: 'ALT-103',
-    basin: 'Godavari Basin',
-    district: 'Nashik',
-    level: 3,
-    message: 'Heavy localized rainfall (85mm). Pluvial flood warnings issued for low-lying areas.',
-    time: '2 hrs ago'
-  }
-];
+// ── Format time ago ────────────────────────────────────────────────────────
+function timeAgo(isoStr?: string): string {
+  if (!isoStr) return '–';
+  const mins = Math.floor((Date.now() - new Date(isoStr).getTime()) / 60000);
+  if (mins < 60)  return `${mins} min ago`;
+  if (mins < 1440) return `${Math.floor(mins / 60)}h ago`;
+  return `${Math.floor(mins / 1440)}d ago`;
+}
 
 export const Overview: React.FC = () => {
-  const { data: cwcWarning = [] } = useCWCAboveWarning();
-  const { data: cwcDanger  = [] } = useCWCAboveDanger();
-  const { data: cwcInflow  = [] } = useCWCInflowStations();
+  const { data: cwcWarning = [], isLoading: warnLoading } = useCWCAboveWarning();
+  const { data: cwcDanger  = [] }                         = useCWCAboveDanger();
+  const { data: cwcInflow  = [] }                         = useCWCInflowStations();
+  const { data: imdWarnings = [] }                        = useIMDWarnings();
 
-  const alertCounts = {
-    warning:   cwcWarning.length,
-    danger:    cwcDanger.length,
-    reservoirs_critical: cwcInflow.filter(s => (s.fill_pct ?? 0) > 85).length,
-  };
+  // ── Real computed KPI values ─────────────────────────────────────────────
+  const totalAlerts         = cwcDanger.length + cwcWarning.length;
+  const activeStations      = cwcInflow.length + cwcWarning.length + cwcDanger.length;
+  const criticalReservoirs  = cwcInflow.filter(s => (s.fill_pct ?? 0) > 85).length;
+  const stationsAtDanger    = cwcDanger.length;
+
+  // ── Build live alert feed from real CWC FFS data ─────────────────────────
+  const liveFeed = [
+    ...cwcDanger.map((s: any) => ({
+      id: s.station_code ?? s.station_name,
+      basin: s.river ?? '–',
+      district: s.district ?? s.state ?? '–',
+      level: 4,
+      message: `Water level at ${(Number(s.current_water_level_m) || 0).toFixed(2)}m — above danger threshold of ${(Number(s.danger_level_m) || 0).toFixed(2)}m.`,
+      time: timeAgo(s.timestamp as string | undefined),
+    })),
+    ...cwcWarning.slice(0, 5).map((s: any) => ({
+      id: s.station_code ?? s.station_name,
+      basin: s.river ?? '–',
+      district: s.district ?? s.state ?? '–',
+      level: 3,
+      message: `Warning Level: ${(Number(s.current_water_level_m) || 0).toFixed(2)}m.`,
+      time: timeAgo(s.timestamp as string | undefined),
+    })),
+  ].slice(0, 5);
+
+  // Fallback to IMD warnings when CWC FFS returns empty
+  const alertFeed = liveFeed.length > 0
+    ? liveFeed
+    : imdWarnings.slice(0, 3).map(w => ({
+        id: w.id,
+        basin: w.district,
+        district: w.district,
+        level: w.severity === 'EXTREME' ? 5
+             : w.severity === 'SEVERE'  ? 4
+             : w.severity === 'MODERATE'? 3 : 2,
+        message: `${w.severity} — ${w.rainfall_24h_mm}mm in 24h.`,
+        time: w.issued_at,
+      }));
 
   return (
     <div className="w-full h-full p-8 overflow-y-auto space-y-8 bg-bg-cream">
-      
+
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="font-display text-text-dark text-3xl font-bold">National Overview</h2>
-          <p className="font-ui text-text-muted mt-1">Real-time Flood Intelligence & Predictive Hydrology</p>
+          <h2 className="font-display text-text-dark text-3xl font-bold">
+            प्रवहतत्त्व — National Overview
+          </h2>
+          <p className="font-ui text-text-muted mt-1">
+            Real-time flood intelligence · Powered by CWC FFS + IMD + GloFAS
+          </p>
         </div>
         <div className="flex items-center space-x-2 text-sm font-ui bg-bg-white border border-border-default px-4 py-2 rounded-lg shadow-sm">
           <Clock className="w-4 h-4 text-suk-forest" />
-          <span className="text-text-body font-medium">Auto-refresh (Live)</span>
+          <span className="text-text-body font-medium">
+            {warnLoading ? 'Syncing…' : `${totalAlerts} active alerts`}
+          </span>
         </div>
       </div>
 
-      {/* KPI Grid */}
+      {/* KPI Grid — all values from live APIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {KPI_METRICS.map((kpi, idx) => {
-          let dynamicValue = kpi.value;
-          if (kpi.title === 'Critical Alerts') {
-            dynamicValue = (alertCounts.danger + alertCounts.warning).toString().padStart(2, '0');
-          }
-          
-          return (
-            <Link to={kpi.link} key={idx} className="block group">
-              <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
-              
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className={`p-3 rounded-lg bg-${kpi.bg}`}>
-                  <kpi.icon className={`w-6 h-6 text-${kpi.color}`} weight="duotone" />
-                </div>
-                <div className={`flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface ${
-                  kpi.trendType === 'danger' ? 'text-suk-fire' : 
-                  kpi.trendType === 'success' ? 'text-suk-forest' : 
-                  kpi.trendType === 'warning' ? 'text-suk-amber' : 'text-text-muted'
-                }`}>
-                  {kpi.trendType === 'danger' && <ArrowUpRight className="w-3 h-3 mr-1" />}
-                  {kpi.trendType === 'success' && <ArrowUpRight className="w-3 h-3 mr-1" />}
-                  {kpi.trendType === 'warning' && <ArrowUpRight className="w-3 h-3 mr-1" />}
-                  {kpi.trend}
-                </div>
-              </div>
 
-              <div className="mt-auto relative z-10">
-                <div className="flex items-baseline space-x-1">
-                  <span className="font-display text-4xl font-bold text-text-dark">{dynamicValue}</span>
-                  {kpi.unit && <span className="font-ui font-bold text-text-muted">{kpi.unit}</span>}
-                </div>
-                <h3 className="font-ui font-bold text-text-body mt-2">{kpi.title}</h3>
-                <p className="font-ui text-sm text-text-muted mt-0.5">{kpi.subtitle}</p>
+        {/* Card 1 — Critical Alerts (CWC FFS danger + warning) */}
+        <Link to="/alerts" className="block group">
+          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="p-3 rounded-lg bg-risk-5">
+                <WarningCircle className="w-6 h-6 text-suk-fire" weight="duotone" />
               </div>
-
-              {/* Decorative Background Icon */}
-              <kpi.icon className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none transition-transform group-hover:scale-110" weight="fill" />
+              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-fire">
+                <ArrowUpRight className="w-3 h-3 mr-1" />
+                {stationsAtDanger} at danger
+              </div>
             </div>
-          </Link>
-          );
-        })}
+            <div className="mt-auto relative z-10">
+              <div className="flex items-baseline space-x-1">
+                <span className="font-display text-4xl font-bold text-text-dark">
+                  {String(totalAlerts).padStart(2, '0')}
+                </span>
+              </div>
+              <h3 className="font-ui font-bold text-text-body mt-2">Active Flood Alerts</h3>
+              <p className="font-ui text-sm text-text-muted mt-0.5">
+                {cwcDanger.length} above danger · {cwcWarning.length} above warning
+              </p>
+            </div>
+            <WarningCircle className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
+          </div>
+        </Link>
+
+        {/* Card 2 — Monitored Stations (CWC FFS live) */}
+        <Link to="/rivers" className="block group">
+          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="p-3 rounded-lg bg-risk-1">
+                <MapPin className="w-6 h-6 text-suk-forest" weight="duotone" />
+              </div>
+              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-forest">
+                {activeStations > 0 ? 'CWC FFS Live' : 'Loading…'}
+              </div>
+            </div>
+            <div className="mt-auto relative z-10">
+              <div className="flex items-baseline space-x-1">
+                <span className="font-display text-4xl font-bold text-text-dark">
+                  {activeStations || '–'}
+                </span>
+              </div>
+              <h3 className="font-ui font-bold text-text-body mt-2">Stations in Flood</h3>
+              <p className="font-ui text-sm text-text-muted mt-0.5">Reporting above-normal levels</p>
+            </div>
+            <MapPin className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
+          </div>
+        </Link>
+
+        {/* Card 3 — Reservoir Risk */}
+        <Link to="/rivers" className="block group">
+          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="p-3 rounded-lg bg-bg-surface-2">
+                <CloudRain className="w-6 h-6 text-suk-river" weight="duotone" />
+              </div>
+              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-amber">
+                {cwcInflow.length} stations
+              </div>
+            </div>
+            <div className="mt-auto relative z-10">
+              <div className="flex items-baseline space-x-1">
+                <span className="font-display text-4xl font-bold text-text-dark">
+                  {criticalReservoirs || '–'}
+                </span>
+              </div>
+              <h3 className="font-ui font-bold text-text-body mt-2">Critical Reservoirs</h3>
+              <p className="font-ui text-sm text-text-muted mt-0.5">Inflow stations above 85% fill</p>
+            </div>
+            <CloudRain className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
+          </div>
+        </Link>
+
+        {/* Card 4 — Districts Affected */}
+        <Link to="/alerts" className="block group">
+          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="p-3 rounded-lg bg-risk-3">
+                <Buildings className="w-6 h-6 text-suk-amber" weight="duotone" />
+              </div>
+              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-amber">
+                {imdWarnings.length} warnings
+              </div>
+            </div>
+            <div className="mt-auto relative z-10">
+              <div className="flex items-baseline space-x-1">
+                <span className="font-display text-4xl font-bold text-text-dark">
+                  {imdWarnings.length || '–'}
+                </span>
+              </div>
+              <h3 className="font-ui font-bold text-text-body mt-2">IMD Active Warnings</h3>
+              <p className="font-ui text-sm text-text-muted mt-0.5">Districts with active advisories</p>
+            </div>
+            <Buildings className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
+          </div>
+        </Link>
       </div>
 
       {/* Two Column Layout: Alerts & System Health */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Recent Alerts Feed */}
+
+        {/* Live Alert Feed — from CWC FFS + IMD */}
         <div className="lg:col-span-2 bg-bg-white border border-border-default rounded-xl shadow-sm flex flex-col">
           <div className="p-6 border-b border-border-light flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <WarningOctagon className="w-5 h-5 text-suk-fire" weight="fill" />
-              <h3 className="font-display font-bold text-lg text-text-dark">Critical Live Alerts</h3>
+              <h3 className="font-display font-bold text-lg text-text-dark">
+                Live Flood Alerts
+              </h3>
+              {warnLoading && (
+                <span className="text-xs font-ui text-text-muted animate-pulse">syncing…</span>
+              )}
             </div>
-            <Link to="/alerts" className="text-sm font-ui font-bold text-suk-forest hover:text-suk-forest-mid">View All &rarr;</Link>
+            <Link to="/alerts" className="text-sm font-ui font-bold text-suk-forest hover:text-suk-forest-mid">
+              View All →
+            </Link>
           </div>
           <div className="divide-y divide-border-light flex-1">
-            {RECENT_ALERTS.map(alert => (
+            {alertFeed.length === 0 ? (
+              <div className="p-6 text-center text-text-muted font-ui text-sm">
+                <span className="text-suk-forest font-bold">No active flood alerts.</span>
+                <br />All monitored rivers are within normal levels.
+              </div>
+            ) : alertFeed.map(alert => (
               <div key={alert.id} className="p-6 hover:bg-bg-cream transition-colors flex items-start space-x-4">
                 <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg bg-risk-${alert.level} text-risk-${alert.level}-text border border-risk-${alert.level}-border`}>
                   L{alert.level}
@@ -181,7 +231,9 @@ export const Overview: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-ui font-bold text-text-dark">{alert.basin}</h4>
-                      <p className="font-ui text-xs font-bold text-text-muted uppercase tracking-wider mt-0.5">{alert.district} District • {alert.id}</p>
+                      <p className="font-ui text-xs font-bold text-text-muted uppercase tracking-wider mt-0.5">
+                        {alert.district} · {String(alert.id).slice(0, 12)}
+                      </p>
                     </div>
                     <span className="font-data text-xs text-text-muted whitespace-nowrap">{alert.time}</span>
                   </div>
