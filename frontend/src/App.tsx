@@ -4,6 +4,7 @@ import { Layout } from './components/layout/Layout';
 import { LiveMap } from './pages/LiveMap';
 import { Overview } from './pages/Overview';
 import { MLAnalysis } from './pages/MLAnalysis';
+import { RiverForecast } from './pages/RiverForecast';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center w-full h-full p-8">
@@ -23,7 +24,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Overview />} />
           <Route path="map" element={<LiveMap />} />
-          <Route path="rivers" element={<PlaceholderPage title="River Forecasts" />} />
+          <Route path="rivers" element={<RiverForecast />} />
           <Route path="rain" element={<PlaceholderPage title="Rainfall Radar" />} />
           <Route path="alerts" element={<PlaceholderPage title="Alert Center" />} />
           <Route path="ml" element={<MLAnalysis />} />
