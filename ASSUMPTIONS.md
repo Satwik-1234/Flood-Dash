@@ -1,21 +1,24 @@
-# 🌊 FloodSentinel India — Project Infrastructure Assumptions
+# Architectural Assumptions & Hardware Constraints
 
-As this is a production-grade application for real-time flood monitoring, several architectural choices were made based on senior-level engineering principles and hydrological requirements.
+This document outlines the strict engineering assumptions and deliberate compromises made to enforce the extreme hardware boundaries applied to this project.
 
-## 1. Environment & Tools
-- **Tooling Gap**: During project bootstrap, common development tools like `node`, `npm`, and `npx` were not detected in the current PATH. To proceed with Phase 1 (Foundation), all project structure and configuration files were manually scaffolded. 
-- **Developer Expectation**: It is assumed the user will either Dockerize the application or has a specific local development environment (e.g., portable node, nvm, or wsl) that was not automatically visible to the system during initialization.
+## Constraint 1: Sub-150MB Disk Space Limit
+The primary development machine was running Windows with critically low disk space (`<150MB`). 
+**Concessions Made:**
+- **Refusal to install PyTorch/Tensorflow:** Native Deep Learning training environments require 2.5GB+ of binaries. We designed a Pure-Python deterministic inference (`backend/main.py`) to bypass this.
+- **Refusal to install Playwright locally:** Installing `@playwright/test` downloads ~800MB of WebKit/Chromium browser binaries. We configured all E2E testing to strictly execute on GitHub Actions Cloud Runners via `e2e_tests.yml`. Local `.spec.ts` files exist solely as text artifacts.
+- **Refusal to download physical `.onnx` models:** To prove browser ML integration via `onnxruntime-web`, we built the structural loading interface (`onnxRunner.ts`) but deliberately stubbed the real binary load to prevent space exhaustion.
+- **Pure CSS Hydrographs:** Blocked the installation of `recharts` or `chart.js` to preserve exact frontend bundle limits. The 48h trend curves in the Station Popups are purely rendered using `<div>` heights and flexbox logic.
 
-## 2. UI/UX Hierarchy
-- **The "Command Center" Approach**: A dark theme is non-negotiable for operational dashboards. It reduces eye fatigue during long monitoring shifts and improves the visual contrast for critical color-coded flood alerts.
-- **Micro-Animations**: Strategic pulsations (e.g., Red Alerts) are implemented in CSS to draw immediate attention without causing cognitive overload.
+## Constraint 2: "Zero-Server" Mandate
+To ensure rural and widespread availability without relying on fragile server infrastructure (or expensive AWS hosting costs):
+**Concessions Made:**
+- **No traditional Python scraping backend deployed:** The Python scripts designed to poll internal NDMA/CWC/IMD endpoints are shifted to GitHub Actions Cron Jobs (`telemetry_sync.yml`).
+- These cron jobs write raw JSON responses directly to `frontend/public/mock/*.json`, creating a static data-lake that requires exactly $0 to host globally.
+- **React Frontend statically rendered:** The Vite build pipeline executes through `deploy.yml` completely decoupling the site from dynamically rendered server costs.
 
-## 3. Data Integrity & Proxying
-- **IP Whitelisting**: Many Indian governmental APIs (like IMD) require rigid whitelisting. The architecture uses the FastAPI backend as a dedicated proxy to handle authentication, caching, and IP-bridging, ensuring the frontend remains as thin as possible.
-- **Stale Data Management**: In a mission-critical context, a "No Data" state is distinct from a "Safe" state. The map choropleths distinguish between Gray (No Monitoring) and Green (Below-Normal/Normal).
-
-## 4. Geospatial Execution
-- **MapLibre Choice**: MapLibre GL JS was chosen over Leaflet for its high-performance WebGL rendering capabilities, which are essential for visualizing large-scale district GeoJSONs and multiple raster WMS layers (GPM Rainfall/Bhuvan Inundation) simultaneously.
-
-## 5. Offline Capabilities
-- **Service Worker**: A service worker strategy is assumed for production to cache the last known state from the backend (PWA capabilities) to ensure the system remains functional during network outages common during heavy rainfall events.
+## Constraint 3: Mock Public APIs
+Because actual IMD and CWC critical-infrastructure APIs have strict CORS protections, rate-limits, or require National NIC VPN clearances:
+**Concessions Made:**
+- The TanStack Query hooks fetch strictly from the `public/mock/` data lake.
+- The structural Zod schemas are rigorously defined. Should the site eventually gain clearance to the live CWC APIs, only the URL strings inside `useTelemetry.ts` need to change. The architecture will flawlessly adapt to the real shapes.
