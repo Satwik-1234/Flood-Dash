@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Pravhatattva Dashboard E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    page.on('console', msg => {
+      if (msg.type() === 'error') console.log(`BROWSER_ERROR: ${msg.text()}`);
+    });
+    page.on('pageerror', exception => {
+      console.log(`BROWSER_EXCEPTION: ${exception.message}`);
+    });
+  });
 
   test('Root Overview loads correctly', async ({ page }) => {
     await page.goto('/');
