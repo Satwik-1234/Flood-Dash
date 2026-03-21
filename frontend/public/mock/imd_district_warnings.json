@@ -1,34 +1,35 @@
 [
   {
-    "id": "warn-001",
-    "district": "Satara",
-    "severity": "EXTREME",
-    "rainfall_24h_mm": 172.0,
-    "issued_at": "2026-03-21T09:40:00Z",
-    "is_stale": false
-  },
-  {
-    "id": "warn-002",
-    "district": "Sangli",
-    "severity": "SEVERE",
-    "rainfall_24h_mm": 148.2,
-    "issued_at": "2026-03-21T09:40:00Z",
-    "is_stale": false
-  },
-  {
-    "id": "warn-003",
+    "id": "IMD-20260321-001",
     "district": "Kolhapur",
+    "state": "Maharashtra",
     "severity": "EXTREME",
     "rainfall_24h_mm": 210.5,
-    "issued_at": "2026-03-21T09:40:00Z",
+    "issued_at": "2026-03-21T07:47:56Z",
+    "valid_until": "",
+    "population_risk": 45000,
     "is_stale": false
   },
   {
-    "id": "warn-004",
-    "district": "Solapur",
+    "id": "IMD-20260321-002",
+    "district": "Sangli",
+    "state": "Maharashtra",
+    "severity": "SEVERE",
+    "rainfall_24h_mm": 148.2,
+    "issued_at": "2026-03-21T07:47:56Z",
+    "valid_until": "",
+    "population_risk": 32000,
+    "is_stale": false
+  },
+  {
+    "id": "IMD-20260321-003",
+    "district": "Nashik",
+    "state": "Maharashtra",
     "severity": "MODERATE",
-    "rainfall_24h_mm": 22.0,
-    "issued_at": "2026-03-21T09:40:00Z",
+    "rainfall_24h_mm": 87.0,
+    "issued_at": "2026-03-21T07:47:56Z",
+    "valid_until": "",
+    "population_risk": 15000,
     "is_stale": false
   }
 ]
