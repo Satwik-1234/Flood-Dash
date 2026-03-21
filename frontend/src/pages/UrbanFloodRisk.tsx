@@ -33,7 +33,7 @@ export const UrbanFloodRisk: React.FC = () => {
   });
 
   const cityData = URBAN_CITIES.map((city, i) => {
-    const wx = weatherQueries[i];
+    const wx = weatherQueries[i] ?? { data: undefined, isLoading: false };
     const hourlyPrecip: (number | null)[] = wx.data?.hourly?.precipitation ?? [];
     // Get max 1-hour intensity in next 6 hours
     const now = new Date();
