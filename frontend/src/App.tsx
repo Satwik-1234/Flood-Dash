@@ -5,6 +5,7 @@ import { LiveMap } from './pages/LiveMap';
 import { Overview } from './pages/Overview';
 import { MLAnalysis } from './pages/MLAnalysis';
 import { RiverForecast } from './pages/RiverForecast';
+import { AlertCenter } from './pages/AlertCenter';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center w-full h-full p-8">
@@ -26,7 +27,7 @@ function App() {
           <Route path="map" element={<LiveMap />} />
           <Route path="rivers" element={<RiverForecast />} />
           <Route path="rain" element={<PlaceholderPage title="Rainfall Radar" />} />
-          <Route path="alerts" element={<PlaceholderPage title="Alert Center" />} />
+          <Route path="alerts" element={<AlertCenter />} />
           <Route path="ml" element={<MLAnalysis />} />
           <Route path="hist" element={<PlaceholderPage title="Historical Explorer" />} />
           <Route path="urban" element={<PlaceholderPage title="Urban Flood Risk" />} />
