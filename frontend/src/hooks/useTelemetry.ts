@@ -118,13 +118,25 @@ export const useDataMeta = () =>
     refetchInterval: 5 * 60 * 1000,
   });
 
-// ── GloFAS sample ───────────────────────────────────────────────────────────
-export const useGloFASSample = () =>
+// ── Radar Metadata (RainViewer) ─────────────────────────────────────────────
+export const useRadarMetadata = () =>
   useQuery({
-    queryKey: ['glofas-sample'],
+    queryKey: ['radar-metadata'],
     queryFn: async () => {
-      const res = await fetch('/mock/glofas_rivers.json');
-      return res.json();
+      // Try local scraper output first
+      try {
+        const r = await fetch('/mock/radar_metadata.json');
+        if (r.ok) return r.json();
+      } catch {}
+      // Fallback: fetch directly from RainViewer (free, no key)
+      const r = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+      const data = await r.json();
+      return {
+        radar: data.radar,
+        satellite: { infrared: data.satellite?.infrared?.slice(-6) },
+        tile_url_template: 'https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/4/1_1.png',
+      };
     },
-    staleTime: 6 * 60 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000, // 10 min — matches RainViewer update cycle
+    staleTime:        8 * 60 * 1000,
   });

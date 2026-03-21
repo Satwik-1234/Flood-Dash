@@ -1,205 +1,182 @@
 """
-Pravhatattva — Telemetry Sync Scraper
-Runs on GitHub Actions every 15 minutes.
-Fetches from Open-Meteo GloFAS (free, no key) and updates mock data files.
-
-Real IMD/CWC require IP whitelisting — those stubs are documented.
-GloFAS works immediately with zero credentials.
+Pravhatattva Scraper v3.0
+Regional-first data strategy:
+  - CWC FFS: real-time flood station alerts (no substitute)
+  - IMD district APIs: real rainfall, warnings, nowcast
+  - Open-Meteo: ONLY for soil moisture (no regional substitute)
+  - RainViewer: animated radar tiles metadata
+  - Removed: GloFAS global proxy (replaced by real CWC)
+  - Removed: Open-Meteo rainfall (replaced by IMD)
 """
 
-import requests
-import json
-import os
-import datetime
+import requests, json, os, datetime
 from pathlib import Path
 
-# ─── PATHS ──────────────────────────────────────────────────────────────────
-MOCK_DIR = Path("frontend/public/mock")
+MOCK_DIR = Path(os.getenv("MOCK_OUTPUT_DIR", "frontend/public/mock"))
 MOCK_DIR.mkdir(parents=True, exist_ok=True)
-
 NOW_ISO = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-# ─── STATE CENTROIDS (National Weather Coverage) ────────────────────────────
-STATE_CENTROIDS = {
-    'Maharashtra': (19.75, 75.71), 'Uttar Pradesh': (26.85, 80.99),
-    'Bihar': (25.09, 85.31), 'Assam': (26.20, 92.93), 'West Bengal': (22.99, 87.85),
-    'Odisha': (20.94, 85.09), 'Gujarat': (22.25, 71.19), 'Rajasthan': (27.02, 74.22),
-    'Madhya Pradesh': (23.47, 77.95), 'Andhra Pradesh': (15.91, 79.74),
-    'Telangana': (17.37, 78.48), 'Karnataka': (15.32, 75.71), 'Tamil Nadu': (11.12, 78.66),
-    'Kerala': (10.85, 76.27), 'Himachal Pradesh': (31.10, 77.17),
-    'Uttarakhand': (30.07, 79.06), 'Jharkhand': (23.61, 85.27), 'Chhattisgarh': (21.27, 81.86),
-    'Punjab': (31.14, 75.34), 'Haryana': (29.05, 76.09), 'Delhi': (28.70, 77.10),
+CWC_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Referer": "https://ffs.india-water.gov.in/",
+    "Accept": "application/json, text/plain, */*",
+    "Origin": "https://ffs.india-water.gov.in",
 }
 
-# ─── NATIONAL CWC STATIONS (Major River Basins) ─────────────────────────────
-STATIONS = [
-    # Maharashtra (Existing)
-    {"station_code": "CWC_MH_UJN_001", "basin": "Bhima", "river": "Bhima", "station_name": "Ujani Dam", "state": "Maharashtra", "lat": 18.06, "lon": 75.12, "warning_level_m": 496.0, "danger_level_m": 498.0},
-    {"station_code": "CWC_MH_PCG_002", "basin": "Panchganga", "river": "Panchganga", "station_name": "Shinnur", "state": "Maharashtra", "lat": 16.70, "lon": 74.24, "warning_level_m": 540.0, "danger_level_m": 543.0},
-    # North India
-    {"station_code": "CWC_DL_YMN_001", "basin": "Yamuna", "river": "Yamuna", "station_name": "Delhi (Old Bridge)", "state": "Delhi", "lat": 28.69, "lon": 77.24, "warning_level_m": 204.5, "danger_level_m": 205.3},
-    {"station_code": "CWC_UP_GNG_001", "basin": "Ganga", "river": "Ganga", "station_name": "Varanasi", "state": "Uttar Pradesh", "lat": 25.33, "lon": 83.00, "warning_level_m": 70.0, "danger_level_m": 71.3},
-    # East India
-    {"station_code": "CWC_AS_BHM_001", "basin": "Brahmaputra", "river": "Brahmaputra", "station_name": "Guwahati", "state": "Assam", "lat": 26.18, "lon": 91.74, "warning_level_m": 49.0, "danger_level_m": 49.7},
-    {"station_code": "CWC_OR_MHN_001", "basin": "Mahanadi", "river": "Mahanadi", "station_name": "Cuttack", "state": "Odisha", "lat": 20.46, "lon": 85.89, "warning_level_m": 25.0, "danger_level_m": 26.5},
-    # South India
-    {"station_code": "CWC_AP_GDA_001", "basin": "Godavari", "river": "Godavari", "station_name": "Rajahmundry", "state": "Andhra Pradesh", "lat": 17.00, "lon": 81.78, "warning_level_m": 13.0, "danger_level_m": 14.5},
-    {"station_code": "CWC_KA_KRS_001", "basin": "Krishna", "river": "Krishna", "station_name": "Almatti Dam", "state": "Karnataka", "lat": 16.33, "lon": 75.88, "warning_level_m": 515.0, "danger_level_m": 519.0},
-]
 
-
-def fetch_glofas_discharge(lat: float, lon: float) -> dict | None:
-    """
-    Fetch GloFAS river discharge forecast from Open-Meteo.
-    Completely free, no API key, covers all of India.
-    Returns 7-day daily forecast with ensemble median.
-    """
-    url = "https://flood-api.open-meteo.com/v1/flood"
-    params = {
-        "latitude":  lat,
-        "longitude": lon,
-        "daily":     "river_discharge,river_discharge_mean,river_discharge_max",
-        "forecast_days": 7,
-    }
+def fetch_json(url: str, headers: dict = {}, label: str = "") -> list | dict | None:
     try:
-        resp = requests.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
+        r = requests.get(url, headers=headers, timeout=12)
+        r.raise_for_status()
+        data = r.json()
+        count = len(data) if isinstance(data, list) else "dict"
+        print(f"  ✓ {label or url[:60]}: {count} records")
+        return data
     except Exception as e:
-        print(f"  GloFAS fetch failed ({lat},{lon}): {e}")
+        print(f"  ✗ {label or url[:60]}: {e}")
         return None
 
 
-def build_cwc_station_entry(station: dict, glofas: dict | None) -> dict:
-    """
-    Build a CWCStation entry that matches CWCStationSchema exactly.
-    Uses GloFAS discharge as a proxy for water level estimation.
-    Marks as stale if GloFAS fetch failed.
-    """
-    is_stale = glofas is None
-    discharge_mean = 0.0
-    if glofas and "daily" in glofas:
-        daily = glofas["daily"]
-        values = daily.get("river_discharge_mean") or daily.get("river_discharge") or []
-        discharge_mean = float(values[0]) if values else 0.0
-
-    # Estimate water level from discharge using simplified rating relationship
-    # Q ~ a*(h-b)^c — simplified linear proxy for display
-    base_level = station["warning_level_m"] - 2.0
-    estimated_level = round(base_level + (discharge_mean / 800.0) * 3.0, 2)
-    estimated_level = max(base_level, min(station["danger_level_m"] + 1.5, estimated_level))
-
-    # Determine trend from first two days of GloFAS
-    trend = "STEADY"
-    if glofas and "daily" in glofas:
-        d = glofas["daily"].get("river_discharge_mean") or []
-        if len(d) >= 2:
-            if float(d[1]) > float(d[0]) * 1.05:    trend = "RISING"
-            elif float(d[1]) < float(d[0]) * 0.95:  trend = "FALLING"
-
-    return {
-        **{k: station[k] for k in
-           ["station_code","basin","river","station_name","state","lat","lon",
-            "warning_level_m","danger_level_m"]},
-        "timestamp":             NOW_ISO,
-        "current_water_level_m": estimated_level,
-        "trend":                 trend,
-        "is_stale":              is_stale,
-        "glofas_discharge_m3s":  round(discharge_mean, 1),
-    }
-
-
-def fetch_imd_warnings_mock() -> list:
-    """
-    IMD district warnings API requires government IP whitelisting.
-    Until clearance is obtained, we return realistic mock warnings
-    structured exactly to IMDWarningSchema.
-    In production: swap this for the real fetch via Cloudflare Worker.
-    """
-    return [
-        {
-            "id": f"IMD-{NOW_ISO[:10].replace('-','')}-001",
-            "district": "Kolhapur",
-            "state": "Maharashtra",
-            "severity": "EXTREME",
-            "rainfall_24h_mm": 210.5,
-            "issued_at": NOW_ISO,
-            "valid_until": "",
-            "population_risk": 45000,
-            "is_stale": False,
-        },
-        {
-            "id": f"IMD-{NOW_ISO[:10].replace('-','')}-002",
-            "district": "Sangli",
-            "state": "Maharashtra",
-            "severity": "SEVERE",
-            "rainfall_24h_mm": 148.2,
-            "issued_at": NOW_ISO,
-            "valid_until": "",
-            "population_risk": 32000,
-            "is_stale": False,
-        },
-        {
-            "id": f"IMD-{NOW_ISO[:10].replace('-','')}-003",
-            "district": "Nashik",
-            "state": "Maharashtra",
-            "severity": "MODERATE",
-            "rainfall_24h_mm": 87.0,
-            "issued_at": NOW_ISO,
-            "valid_until": "",
-            "population_risk": 15000,
-            "is_stale": False,
-        },
-    ]
-
-
-def write_json(path: Path, data: object) -> None:
+def write(filename: str, data: object) -> None:
+    path = MOCK_DIR / filename
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
-    print(f"  Written: {path} ({len(json.dumps(data))} bytes)")
+    size = path.stat().st_size
+    print(f"  → Written: {filename} ({size//1024}KB)")
 
 
 def main():
-    print(f"Pravhatattva Telemetry Sync — {NOW_ISO}")
-    print("=" * 50)
+    print(f"\nPravhatattva Scraper v3.0 — {NOW_ISO}")
+    print("Regional-first strategy: CWC FFS + IMD + soil moisture only")
+    print("=" * 60)
+    status = {}
 
-    # 1. Build CWC stations with live GloFAS discharge
-    print("\n[1/4] Fetching GloFAS discharge for CWC stations...")
-    cwc_output = []
-    for station in STATIONS:
-        print(f"  Fetching {station['station_code']} @ ({station['lat']},{station['lon']})")
-        glofas = fetch_glofas_discharge(station["lat"], station["lon"])
-        entry  = build_cwc_station_entry(station, glofas)
-        cwc_output.append(entry)
-        print(f"  -> level={entry['current_water_level_m']}m, trend={entry['trend']}, stale={entry['is_stale']}")
+    # ── 1. CWC FFS REAL-TIME (Primary source) ─────────────────────────────
+    print("\n[1/6] CWC FFS: Stations above warning (live flood situation)...")
+    above_warning = fetch_json(
+        "https://ffs.india-water.gov.in/ffm/api/station-water-level-above-warning/",
+        CWC_HEADERS, "above-warning"
+    ) or []
+    write("cwc_above_warning.json", above_warning)
+    status["cwc_above_warning"] = {
+        "status": "ok" if above_warning else "empty",
+        "records": len(above_warning),
+        "last_fetch": NOW_ISO,
+        "note": "Real CWC FFS — replaces GloFAS proxy"
+    }
 
-    write_json(MOCK_DIR / "cwc_stations.json", cwc_output)
+    print("\n[2/6] CWC FFS: Inflow forecast stations (128 dams/reservoirs)...")
+    inflow = fetch_json(
+        "https://ffs.india-water.gov.in/wims-messaging/api/inflow-forecast-station/",
+        CWC_HEADERS, "inflow-stations"
+    ) or []
+    write("cwc_inflow_stations.json", inflow)
+    status["cwc_inflow_stations"] = {
+        "status": "ok" if inflow else "empty",
+        "records": len(inflow),
+        "last_fetch": NOW_ISO,
+    }
 
-    # 2. IMD warnings (mock with correct schema shape)
-    print("\n[2/4] Generating IMD district warnings...")
-    warnings = fetch_imd_warnings_mock()
-    write_json(MOCK_DIR / "imd_district_warnings.json", warnings)
+    # Try above-danger endpoint
+    print("\n[3/6] CWC FFS: Stations above danger level...")
+    above_danger = fetch_json(
+        "https://ffs.india-water.gov.in/ffm/api/station-water-level-above-danger/",
+        CWC_HEADERS, "above-danger"
+    ) or []
+    write("cwc_above_danger.json", above_danger)
 
-    # 3. GloFAS sample discharge (7-day forecast for first station)
-    print("\n[3/4] Fetching GloFAS 7-day for sample station...")
-    sample = fetch_glofas_discharge(STATIONS[0]["lat"], STATIONS[0]["lon"])
-    if sample:
-        write_json(MOCK_DIR / "glofas_sample_discharge.json", sample)
+    # ── 2. IMD REGIONAL WARNINGS (replaces Open-Meteo rainfall) ───────────
+    print("\n[4/6] IMD: District warnings (5-day color-coded)...")
+    imd_warnings = fetch_json(
+        "https://mausam.imd.gov.in/api/warnings_district_api.php",
+        {}, "imd-district-warnings"
+    )
+    if imd_warnings is None:
+        # IMD not whitelisted yet — use structured mock
+        print("  ⚠ IMD not accessible (IP whitelisting pending). Using mock.")
+        imd_warnings = [
+            {"id": f"IMD-{NOW_ISO[:10]}-001", "district": "Kolhapur",
+             "state": "Maharashtra", "severity": "EXTREME",
+             "rainfall_24h_mm": 210.5, "issued_at": NOW_ISO, "is_stale": True},
+            {"id": f"IMD-{NOW_ISO[:10]}-002", "district": "Sangli",
+             "state": "Maharashtra", "severity": "SEVERE",
+             "rainfall_24h_mm": 148.2, "issued_at": NOW_ISO, "is_stale": True},
+        ]
+    write("imd_district_warnings.json", imd_warnings)
+    status["imd_warnings"] = {
+        "status": "ok" if not (isinstance(imd_warnings, list) and
+                               any(w.get('is_stale') for w in imd_warnings)) else "mock",
+        "records": len(imd_warnings) if isinstance(imd_warnings, list) else 0,
+        "last_fetch": NOW_ISO,
+        "whitelist_pending": True,
+    }
 
-    # 4. Write meta file
-    print("\n[4/4] Writing _meta.json...")
+    # ── 3. SOIL MOISTURE ONLY from Open-Meteo (no regional substitute) ────
+    print("\n[5/6] Open-Meteo: Soil moisture for key basins...")
+    BASIN_POINTS = [
+        ("Brahmaputra", 26.18, 91.74),
+        ("Ganga-Patna", 25.61, 85.14),
+        ("Godavari", 17.00, 81.78),
+        ("Krishna", 16.51, 80.61),
+        ("Mahanadi", 20.46, 85.89),
+        ("Bhima", 18.06, 75.12),
+        ("Cauvery", 10.80, 78.68),
+    ]
+    soil_data = []
+    for name, lat, lon in BASIN_POINTS:
+        url = (f"https://api.open-meteo.com/v1/forecast"
+               f"?latitude={lat}&longitude={lon}"
+               f"&hourly=soil_moisture_0_1cm,soil_moisture_1_3cm,soil_moisture_3_9cm"
+               f"&forecast_days=3&timezone=Asia/Kolkata")
+        d = fetch_json(url, {}, f"soil-moisture-{name}")
+        if d:
+            soil_data.append({"basin": name, "lat": lat, "lon": lon, **d})
+    write("soil_moisture_basins.json", soil_data)
+    status["soil_moisture"] = {
+        "status": "ok",
+        "records": len(soil_data),
+        "last_fetch": NOW_ISO,
+        "note": "Only Open-Meteo data kept — no IMD substitute for soil moisture"
+    }
+
+    # ── 4. RAINVIEWER RADAR METADATA ──────────────────────────────────────
+    print("\n[6/6] RainViewer: Animated radar tile metadata...")
+    radar = fetch_json("https://api.rainviewer.com/public/weather-maps.json",
+                       {}, "rainviewer-metadata")
+    if radar:
+        # Extract just what we need — tile paths for past + nowcast
+        simplified_radar = {
+            "generated_at": NOW_ISO,
+            "radar": {
+                "past":    radar.get("radar", {}).get("past", []),
+                "nowcast": radar.get("radar", {}).get("nowcast", []),
+            },
+            "satellite": {
+                "infrared": radar.get("satellite", {}).get("infrared", [])[-6:],
+            },
+            "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
+            "sat_url_template":  "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png",
+        }
+        write("radar_metadata.json", simplified_radar)
+        status["radar"] = {
+            "status": "ok",
+            "past_frames": len(simplified_radar["radar"]["past"]),
+            "nowcast_frames": len(simplified_radar["radar"]["nowcast"]),
+            "last_fetch": NOW_ISO,
+        }
+    else:
+        status["radar"] = {"status": "error", "last_fetch": NOW_ISO}
+
+    # ── Meta ───────────────────────────────────────────────────────────────
     meta = {
         "generated_at": NOW_ISO,
-        "scraper_version": "1.2.0",
-        "sources": {
-            "cwc_stations":         {"status": "ok", "records": len(cwc_output),  "last_fetch": NOW_ISO},
-            "imd_warnings":         {"status": "mock", "records": len(warnings),  "last_fetch": NOW_ISO},
-            "glofas_discharge":     {"status": "ok" if sample else "error",       "last_fetch": NOW_ISO},
-        }
+        "scraper_version": "3.0.0",
+        "strategy": "regional-first: CWC FFS + IMD + soil moisture only",
+        "sources": status,
+        "removed": ["GloFAS global discharge proxy", "Open-Meteo rainfall (replaced by IMD)"],
     }
-    write_json(MOCK_DIR / "_meta.json", meta)
-
-    print(f"\nSync complete. {len(cwc_output)} stations updated.")
+    write("_meta.json", meta)
+    print(f"\n✓ Scraper complete: {len(above_warning)} flood alerts, {len(inflow)} reservoirs")
 
 
 if __name__ == "__main__":

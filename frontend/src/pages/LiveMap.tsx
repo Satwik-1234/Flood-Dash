@@ -29,6 +29,40 @@ export const LiveMap: React.FC = () => {
     stations: true
   });
 
+  // ── Radar animation state ──────────────────────────────────────────────────
+  const [radarFrames, setRadarFrames]       = useState<{path: string; time: number}[]>([]);
+  const [radarFrameIdx, setRadarFrameIdx]   = useState(0);
+  const [radarPlaying, setRadarPlaying]     = useState(false);
+  const [showRadar, setShowRadar]           = useState(false);
+  const animIntervalRef                     = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load radar metadata from scraper output
+  useEffect(() => {
+    fetch('/mock/radar_metadata.json')
+      .then(r => r.json())
+      .then(data => {
+        const frames = [
+          ...(data.radar?.past ?? []),
+          ...(data.radar?.nowcast ?? []),
+        ];
+        setRadarFrames(frames);
+        setRadarFrameIdx(Math.max(0, frames.length - 3)); // Start near latest
+      })
+      .catch(() => {
+        // Fallback: fetch directly from RainViewer
+        fetch('https://api.rainviewer.com/public/weather-maps.json')
+          .then(r => r.json())
+          .then(data => {
+            const frames = [
+              ...(data.radar?.past ?? []),
+              ...(data.radar?.nowcast ?? []),
+            ];
+            setRadarFrames(frames);
+            setRadarFrameIdx(Math.max(0, frames.length - 3));
+          });
+      });
+  }, []);
+
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
     
@@ -39,7 +73,7 @@ export const LiveMap: React.FC = () => {
         sources: {
           'basemap': {
             type: 'raster',
-            tiles: [BASEMAPS.CARTO_LIGHT], // User brief allows CARTO Light as standard
+            tiles: [BASEMAPS.CARTO_LIGHT],
             tileSize: 256,
             attribution: '© CARTO © OpenStreetMap'
           }
@@ -195,6 +229,48 @@ export const LiveMap: React.FC = () => {
 
   }, [stations]);
 
+  // Update MapLibre radar tile when frame changes
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !m.isStyleLoaded() || !showRadar || radarFrames.length === 0) return;
+    
+    const frame = radarFrames[radarFrameIdx];
+    if (!frame) return;
+    
+    const tileUrl = `https://tilecache.rainviewer.com/v2/radar/${frame.path}/256/{z}/{x}/{y}/4/1_1.png`;
+    
+    if (m.getSource('radar-tiles')) {
+      // Update existing source
+      (m.getSource('radar-tiles') as maplibregl.RasterTileSource).setTiles([tileUrl]);
+    } else {
+      // Add source + layer
+      m.addSource('radar-tiles', {
+        type: 'raster',
+        tiles: [tileUrl],
+        tileSize: 256,
+        attribution: 'RainViewer',
+      });
+      m.addLayer({
+        id: 'radar-layer',
+        type: 'raster',
+        source: 'radar-tiles',
+        paint: { 'raster-opacity': 0.65 },
+      }, 'stations-point'); // Insert below station markers
+    }
+  }, [radarFrames, radarFrameIdx, showRadar]);
+
+  // Play/pause animation
+  useEffect(() => {
+    if (radarPlaying && radarFrames.length > 0) {
+      animIntervalRef.current = setInterval(() => {
+        setRadarFrameIdx(i => (i + 1) % radarFrames.length);
+      }, 500); // 500ms per frame
+    } else {
+      if (animIntervalRef.current) clearInterval(animIntervalRef.current);
+    }
+    return () => { if (animIntervalRef.current) clearInterval(animIntervalRef.current); };
+  }, [radarPlaying, radarFrames.length]);
+
   // Handle station data updates
   useEffect(() => {
     const m = map.current;
@@ -219,7 +295,6 @@ export const LiveMap: React.FC = () => {
     if (!m || !m.isStyleLoaded()) return;
     if (!m.getSource('india-districts')) return;
 
-    // Build risk lookup by district name (case-insensitive)
     const riskByDistrict = new Map<string, number>();
 
     cwcDangerMap.forEach(s => {
@@ -231,7 +306,6 @@ export const LiveMap: React.FC = () => {
       }
     });
 
-    // Apply feature-state to matching district features
     const features = m.querySourceFeatures('india-districts');
     features.forEach(f => {
       const districtName = (f.properties?.['DISTRICT'] ?? '').toLowerCase();
@@ -306,6 +380,69 @@ export const LiveMap: React.FC = () => {
           </div>
         </div>
 
+        {/* RainViewer Radar Control */}
+        <div className="bg-bg-white border border-border-default shadow-popup rounded-xl p-5">
+          <h4 className="font-ui text-xs font-bold text-text-muted uppercase tracking-wider mb-3">
+            Atmospheric Sensors
+          </h4>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showRadar}
+                  onChange={e => setShowRadar(e.target.checked)}
+                  className="rounded border-border-default text-suk-forest focus:ring-suk-forest"
+                />
+                <span className="font-ui text-sm font-bold text-text-dark">
+                  Radar Overlay (Doppler)
+                </span>
+                <span className="font-data text-[10px] text-suk-river bg-bg-surface px-2 py-0.5 rounded">
+                  LIVE
+                </span>
+              </label>
+            </div>
+            
+            {showRadar && radarFrames.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={radarFrames.length - 1}
+                  value={radarFrameIdx}
+                  onChange={e => setRadarFrameIdx(Number(e.target.value))}
+                  className="w-full accent-suk-river"
+                />
+                
+                <div className="flex justify-between items-center">
+                  <span className="font-data text-[10px] text-text-muted">
+                    {radarFrames[radarFrameIdx]
+                      ? new Date(radarFrames[radarFrameIdx].time * 1000)
+                          .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
+                      : '–'}
+                  </span>
+                  
+                  <button
+                    onClick={() => setRadarPlaying(p => !p)}
+                    className="flex items-center space-x-1 px-3 py-1 bg-suk-river text-bg-white rounded-lg text-xs font-bold font-ui hover:bg-opacity-90 transition-colors"
+                  >
+                    {radarPlaying ? '⏸ Pause' : '▶ Play'}
+                  </button>
+                  
+                  {radarFrames[radarFrameIdx] &&
+                   radarFrameIdx >= (radarFrames.filter(f => f.time <= Date.now()/1000).length) && (
+                    <span className="font-data text-[10px] text-suk-amber font-bold flex items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-suk-amber animate-pulse mr-1"></div>
+                      NOWCAST
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="bg-bg-cream border border-suk-forest/20 rounded-lg p-3 flex items-start space-x-2">
           <Info className="w-5 h-5 text-suk-forest shrink-0 mt-0.5" weight="duotone" />
           <p className="font-ui text-[10px] leading-tight text-text-body">
@@ -324,5 +461,3 @@ export const LiveMap: React.FC = () => {
     </div>
   );
 };
-
-// export default LiveMap; removed duplicate
