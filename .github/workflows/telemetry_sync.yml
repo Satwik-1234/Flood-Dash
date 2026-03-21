@@ -1,0 +1,41 @@
+name: Telemetry Sync Pipeline
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Run every 15 minutes
+  workflow_dispatch: # Allow manual triggers
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Scrape CWC/IMD & Generate Mock JSONs
+        run: |
+          # This represents the scraping hook. 
+          # In production, this executes the backend scraper.
+          # python backend/data_scraper.py --output frontend/public/mock/cwc_stations.json
+          echo "{ \"timestamp\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\" }" > frontend/public/mock/_meta.json
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/mock/
+          git commit -m "Auto-telemetry sync: updated mock JSON files" || echo "No changes to commit"
+          git push origin main
