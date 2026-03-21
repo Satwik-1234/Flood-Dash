@@ -40,7 +40,7 @@ export const RainfallRadar: React.FC = () => {
 
     return { 
       district: d.district ?? 'Unknown',
-      state: d.state ?? d.district ?? 'IN',
+      state: 'India',
       observed_24h,
       departurePct, 
       scscn, 
