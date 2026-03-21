@@ -14,8 +14,8 @@ test.describe('Pravhatattva Dashboard E2E', () => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
 
-    // h1 is sr-only but present in DOM
-    await expect(page.locator('h1').filter({ hasText: 'Pravhatattva' }))
+    // Scoped h1 locator to Sidebar (aside) only
+    await expect(page.locator('aside h1').filter({ hasText: 'Pravhatattva' }))
       .toBeAttached({ timeout: 8000 });
 
     // KPI card — must be visible
@@ -25,8 +25,9 @@ test.describe('Pravhatattva Dashboard E2E', () => {
 
   test('Live Map container renders', async ({ page }) => {
     await page.goto('/map');
-    // Wait for the lazy-loaded chunk to arrive and MapLibre to init
-    await page.waitForLoadState('networkidle', { timeout: 20000 });
+    // Drop networkidle: GitHub CI has restricted internet; tiles will retry 404
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.maplibregl-canvas', { timeout: 15000 });
     const canvas = page.locator('.maplibregl-canvas');
     await expect(canvas).toBeAttached({ timeout: 15000 });
   });
