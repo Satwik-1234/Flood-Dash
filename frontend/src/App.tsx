@@ -9,6 +9,7 @@ import { AlertCenter } from './pages/AlertCenter';
 import { HistoricalEvents } from './pages/HistoricalEvents';
 import { UrbanFloodRisk } from './pages/UrbanFloodRisk';
 import { DistrictDrilldown } from './pages/DistrictDrilldown';
+import { AboutPage } from './pages/AboutPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center w-full h-full p-8">
@@ -34,7 +35,7 @@ function App() {
           <Route path="ml" element={<MLAnalysis />} />
           <Route path="hist" element={<HistoricalEvents />} />
           <Route path="urban" element={<UrbanFloodRisk />} />
-          <Route path="about" element={<PlaceholderPage title="About & Credits" />} />
+          <Route path="about" element={<AboutPage />} />
           <Route path="status" element={<PlaceholderPage title="Data Status" />} />
           <Route path="dist" element={<DistrictDrilldown />} />
           <Route path="*" element={<PlaceholderPage title="404 - Not Found" />} />
