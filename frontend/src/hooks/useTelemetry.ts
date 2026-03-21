@@ -1,3 +1,16 @@
+/**
+ * DATA SOURCE RESPONSIBILITIES — DO NOT CROSS-USE
+ * 
+ * useCWCAboveWarning()      → Overview KPIs, Map markers, Alert feed
+ * useCWCInflowStations()    → Reservoir fill % in Overview + Map
+ * useIMDWarnings()          → AlertCenter, RainfallRadar warnings
+ * useIMDRainfall()          → RainfallRadar district table
+ * useRadarMetadata()        → LiveMap animated radar layer ONLY
+ * useDataMeta()             → DataSources /status page ONLY
+ *
+ * Open-Meteo weather/GloFAS are called PER-STATION in StationPopup
+ * and RiverForecast — NOT in the global scraper.
+ */
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { CWCStationSchema, IMDWarningSchema,
