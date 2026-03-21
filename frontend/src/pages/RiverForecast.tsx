@@ -40,7 +40,9 @@ export const RiverForecast: React.FC = () => {
       level: Math.max(0, base - (11 - i) * 0.06 + (Math.random() - 0.5) * 0.08),
       type:  'observed' as const,
     }));
-    const glofasDischarge: number[] = glofas?.[0]?.daily?.river_discharge ?? [];
+    // Extract data from GloFAS sample
+    const glofasArr = glofas as any[];
+    const glofasDischarge: number[] = glofasArr?.[0]?.daily?.river_discharge ?? [];
     const forecast = glofasDischarge.slice(0, 7).map((d, i) => ({
       time:     `+${(i + 1) * 24}h`,
       forecast: Math.min(danger * 1.2, base + (d / 10000) * danger * 0.3),

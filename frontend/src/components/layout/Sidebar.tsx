@@ -31,7 +31,8 @@ export const Sidebar: React.FC = () => {
   const { data: meta } = useDataMeta();
 
   function getFreshness(key: string): 'fresh' | 'aging' | 'stale' {
-    const source = meta?.sources?.[key];
+    const m = meta as any;
+    const source = m?.sources?.[key];
     if (!source?.last_fetch) return 'stale';
     const ageMin = (Date.now() - new Date(source.last_fetch).getTime()) / 60000;
     if (ageMin < 20) return 'fresh';

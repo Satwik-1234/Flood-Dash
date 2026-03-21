@@ -73,9 +73,10 @@ export const LiveMap: React.FC = () => {
         sources: {
           'basemap': {
             type: 'raster',
-            tiles: [BASEMAPS.CARTO_LIGHT],
+            // ESRI World Topo Map — free, no key, no CORS, shows rivers and terrain
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],
             tileSize: 256,
-            attribution: '© CARTO © OpenStreetMap'
+            attribution: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS'
           }
         },
         layers: [
@@ -98,25 +99,7 @@ export const LiveMap: React.FC = () => {
       const m = map.current;
       if (!m) return;
 
-      // 1. BHUVAN LULC WMS Layer
-      m.addSource('bhuvan-lulc', {
-        type: 'raster',
-        tiles: [
-          `${WMS_ENDPOINTS.BHUVAN_RASTER}LULC250K.exe?SERVICE=WMS&VERSION=1.1.1` +
-          `&REQUEST=GetMap&LAYERS=${BHUVAN_LAYERS.LULC_2425}&STYLES=&SRS=EPSG:3857` +
-          `&WIDTH=256&HEIGHT=256&FORMAT=image/png&TRANSPARENT=TRUE` +
-          `&BBOX={bbox-epsg-3857}`
-        ],
-        tileSize: 256,
-        attribution: 'LULC 250K © NRSC/ISRO'
-      });
-      m.addLayer({
-        id: 'bhuvan-lulc-layer',
-        type: 'raster',
-        source: 'bhuvan-lulc',
-        paint: { 'raster-opacity': 0.4 },
-        layout: { 'visibility': activeLayers.lulc ? 'visible' : 'none' }
-      });
+      // Bhuvan WMS removed — blocked by CORS in browser. Use scraper pipeline for LULC.
 
       // 2. INDIA DISTRICTS GEOJSON (Choropleth)
       m.addSource('india-districts', {
@@ -237,7 +220,8 @@ export const LiveMap: React.FC = () => {
     const frame = radarFrames[radarFrameIdx];
     if (!frame) return;
     
-    const tileUrl = `https://tilecache.rainviewer.com/v2/radar/${frame.path}/256/{z}/{x}/{y}/4/1_1.png`;
+    // frame.path is already "/v2/radar/1774098600" — don't add prefix again
+    const tileUrl = `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/4/1_1.png`;
     
     if (m.getSource('radar-tiles')) {
       // Update existing source
