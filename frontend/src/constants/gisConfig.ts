@@ -13,11 +13,13 @@ export const BASEMAPS = {
   OSM_STANDARD: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 } as const;
 
+const BASE = import.meta.env.BASE_URL || '/';
+
 export const GEO_LAYERS = {
-  INDIA_DISTRICTS:  '/geo/india_districts.geojson',
-  INDIA_STATES:     '/geo/india_states.geojson',
-  INDIA_RIVERS:     '/geo/india_hydrorivers.geojson',
-  INDIA_BASINS:     '/geo/india_hydrobasins_lev5.geojson',
+  INDIA_DISTRICTS:  `${BASE}geo/india_districts.geojson`,
+  INDIA_STATES:     `${BASE}geo/india_states.geojson`,
+  INDIA_RIVERS:     `${BASE}geo/india_hydrorivers.geojson`,
+  INDIA_BASINS:     `${BASE}geo/india_hydrobasins_lev5.geojson`,
 } as const;
 
 export const WMS_ENDPOINTS = {
