@@ -16,7 +16,8 @@ import { z } from 'zod';
 import { CWCStationSchema, IMDWarningSchema,
          CWCFfsStationSchema, CWCInflowSchema } from '../api/schemas';
 import { fetchStationsAboveWarning, fetchInflowForecastStations,
-         fetchStationsAboveDanger, fetchFloodSituationSummary } from '../api/cwcFfsApi';
+         fetchStationsAboveDanger, fetchFloodSituationSummary,
+         fetchStationHydrograph } from '../api/cwcFfsApi';
 import { fetchDistrictWarnings, fetchDistrictRainfall,
          fetchStatewiseRainfall, fetchBasinQPF,
          fetchStateDistrictForecast, fetchAWSData } from '../api/imdApi';

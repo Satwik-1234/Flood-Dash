@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   X, MapPin, Drop, ChartBar, Warning, CaretRight,
   Wind, Thermometer, CloudRain, Eye, Gauge, Waves,
-  TrendUp, Info, Activity
+  TrendUp, Info, Activity, Brain
 } from 'phosphor-react';
 import { CWCStationData } from '../../api/schemas';
 import { fetchStationWeather, getCurrentHourWeather, degToCompass } from '../../api/openMeteoApi';
@@ -184,7 +184,7 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
         
         {/* SUMMARY TAB */}
         {activeTab === 'summary' && (
-          <div style={{ spaceY: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={S.metricGrid}>
               <div style={S.metricCard}>
                 <div style={S.metricLabel}>Water Level</div>
@@ -275,7 +275,7 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
 
         {/* WEATHER TAB */}
         {activeTab === 'weather' && (
-          <div style={{ spaceY: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {[
                 { label: 'Surface Temp', val: `${wx?.temperature?.toFixed(1) || '–'}°C`, icon: Thermometer },
@@ -307,7 +307,7 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
 
         {/* INSIGHTS TAB */}
         {activeTab === 'insights' && (
-          <div style={{ spaceY: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <div style={S.metricLabel}>Catchment Runoff (SCS-CN)</div>
               <div style={{ background: '#020617', padding: '12px', borderRadius: '10px', border: '1px solid #1E293B' }}>
