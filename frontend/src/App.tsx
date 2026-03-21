@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { LiveMap } from './pages/LiveMap';
+import { Overview } from './pages/Overview';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center w-full h-full p-8">
@@ -19,7 +20,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<PlaceholderPage title="Overview" />} />
+          <Route index element={<Overview />} />
           <Route path="map" element={<LiveMap />} />
           <Route path="rivers" element={<PlaceholderPage title="River Forecasts" />} />
           <Route path="rain" element={<PlaceholderPage title="Rainfall Radar" />} />
