@@ -153,3 +153,14 @@ export const useRadarMetadata = () =>
     refetchInterval: 10 * 60 * 1000, // 10 min — matches RainViewer update cycle
     staleTime:        8 * 60 * 1000,
   });
+
+// ── GloFAS sample ───────────────────────────────────────────────────────────
+export const useGloFASSample = () =>
+  useQuery({
+    queryKey: ['glofas-sample'],
+    queryFn: async () => {
+      const res = await fetch('/mock/glofas_rivers.json');
+      return res.json();
+    },
+    staleTime: 6 * 60 * 60 * 1000,
+  });
