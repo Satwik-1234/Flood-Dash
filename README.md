@@ -18,6 +18,45 @@
 
 ---
 
+## 🎨 Frontend Visualization Profile
+
+![Pravhatattva UI Dashboard Mockup](assets/pravhatattva_mockup.png)
+
+Pravhatattva utilizes the official **CCCSS SUK Dashboard Aesthetic**—incorporating `<150MB` optimized CSS Glassmorphism logic layered continuously over strict Neon-Glowing vector path streams mapped directly to Indian rivers.
+
+### The React Component Domain Map
+```mermaid
+graph TD
+    classDef main fill:#1e293b,color:#f8fafc,stroke:#475569;
+    classDef view fill:#0ea5e9,color:#fff,stroke:#0284c7;
+    classDef comp fill:#10b981,color:#fff,stroke:#059669;
+
+    A[main.tsx] -->|TanStack QueryProvider| B(App.tsx Router)
+    
+    B --> C[Layout.tsx]
+    C -->|Sidebar| D[Navigation Hub]
+    
+    B --> V1(LiveMap.tsx)
+    B --> V2(AlertCenter.tsx)
+    B --> V3(MLAnalysis.tsx)
+    B --> V4(DistrictDrilldown.tsx)
+    
+    V1 --> C1[MapLibre Canvas]
+    V1 --> C2[StationPopup.tsx]
+    C2 -->|Pure CSS| C3[48h Trend Charting]
+    
+    V2 --> C4[Zod IMD Schema Hook]
+    V4 --> C5[CWC Live JSON Validation]
+    
+    V3 --> C6[ONNX WASM Worker]
+
+    class A,B,C main;
+    class V1,V2,V3,V4 view;
+    class C1,C2,C3,C4,C5,C6 comp;
+```
+
+---
+
 ## 📖 Mission Statement
 
 **Pravhatattva** (*The Essence of Flow*) was engineered to protect Indian catchments by providing NDRF, CWC, IMD, State SDMAs, and District Collectors with real-time, zero-latency hydrological analytics. 
@@ -38,7 +77,7 @@ Instead of relying on fragile, highly-expensive Python backend servers that cras
 
 ---
 
-## 🏗️ The "Zero-Server" Architecture
+## 🏗️ The Data/System Architecture
 
 ```mermaid
 graph TD
