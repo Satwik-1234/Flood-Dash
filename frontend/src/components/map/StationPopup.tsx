@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, MapPin, Drop, ChartBar, Warning, CaretRight, Info } from 'phosphor-react';
 import { CWCStationData } from '../../api/schemas';
+import { computeEffectiveRunoff, computeAMCClass, BASIN_CN_LOOKUP } from '../../utils/scscn';
+import { propagateRisk } from '../../utils/routing';
 
 interface StationPopupProps {
   station: CWCStationData;
@@ -8,7 +10,19 @@ interface StationPopupProps {
 }
 
 export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'live' | 'chart' | 'catchment' | 'alerts'>('live');
+  const [activeTab, setActiveTab] = useState<'live' | 'chart' | 'catchment' | 'routing' | 'alerts'>('live');
+
+  const catchmentRainfall = 127; // Will come from mock data / API later
+  const api5day = 48;            // 5-day antecedent precip — from mock data
+  const amc     = computeAMCClass(api5day);
+  const cnII    = BASIN_CN_LOOKUP[station.river] ?? BASIN_CN_LOOKUP['DEFAULT'] ?? 76;
+  const scscn   = computeEffectiveRunoff(catchmentRainfall, cnII, amc);
+
+  const downstreamAlerts = propagateRisk(
+    station.station_code,
+    station.current_water_level_m,
+    station.danger_level_m,
+  );
 
   // Danger logic colors
   let dangerClass = 'text-suk-forest';
@@ -47,6 +61,7 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
           { id: 'live', icon: Drop, label: 'Live' },
           { id: 'chart', icon: ChartBar, label: 'Trend' },
           { id: 'catchment', icon: Info, label: 'Basin' },
+          { id: 'routing', icon: CaretRight, label: 'Downstream' },
           { id: 'alerts', icon: Warning, label: 'Alerts' }
         ].map(tab => (
           <button 
@@ -108,17 +123,95 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
 
         {activeTab === 'catchment' && (
           <div className="space-y-4">
-            <div className="bg-bg-surface p-3 rounded border border-border-default">
-              <span className="font-ui text-xs font-bold text-text-muted uppercase">Soil Saturation Index</span>
-              <div className="w-full bg-border-default rounded-full h-2.5 mt-2 overflow-hidden">
-                <div className="bg-suk-forest h-2.5 rounded-full" style={{ width: '85%' }}></div>
+            <p className="font-ui text-xs text-text-muted">
+              SCS Curve Number runoff model · Catchment: {station.basin} Basin
+            </p>
+
+            {/* CN and AMC */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-bg-surface p-3 rounded border border-border-default">
+                <p className="font-ui text-[10px] font-bold text-text-muted uppercase">Curve Number (CN-II)</p>
+                <p className="font-data text-xl font-bold text-text-dark mt-1">{scscn.cn_ii}</p>
               </div>
-              <p className="font-data text-xs mt-1 text-right text-text-dark font-bold">0.85 (High)</p>
+              <div className="bg-bg-surface p-3 rounded border border-border-default">
+                <p className="font-ui text-[10px] font-bold text-text-muted uppercase">AMC Class</p>
+                <p className={`font-data text-xl font-bold mt-1 ${
+                  scscn.amc_class === 'III' ? 'text-suk-fire' :
+                  scscn.amc_class === 'II'  ? 'text-suk-amber' : 'text-suk-forest'
+                }`}>
+                  AMC-{scscn.amc_class}
+                </p>
+              </div>
             </div>
-            <div className="bg-bg-surface p-3 rounded border border-border-default flex justify-between items-center">
-               <span className="font-ui text-xs font-bold text-text-muted uppercase">Catchment Rainfall</span>
-               <span className="font-data text-sm font-bold text-suk-fire">420mm (7 Days)</span>
+
+            {/* Runoff bars */}
+            {[
+              { label: 'Rainfall P (basin avg)', value: scscn.rainfall_P_mm, max: 250, unit: 'mm', color: 'bg-suk-river' },
+              { label: 'Effective Runoff Q',     value: scscn.runoff_Q_mm,   max: 250, unit: 'mm', color: 'bg-suk-fire'  },
+            ].map(b => (
+              <div key={b.label}>
+                <div className="flex justify-between font-ui text-xs font-bold text-text-muted mb-1">
+                  <span>{b.label}</span>
+                  <span className="font-data text-text-dark">{b.value} {b.unit}</span>
+                </div>
+                <div className="h-2.5 bg-bg-surface rounded-full overflow-hidden">
+                  <div className={`${b.color} h-2.5 rounded-full transition-all duration-700`}
+                       style={{ width: `${Math.min(100, (b.value / b.max) * 100)}%` }} />
+                </div>
+              </div>
+            ))}
+
+            {/* Runoff ratio */}
+            <div className="bg-bg-surface-2 border border-border-default rounded p-3 mt-2">
+              <p className="font-ui text-xs font-bold text-text-muted uppercase mb-1">Runoff Ratio</p>
+              <p className="font-data text-lg font-bold text-text-dark">
+                {Math.round(scscn.runoff_ratio * 100)}% of rainfall → direct runoff
+              </p>
+              <p className="font-ui text-xs text-text-muted mt-1 leading-relaxed">
+                {scscn.plain_language}
+              </p>
             </div>
+
+            <p className="font-ui text-[10px] text-text-muted text-right mt-2">
+              Method: SCS-CN (USDA TR-55 · IS:11223) · Soil: NRSC/NBSS reference
+            </p>
+          </div>
+        )}
+
+        {activeTab === 'routing' && (
+          <div className="space-y-3">
+            <p className="font-ui text-xs text-text-muted mb-2">
+              Muskingum routing · Flood peak propagation from this station
+            </p>
+            {downstreamAlerts.length === 0 ? (
+              <p className="font-ui text-sm text-text-muted italic text-center py-4">
+                No downstream stations mapped for this river segment.
+              </p>
+            ) : downstreamAlerts.map(ds => (
+              <div key={ds.station_code}
+                   className="bg-bg-surface border border-border-default rounded-lg p-3
+                              flex items-center justify-between">
+                <div className="flex items-start space-x-3">
+                  <div className="font-data text-xs font-bold text-suk-river
+                                  bg-bg-surface-2 rounded px-2 py-1 whitespace-nowrap mt-0.5">
+                    +{ds.travel_time_hours}h
+                  </div>
+                  <div>
+                    <p className="font-ui font-bold text-sm text-text-dark">{ds.station_name}</p>
+                    <p className="font-ui text-xs text-text-muted">{ds.river} · {ds.station_code}</p>
+                  </div>
+                </div>
+                <div className={`text-xs font-bold font-data px-2 py-1 rounded
+                  ${ds.estimated_prob_pct > 60 ? 'bg-risk-4 text-risk-4-text' :
+                    ds.estimated_prob_pct > 30 ? 'bg-risk-3 text-risk-3-text' :
+                                                  'bg-risk-2 text-risk-2-text'}`}>
+                  ~{ds.estimated_prob_pct}%
+                </div>
+              </div>
+            ))}
+            <p className="font-ui text-[10px] text-text-muted text-right mt-2">
+              Attenuation: Muskingum-Cunge · K/X from HydroSHEDS geometry
+            </p>
           </div>
         )}
 

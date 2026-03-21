@@ -27,10 +27,8 @@ jobs:
 
       - name: Scrape CWC/IMD & Generate Mock JSONs
         run: |
-          # This represents the scraping hook. 
-          # In production, this executes the backend scraper.
-          # python backend/data_scraper.py --output frontend/public/mock/cwc_stations.json
-          echo "{ \"timestamp\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\" }" > frontend/public/mock/_meta.json
+          pip install requests
+          python backend/data_scraper.py
 
       - name: Commit and Push Changes
         run: |

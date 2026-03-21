@@ -34,3 +34,30 @@ export const useIMDWarnings = () => {
     }
   });
 };
+
+export const useGloFASSample = () => {
+  return useQuery({
+    queryKey: ['glofas-sample'],
+    queryFn: async () => {
+      const res = await fetch('/mock/glofas_sample_discharge.json');
+      if (!res.ok) throw new Error('GloFAS fetch failed');
+      return res.json();  // Raw GloFAS response — no strict schema for now
+    },
+    staleTime: 6 * 60 * 60 * 1000,  // 6h TTL matches GloFAS update cycle
+  });
+};
+
+export const useDataMeta = () => {
+  return useQuery({
+    queryKey: ['data-meta'],
+    queryFn: async () => {
+      const res = await fetch('/mock/_meta.json');
+      if (!res.ok) throw new Error('Meta fetch failed');
+      return res.json() as Promise<{
+        generated_at: string;
+        sources: Record<string, { status: string; records: number; last_fetch: string }>;
+      }>;
+    },
+    refetchInterval: 5 * 60 * 1000,  // Check freshness every 5 min
+  });
+};

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { LiveMap } from './pages/LiveMap';
 import { Overview } from './pages/Overview';
@@ -10,6 +10,7 @@ import { HistoricalEvents } from './pages/HistoricalEvents';
 import { UrbanFloodRisk } from './pages/UrbanFloodRisk';
 import { DistrictDrilldown } from './pages/DistrictDrilldown';
 import { AboutPage } from './pages/AboutPage';
+import { RainfallRadar } from './pages/RainfallRadar';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center w-full h-full p-8">
@@ -30,7 +31,7 @@ function App() {
           <Route index element={<Overview />} />
           <Route path="map" element={<LiveMap />} />
           <Route path="rivers" element={<RiverForecast />} />
-          <Route path="rain" element={<PlaceholderPage title="Rainfall Radar" />} />
+          <Route path="rain" element={<RainfallRadar />} />
           <Route path="alerts" element={<AlertCenter />} />
           <Route path="ml" element={<MLAnalysis />} />
           <Route path="hist" element={<HistoricalEvents />} />
