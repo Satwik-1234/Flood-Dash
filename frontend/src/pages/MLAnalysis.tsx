@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Brain, CloudRain, Waves, Drop, TrendUp,
          WarningOctagon, CaretRight, Info } from 'phosphor-react';
 
+const API_BASE = (import.meta as any).env.VITE_API_BASE_URL || '';
+
 // ─── PURE BROWSER ML ENGINE ───────────────────────────────────────────────
 // Mirrors the logistic predictor from backend/main.py but runs in-browser.
 // No server. No network call. Instant inference. Works offline.
@@ -97,14 +99,33 @@ export const MLAnalysis: React.FC = () => {
     rainfall_intensity_mmphr:  32.0,
   });
 
-  const handlePredict = useCallback((e: React.FormEvent) => {
+  const handlePredict = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setRunning(true);
-    // Simulate a brief compute delay so the UI doesn't feel instant-jarring
-    setTimeout(() => {
+    
+    try {
+      if (API_BASE) {
+        // Docker / local dev: call the real FastAPI backend
+        const res = await fetch(`${API_BASE}/api/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
+        const data = await res.json();
+        setResult(data.prediction);
+      } else {
+        // GitHub Pages / no backend: run browser inference
+        await new Promise(r => setTimeout(r, 420)); // natural delay
+        setResult(runBrowserInference(params));
+      }
+    } catch (err) {
+      // Fallback to browser inference if backend unreachable
+      console.warn('Backend unavailable, falling back to browser inference:', err);
       setResult(runBrowserInference(params));
+    } finally {
       setRunning(false);
-    }, 420);
+    }
   }, [params]);
 
   const setField = (field: keyof HydroParams, val: string) =>
@@ -130,7 +151,7 @@ export const MLAnalysis: React.FC = () => {
                         bg-bg-white border border-border-default px-3 py-2 rounded-lg
                         text-suk-forest shadow-sm">
           <span className="w-2 h-2 rounded-full bg-suk-forest animate-pulse inline-block mr-1"></span>
-          WASM · In-Browser
+          {API_BASE ? 'Docker API Active' : 'WASM · In-Browser'}
         </div>
       </div>
 
@@ -272,7 +293,9 @@ export const MLAnalysis: React.FC = () => {
               </h3>
               <p className="font-ui text-sm text-text-muted max-w-sm">
                 Enter the hydrological parameters and click Run.
-                The model executes instantly in your browser — no server, no wait.
+                {API_BASE 
+                  ? ' The model will execute on the remote Python SciKit container.' 
+                  : ' The model executes instantly in your browser — no server wait.'}
               </p>
             </div>
           )}

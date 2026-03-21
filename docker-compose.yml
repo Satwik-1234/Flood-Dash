@@ -1,38 +1,73 @@
-version: '3.8'
+version: '3.9'
 
 services:
+
+  # ─── FRONTEND — React + Vite dev server ─────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    container_name: pravhatattva-frontend
     ports:
-      - "3000:80"
+      - "5173:5173"          # localhost:5173 → Vite dev server inside container
+    volumes:
+      - ./frontend:/app      # Hot-reload: source changes reflect instantly
+      - /app/node_modules    # Keep container's node_modules separate
+    environment:
+      - VITE_DATA_SOURCE=live
+      - VITE_API_BASE_URL=http://localhost:8000
     depends_on:
       - backend
     networks:
-      - floodsentinel-net
+      - pravhatattva-net
+    restart: unless-stopped
 
+  # ─── BACKEND — FastAPI ML inference server ───────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: pravhatattva-backend
     ports:
-      - "8000:8000"
+      - "8000:8000"          # localhost:8000 → FastAPI inside container
+    volumes:
+      - ./backend:/app       # Live reload on Python changes
+      - ./frontend/public/mock:/app/mock_output   # Scraper writes here
     environment:
-      - REDIS_HOST=cache
+      - PYTHONUNBUFFERED=1
       - PORT=8000
-    depends_on:
-      - cache
     networks:
-      - floodsentinel-net
+      - pravhatattva-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  cache:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+  # ─── DATA SCRAPER — Runs on schedule inside container ────────────────
+  scraper:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pravhatattva-scraper
+    volumes:
+      - ./frontend/public/mock:/app/mock_output
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOCK_OUTPUT_DIR=/app/mock_output
+    command: >
+      sh -c "while true; do
+               python data_scraper.py;
+               echo 'Scraper run complete. Sleeping 15 minutes...';
+               sleep 900;
+             done"
     networks:
-      - floodsentinel-net
+      - pravhatattva-net
+    restart: unless-stopped
+    depends_on:
+      - backend
 
 networks:
-  floodsentinel-net:
+  pravhatattva-net:
     driver: bridge
