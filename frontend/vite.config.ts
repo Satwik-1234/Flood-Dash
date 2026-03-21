@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/Flood-Dash/', // Required for GitHub Pages deployment on subpaths
   server: {
     host: '0.0.0.0',     // Accept connections from Docker host
     port: 5173,
