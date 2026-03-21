@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { LiveMap } from './pages/LiveMap';
 import { Overview } from './pages/Overview';
+import { MLAnalysis } from './pages/MLAnalysis';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center w-full h-full p-8">
@@ -25,7 +26,7 @@ function App() {
           <Route path="rivers" element={<PlaceholderPage title="River Forecasts" />} />
           <Route path="rain" element={<PlaceholderPage title="Rainfall Radar" />} />
           <Route path="alerts" element={<PlaceholderPage title="Alert Center" />} />
-          <Route path="ml" element={<PlaceholderPage title="ML Analysis" />} />
+          <Route path="ml" element={<MLAnalysis />} />
           <Route path="hist" element={<PlaceholderPage title="Historical Explorer" />} />
           <Route path="urban" element={<PlaceholderPage title="Urban Flood Risk" />} />
           <Route path="about" element={<PlaceholderPage title="About & Credits" />} />
