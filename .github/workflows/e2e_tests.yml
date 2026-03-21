@@ -1,7 +1,4 @@
-name: Playwright E2E Cloud Scrubber
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+name: Playwright E2E Tests
 
 on:
   push:
@@ -14,29 +11,27 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    
-    - uses: actions/setup-node@v6
-      with:
-        node-version: lts/*
+      - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      working-directory: frontend
-      run: npm ci
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - name: Install Playwright Browsers (Cloud Only)
-      working-directory: frontend
-      # CRITICAL: We only download the ~800MB binaries on GitHub runners 
-      # to protect the developer's 150MB C: drive capacity.
-      run: npx playwright install --with-deps chromium
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
 
-    - name: Run Playwright tests
-      working-directory: frontend
-      run: npx playwright test
+      - name: Install Playwright Browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
 
-    - uses: actions/upload-artifact@v6
-      if: always()
-      with:
-        name: playwright-report
-        path: frontend/playwright-report/
-        retention-days: 30
+      - name: Run Playwright tests
+        working-directory: frontend
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30

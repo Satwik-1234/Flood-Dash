@@ -1,16 +1,12 @@
 name: Deploy Pravhatattva Dashboard
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 on:
-  # Trigger the workflow on pushes to the main branch
   push:
     branches:
       - main
     paths:
       - 'frontend/**'
-  # Allow manual trigger
+      - '!frontend/public/mock/**'   # data syncs don't retrigger deploy
   workflow_dispatch:
 
 permissions:
@@ -27,12 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install dependencies
         working-directory: frontend

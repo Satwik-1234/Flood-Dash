@@ -12,6 +12,7 @@ import {
   Info, 
   List
 } from 'phosphor-react';
+import { useDataMeta } from '../../hooks/useTelemetry';
 
 const navItems = [
   { path: '/', name: 'Overview', icon: MapPin },
@@ -27,6 +28,23 @@ const navItems = [
 ];
 
 export const Sidebar: React.FC = () => {
+  const { data: meta } = useDataMeta();
+
+  function getFreshness(key: string): 'fresh' | 'aging' | 'stale' {
+    const source = meta?.sources?.[key];
+    if (!source?.last_fetch) return 'stale';
+    const ageMin = (Date.now() - new Date(source.last_fetch).getTime()) / 60000;
+    if (ageMin < 20) return 'fresh';
+    if (ageMin < 60) return 'aging';
+    return 'stale';
+  }
+
+  const freshnessColor = {
+    fresh:  'bg-suk-forest',
+    aging:  'bg-suk-amber',
+    stale:  'bg-suk-fire animate-pulse',
+  };
+
   return (
     <aside className="w-64 h-screen flex flex-col bg-bg-surface border-r border-border-default shrink-0">
       <div className="p-6">
@@ -69,17 +87,20 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-border-default shrink-0 bg-bg-surface-2/50">
         <div className="flex items-center justify-between px-2 mb-4">
+          {/* IMD */}
           <div className="flex items-center group">
-            <span className="w-2 h-2 rounded-full bg-suk-forest mr-2"></span>
+            <span className={`w-2 h-2 rounded-full mr-2 transition-colors ${freshnessColor[getFreshness('imd_warnings')]}`}></span>
             <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">IMD</span>
           </div>
+          {/* CWC */}
           <div className="flex items-center group">
-            <span className="w-2 h-2 rounded-full bg-suk-forest mr-2"></span>
+            <span className={`w-2 h-2 rounded-full mr-2 transition-colors ${freshnessColor[getFreshness('cwc_above_warning')]}`}></span>
             <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">CWC</span>
           </div>
+          {/* Radar */}
           <div className="flex items-center group">
-            <span className="w-2 h-2 rounded-full bg-suk-amber mr-2"></span>
-            <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">GloFAS</span>
+            <span className={`w-2 h-2 rounded-full mr-2 transition-colors ${freshnessColor[getFreshness('radar')]}`}></span>
+            <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">Radar</span>
           </div>
         </div>
         

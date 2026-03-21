@@ -97,11 +97,14 @@ export const Overview: React.FC = () => {
       </div>
 
       {/* KPI Grid — all values from live APIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
 
         {/* Card 1 — Critical Alerts (CWC FFS danger + warning) */}
-        <Link to="/alerts" className="block group">
-          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
+        <Link to="/alerts" className="block group lg:col-span-2">
+          <div className={`bg-bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all h-full flex flex-col relative overflow-hidden
+            ${totalAlerts > 0
+              ? 'border-2 border-suk-fire bg-risk-5'
+              : 'border border-border-default'}`}>
             <div className="flex justify-between items-start mb-4 relative z-10">
               <div className="p-3 rounded-lg bg-risk-5">
                 <WarningCircle className="w-6 h-6 text-suk-fire" weight="duotone" />
@@ -112,10 +115,15 @@ export const Overview: React.FC = () => {
               </div>
             </div>
             <div className="mt-auto relative z-10">
-              <div className="flex items-baseline space-x-1">
-                <span className="font-display text-4xl font-bold text-text-dark">
+              <div className="flex items-baseline gap-3">
+                <span className={`font-display font-bold ${totalAlerts > 0 ? 'text-7xl text-suk-fire' : 'text-6xl text-text-dark'}`}>
                   {String(totalAlerts).padStart(2, '0')}
                 </span>
+                {totalAlerts > 0 && (
+                  <span className="font-ui text-sm text-suk-fire font-bold animate-pulse">
+                    ACTIVE
+                  </span>
+                )}
               </div>
               <h3 className="font-ui font-bold text-text-body mt-2">Critical Alerts</h3>
               <p className="font-ui text-sm text-text-muted mt-0.5">

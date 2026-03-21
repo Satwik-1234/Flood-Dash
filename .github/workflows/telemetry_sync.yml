@@ -1,12 +1,9 @@
 name: Telemetry Sync Pipeline
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 on:
   schedule:
-    - cron: '*/15 * * * *' # Run every 15 minutes
-  workflow_dispatch: # Allow manual triggers
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,28 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
+      - name: Install scraper dependencies
+        run: pip install requests
 
-      - name: Scrape CWC/IMD & Generate Mock JSONs
-        run: |
-          pip install requests
-          python backend/data_scraper.py
+      - name: Run data scraper
+        run: python backend/data_scraper.py
 
-      - name: Commit and Push Changes
+      - name: Commit and push data files
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add frontend/public/mock/
-          git commit -m "Auto-telemetry sync: updated mock JSON files" || echo "No changes to commit"
+          git diff --staged --quiet && echo "No data changes" && exit 0
+          git commit -m "data: telemetry sync $(date -u +%H:%M) UTC"
           git pull origin main --rebase
           git push origin main

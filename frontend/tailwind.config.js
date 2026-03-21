@@ -74,9 +74,9 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Playfair Display', 'Georgia', 'serif'],
+        display: ['Cinzel', 'Georgia', 'serif'],
         ui: ['DM Sans', 'system-ui', 'sans-serif'],
-        data: ['DM Mono', 'monospace'],
+        data: ['JetBrains Mono', 'Menlo', 'monospace'],
       },
       spacing: {
         '1': 'var(--sp-1)',
