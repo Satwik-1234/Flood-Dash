@@ -19,28 +19,32 @@ MOCK_DIR.mkdir(parents=True, exist_ok=True)
 
 NOW_ISO = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-# ─── STATION DEFINITIONS (Maharashtra focus) ────────────────────────────────
+# ─── STATE CENTROIDS (National Weather Coverage) ────────────────────────────
+STATE_CENTROIDS = {
+    'Maharashtra': (19.75, 75.71), 'Uttar Pradesh': (26.85, 80.99),
+    'Bihar': (25.09, 85.31), 'Assam': (26.20, 92.93), 'West Bengal': (22.99, 87.85),
+    'Odisha': (20.94, 85.09), 'Gujarat': (22.25, 71.19), 'Rajasthan': (27.02, 74.22),
+    'Madhya Pradesh': (23.47, 77.95), 'Andhra Pradesh': (15.91, 79.74),
+    'Telangana': (17.37, 78.48), 'Karnataka': (15.32, 75.71), 'Tamil Nadu': (11.12, 78.66),
+    'Kerala': (10.85, 76.27), 'Himachal Pradesh': (31.10, 77.17),
+    'Uttarakhand': (30.07, 79.06), 'Jharkhand': (23.61, 85.27), 'Chhattisgarh': (21.27, 81.86),
+    'Punjab': (31.14, 75.34), 'Haryana': (29.05, 76.09), 'Delhi': (28.70, 77.10),
+}
+
+# ─── NATIONAL CWC STATIONS (Major River Basins) ─────────────────────────────
 STATIONS = [
-    {"station_code": "CWC_BHM_UJN_001", "basin": "Bhima",     "river": "Bhima",
-     "station_name": "Ujani Dam", "state": "Maharashtra",
-     "lat": 18.06, "lon": 75.12,
-     "warning_level_m": 496.0, "danger_level_m": 498.0},
-    {"station_code": "CWC_PCG_SHN_001", "basin": "Panchganga","river": "Panchganga",
-     "station_name": "Shinnur Bridge", "state": "Maharashtra",
-     "lat": 16.70, "lon": 74.24,
-     "warning_level_m": 540.0, "danger_level_m": 543.0},
-    {"station_code": "CWC_KRS_SNG_002", "basin": "Krishna",   "river": "Krishna",
-     "station_name": "Irwin Bridge Sangli", "state": "Maharashtra",
-     "lat": 16.85, "lon": 74.56,
-     "warning_level_m": 555.0, "danger_level_m": 560.0},
-    {"station_code": "CWC_GDV_NSK_003", "basin": "Godavari",  "river": "Godavari",
-     "station_name": "Gangapur Dam Nashik", "state": "Maharashtra",
-     "lat": 19.99, "lon": 73.79,
-     "warning_level_m": 594.0, "danger_level_m": 597.0},
-    {"station_code": "CWC_MLA_PNE_004", "basin": "Mutha",     "river": "Mula-Mutha",
-     "station_name": "Khadakwasla Dam Pune", "state": "Maharashtra",
-     "lat": 18.52, "lon": 73.86,
-     "warning_level_m": 558.0, "danger_level_m": 562.0},
+    # Maharashtra (Existing)
+    {"station_code": "CWC_MH_UJN_001", "basin": "Bhima", "river": "Bhima", "station_name": "Ujani Dam", "state": "Maharashtra", "lat": 18.06, "lon": 75.12, "warning_level_m": 496.0, "danger_level_m": 498.0},
+    {"station_code": "CWC_MH_PCG_002", "basin": "Panchganga", "river": "Panchganga", "station_name": "Shinnur", "state": "Maharashtra", "lat": 16.70, "lon": 74.24, "warning_level_m": 540.0, "danger_level_m": 543.0},
+    # North India
+    {"station_code": "CWC_DL_YMN_001", "basin": "Yamuna", "river": "Yamuna", "station_name": "Delhi (Old Bridge)", "state": "Delhi", "lat": 28.69, "lon": 77.24, "warning_level_m": 204.5, "danger_level_m": 205.3},
+    {"station_code": "CWC_UP_GNG_001", "basin": "Ganga", "river": "Ganga", "station_name": "Varanasi", "state": "Uttar Pradesh", "lat": 25.33, "lon": 83.00, "warning_level_m": 70.0, "danger_level_m": 71.3},
+    # East India
+    {"station_code": "CWC_AS_BHM_001", "basin": "Brahmaputra", "river": "Brahmaputra", "station_name": "Guwahati", "state": "Assam", "lat": 26.18, "lon": 91.74, "warning_level_m": 49.0, "danger_level_m": 49.7},
+    {"station_code": "CWC_OR_MHN_001", "basin": "Mahanadi", "river": "Mahanadi", "station_name": "Cuttack", "state": "Odisha", "lat": 20.46, "lon": 85.89, "warning_level_m": 25.0, "danger_level_m": 26.5},
+    # South India
+    {"station_code": "CWC_AP_GDA_001", "basin": "Godavari", "river": "Godavari", "station_name": "Rajahmundry", "state": "Andhra Pradesh", "lat": 17.00, "lon": 81.78, "warning_level_m": 13.0, "danger_level_m": 14.5},
+    {"station_code": "CWC_KA_KRS_001", "basin": "Krishna", "river": "Krishna", "station_name": "Almatti Dam", "state": "Karnataka", "lat": 16.33, "lon": 75.88, "warning_level_m": 515.0, "danger_level_m": 519.0},
 ]
 
 
@@ -167,7 +171,7 @@ def main():
         glofas = fetch_glofas_discharge(station["lat"], station["lon"])
         entry  = build_cwc_station_entry(station, glofas)
         cwc_output.append(entry)
-        print(f"  → level={entry['current_water_level_m']}m, trend={entry['trend']}, stale={entry['is_stale']}")
+        print(f"  -> level={entry['current_water_level_m']}m, trend={entry['trend']}, stale={entry['is_stale']}")
 
     write_json(MOCK_DIR / "cwc_stations.json", cwc_output)
 

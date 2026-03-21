@@ -4,120 +4,220 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { StationPopup } from '../components/map/StationPopup';
 import { CWCStationData } from '../api/schemas';
 import { useCWCStations } from '../hooks/useTelemetry';
-import { SpinnerGap } from 'phosphor-react';
+import { SpinnerGap, MapTrifold, SquaresFour, Info } from 'phosphor-react';
+import { 
+  INDIA_CENTER, 
+  INDIA_BOUNDS, 
+  BASEMAPS, 
+  GEO_LAYERS, 
+  WMS_ENDPOINTS, 
+  BHUVAN_LAYERS 
+} from '../constants/gisConfig';
 
 export const LiveMap: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const [lng] = useState(76.0); // Focus on Maharashtra
-  const [lat] = useState(19.0);
-  const [zoom] = useState(6.0);
   
   const { data: stations, isLoading } = useCWCStations();
   const [selectedStation, setSelectedStation] = useState<CWCStationData | null>(null);
+  const [activeLayers, setActiveLayers] = useState({
+    lulc: true,
+    districts: true,
+    rivers: true,
+    stations: true
+  });
 
   useEffect(() => {
-    if (map.current || !mapContainer.current) return; // initialize map only once
+    if (map.current || !mapContainer.current) return;
     
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: {
         version: 8,
         sources: {
-          'osm': {
+          'basemap': {
             type: 'raster',
-            tiles: [
-              'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
-            ],
+            tiles: [BASEMAPS.CARTO_LIGHT], // User brief allows CARTO Light as standard
             tileSize: 256,
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            attribution: '© CARTO © OpenStreetMap'
           }
         },
         layers: [
           {
-            id: 'osm-tiles',
+            id: 'basemap-tiles',
             type: 'raster',
-            source: 'osm',
-            minzoom: 0,
-            maxzoom: 19
+            source: 'basemap',
           }
         ]
       },
-      center: [lng, lat],
-      zoom: zoom,
+      center: INDIA_CENTER as [number, number],
+      zoom: 5,
+      maxBounds: INDIA_BOUNDS as [number, number, number, number],
       attributionControl: false 
     });
 
     map.current.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
     map.current.on('load', () => {
-      if (!map.current) return;
-      
-      map.current.addSource('mock-river', {
+      const m = map.current;
+      if (!m) return;
+
+      // 1. BHUVAN LULC WMS Layer
+      m.addSource('bhuvan-lulc', {
+        type: 'raster',
+        tiles: [
+          `${WMS_ENDPOINTS.BHUVAN_RASTER}LULC250K.exe?SERVICE=WMS&VERSION=1.1.1` +
+          `&REQUEST=GetMap&LAYERS=${BHUVAN_LAYERS.LULC_2425}&STYLES=&SRS=EPSG:3857` +
+          `&WIDTH=256&HEIGHT=256&FORMAT=image/png&TRANSPARENT=TRUE` +
+          `&BBOX={bbox-epsg-3857}`
+        ],
+        tileSize: 256,
+        attribution: 'LULC 250K © NRSC/ISRO'
+      });
+      m.addLayer({
+        id: 'bhuvan-lulc-layer',
+        type: 'raster',
+        source: 'bhuvan-lulc',
+        paint: { 'raster-opacity': 0.4 },
+        layout: { 'visibility': activeLayers.lulc ? 'visible' : 'none' }
+      });
+
+      // 2. INDIA DISTRICTS GEOJSON (Choropleth)
+      m.addSource('india-districts', {
+        type: 'geojson',
+        data: GEO_LAYERS.INDIA_DISTRICTS
+      });
+      m.addLayer({
+        id: 'districts-fill',
+        type: 'fill',
+        source: 'india-districts',
+        paint: {
+          'fill-color': [
+            'match', ['get', 'risk_level'],
+            1, '#10b981', // Normal
+            2, '#f59e0b', // Watch
+            3, '#f97316', // Warning
+            4, '#ef4444', // Alert
+            5, '#7f1d1d', // Emergency
+            'rgba(255,255,255,0.05)' // Default
+          ],
+          'fill-opacity': 0.2
+        },
+        layout: { 'visibility': activeLayers.districts ? 'visible' : 'none' }
+      });
+
+      // 3. INDIA STATES OUTLINE
+      m.addSource('india-states', {
+        type: 'geojson',
+        data: GEO_LAYERS.INDIA_STATES
+      });
+      m.addLayer({
+        id: 'states-outline',
+        type: 'line',
+        source: 'india-states',
+        paint: {
+          'line-color': 'rgba(28, 63, 58, 0.4)',
+          'line-width': 1.5
+        }
+      });
+
+      // 4. WRIS RIVERS WMS
+      m.addSource('wris-rivers', {
+        type: 'raster',
+        tiles: [
+          `${WMS_ENDPOINTS.WRIS_BASIN}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=1` +
+          `&FORMAT=image/png&TRANSPARENT=TRUE&CRS=EPSG:3857` +
+          `&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`
+        ],
+        tileSize: 256,
+        attribution: '© CWC India WRIS'
+      });
+      m.addLayer({
+        id: 'rivers-layer',
+        type: 'raster',
+        source: 'wris-rivers',
+        paint: { 'raster-opacity': 0.8 },
+        layout: { 'visibility': activeLayers.rivers ? 'visible' : 'none' }
+      });
+
+      // 5. GAUGING STATIONS (Pravhatattva Core)
+      m.addSource('cwc-stations', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              geometry: {
-                type: 'LineString',
-                coordinates: [
-                  [74.0, 19.0],
-                  [74.5, 18.5],
-                  [75.0, 18.3],
-                  [76.0, 18.0]
-                ]
-              },
-              properties: { risk: 'warning' }
-            }
-          ]
+          features: stations?.map(s => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
+            properties: { ...s }
+          })) || []
         }
       });
-
-      map.current.addLayer({
-        id: 'mock-river-line',
-        type: 'line',
-        source: 'mock-river',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
+      m.addLayer({
+        id: 'stations-point',
+        type: 'circle',
+        source: 'cwc-stations',
         paint: {
-          'line-color': 'var(--suk-river)',
-          'line-width': 6,
-          'line-opacity': 0.8,
-          'line-dasharray': [0, 4, 3]
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            5, 4,
+            10, 12
+          ],
+          'circle-color': [
+            'step', ['get', 'current_water_level_m'],
+            '#10b981', // Normal
+            400, '#f59e0b', // Watch (arbitrary high value for demo logic)
+            500, '#ef4444'  // Danger
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff'
+        },
+        layout: { 'visibility': activeLayers.stations ? 'visible' : 'none' }
+      });
+
+      m.on('click', 'stations-point', (e) => {
+        if (e.features && e.features[0]) {
+          setSelectedStation(e.features[0].properties as unknown as CWCStationData);
         }
       });
 
-      // Simple Click interaction for mockup popup
-      map.current.on('click', 'mock-river-line', (e) => {
-        // Find a critical station to demo popup if mock line clicked
-        const mockStat = stations?.find(s => s.danger_level_m <= s.current_water_level_m);
-        if(mockStat) setSelectedStation(mockStat);
+      m.on('mouseenter', 'stations-point', () => {
+        m.getCanvas().style.cursor = 'pointer';
       });
-      map.current.on('mouseenter', 'mock-river-line', () => {
-         if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      m.on('mouseleave', 'stations-point', () => {
+        m.getCanvas().style.cursor = '';
       });
-      map.current.on('mouseleave', 'mock-river-line', () => {
-         if (map.current) map.current.getCanvas().style.cursor = '';
-      });
-
-      let dashArraySequence = [
-        [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0], [0, 0, 3, 4]
-      ];
-      let step = 0;
-      function animateDashArray() {
-        if (!map.current || !map.current.getLayer('mock-river-line')) return;
-        step = (step + 1) % dashArraySequence.length;
-        map.current.setPaintProperty('mock-river-line', 'line-dasharray', dashArraySequence[step]);
-        setTimeout(() => requestAnimationFrame(animateDashArray), 120);
-      }
-      animateDashArray();
     });
 
-  }, [lng, lat, zoom, stations]);
+  }, [stations]);
+
+  // Handle station data updates
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !m.isStyleLoaded() || !stations) return;
+    
+    const source = m.getSource('cwc-stations') as maplibregl.GeoJSONSource;
+    if (source) {
+      source.setData({
+        type: 'FeatureCollection',
+        features: stations.map(s => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
+          properties: { ...s }
+        }))
+      });
+    }
+  }, [stations]);
+
+  // Handle layer visibility changes
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !m.isStyleLoaded()) return;
+    
+    if (m.getLayer('bhuvan-lulc-layer')) m.setLayoutProperty('bhuvan-lulc-layer', 'visibility', activeLayers.lulc ? 'visible' : 'none');
+    if (m.getLayer('districts-fill')) m.setLayoutProperty('districts-fill', 'visibility', activeLayers.districts ? 'visible' : 'none');
+    if (m.getLayer('rivers-layer')) m.setLayoutProperty('rivers-layer', 'visibility', activeLayers.rivers ? 'visible' : 'none');
+    if (m.getLayer('stations-point')) m.setLayoutProperty('stations-point', 'visibility', activeLayers.stations ? 'visible' : 'none');
+  }, [activeLayers]);
 
   return (
     <div className="w-full h-full relative border-l border-border-default">
@@ -126,25 +226,60 @@ export const LiveMap: React.FC = () => {
         className="absolute inset-0 w-full h-full bg-[#f4f1eb]" 
       />
       
-      {/* Search & Layers Overlay */}
-      <div className="absolute top-4 left-4 z-10 w-80 bg-bg-white border border-border-default shadow-popup rounded-xl p-4 pointer-events-auto">
-        <h2 className="font-display text-text-dark font-semibold text-lg border-b border-border-light pb-2 mb-2">Live Basin Monitors</h2>
-        {isLoading ? (
-          <div className="flex items-center text-text-muted font-ui text-sm">
-            <SpinnerGap className="w-4 h-4 animate-spin mr-2"/> Syncing stations...
+      {/* Control Panel */}
+      <div className="absolute top-4 left-4 z-10 w-80 pointer-events-auto space-y-4">
+        <div className="bg-bg-white border border-border-default shadow-popup rounded-xl p-5">
+          <h2 className="font-display text-text-dark font-bold text-xl flex items-center mb-1">
+            <MapTrifold className="w-6 h-6 mr-2 text-suk-forest" weight="duotone" />
+            National Intel
+          </h2>
+          <p className="font-ui text-xs text-text-muted mb-4">India Integrated Flood Dashboard</p>
+          
+          <div className="space-y-3">
+            {[
+              { id: 'lulc', label: 'Bhuvan LULC (ISRO)', color: 'text-suk-forest', icon: SquaresFour },
+              { id: 'districts', label: 'District Risk (Choropleth)', color: 'text-suk-river', icon: SquaresFour },
+              { id: 'rivers', label: 'WRIS River Network', color: 'text-suk-sky', icon: SquaresFour },
+            ].map(l => (
+              <label key={l.id} className="flex items-center justify-between cursor-pointer group">
+                <span className={`font-ui text-sm font-semibold ${l.color}`}>{l.label}</span>
+                <input 
+                  type="checkbox" 
+                  checked={activeLayers[l.id as keyof typeof activeLayers]} 
+                  onChange={() => setActiveLayers(prev => ({ ...prev, [l.id]: !prev[l.id as keyof typeof activeLayers]}))}
+                  className="w-4 h-4 rounded border-border-default text-suk-forest focus:ring-suk-forest"
+                />
+              </label>
+            ))}
           </div>
-        ) : (
-          <div className="font-ui text-sm text-text-muted">
-            Active Stations: <strong>{stations?.length || 0}</strong> <br/>
-            Network Sync: <span className="text-suk-forest font-bold">Stable</span>
-            <p className="text-xs mt-2 italic">Click the animated river line to view the Mock 4-Tab Station Popup.</p>
+
+          <div className="mt-6 pt-4 border-t border-border-light">
+            <div className="flex justify-between items-center text-xs font-data font-bold uppercase tracking-wider text-text-muted mb-2">
+              <span>National Coverage</span>
+              <span className={stations ? "text-suk-forest" : "text-suk-fire"}>
+                {stations ? 'Live Sync' : 'Offline'}
+              </span>
+            </div>
+            <div className="h-2 bg-bg-surface rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-suk-forest transition-all duration-1000" 
+                style={{ width: stations ? '100%' : '0%' }}
+              />
+            </div>
           </div>
-        )}
+        </div>
+
+        <div className="bg-bg-cream border border-suk-forest/20 rounded-lg p-3 flex items-start space-x-2">
+          <Info className="w-5 h-5 text-suk-forest shrink-0 mt-0.5" weight="duotone" />
+          <p className="font-ui text-[10px] leading-tight text-text-body">
+            <strong>Bhuvan-ISRO WMS Active:</strong> Layers are rendered server-side by NRSC. 
+            Color classes match ISRO 2024-25 LULC standards (Agriculture, Forest, Built-up).
+          </p>
+        </div>
       </div>
 
-      {/* Floating React Dashboard over MapLibre */}
       {selectedStation && (
-        <div className="absolute top-24 left-8 z-20 pointer-events-none">
+        <div className="absolute top-24 left-88 z-20 pointer-events-none">
           <StationPopup station={selectedStation} onClose={() => setSelectedStation(null)} />
         </div>
       )}
@@ -153,4 +288,4 @@ export const LiveMap: React.FC = () => {
   );
 };
 
-export default LiveMap;
+// export default LiveMap; removed duplicate
