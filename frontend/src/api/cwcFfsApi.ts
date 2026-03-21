@@ -41,3 +41,18 @@ export async function fetchLevelForecastStations() {
 export async function fetchReservoirStorage() {
   return ffsFetch(`${WIMS_BASE}/reservoir-storage/`);
 }
+
+/**
+ * Real CWC Hydrograph Plot Data (Observed + Forecast)
+ * @param stationId The internal CWC integer ID
+ */
+export async function fetchStationHydrograph(stationId: number) {
+  return ffsFetch(`${FFS_BASE}/get-station-level-plot-data/?stationId=${stationId}`);
+}
+
+/**
+ * Fetch forecast metadata for a specific station
+ */
+export async function fetchLevelForecastByID(stationId: number) {
+  return ffsFetch(`${WIMS_BASE}/level-forecast-station/?stationId=${stationId}`);
+}

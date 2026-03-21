@@ -164,3 +164,12 @@ export const useGloFASSample = () =>
     },
     staleTime: 6 * 60 * 60 * 1000,
   });
+
+// ── CWC Hydrograph (per-station plot data) ──────────────────────────────────
+export const useCWCHydrograph = (stationId?: number) =>
+  useQuery({
+    queryKey: ['cwc-hydrograph', stationId],
+    queryFn:  () => stationId ? fetchStationHydrograph(stationId) : Promise.resolve(null),
+    enabled: !!stationId,
+    refetchInterval: 30 * 60 * 1000,
+  });

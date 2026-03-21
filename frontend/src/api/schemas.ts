@@ -15,6 +15,7 @@ export const CWCStationSchema = z.object({
   station_name:          z.string().optional(),
   state:                 z.string().optional(),
   district:              z.string().optional(),
+  cwc_id:                z.number().optional(),
 });
 
 export type CWCStationData = z.infer<typeof CWCStationSchema>;
