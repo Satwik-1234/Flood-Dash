@@ -10,7 +10,9 @@ import { z } from 'zod';
 import { CWCStationSchema, IMDWarningSchema, CWCFfsStationSchema, CWCInflowSchema } from '../api/schemas';
 
 async function fetchMockJson(path: string): Promise<unknown> {
-  const res = await fetch(path);
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  const res = await fetch(`${baseUrl}${cleanPath}`);
   if (!res.ok) return [];
   return res.json();
 }
