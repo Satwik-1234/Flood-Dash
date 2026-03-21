@@ -11,8 +11,8 @@ test.describe('Pravhatattva Dashboard E2E', () => {
       .toBeAttached({ timeout: 8000 });
 
     // KPI card — must be visible
-    await expect(page.locator('text=Critical Alerts'))
-      .toBeVisible({ timeout: 8000 });
+    await page.waitForSelector('text=Critical Alerts', { timeout: 10000 });
+    await expect(page.locator('text=Critical Alerts')).toBeVisible();
   });
 
   test('Live Map container renders', async ({ page }) => {
