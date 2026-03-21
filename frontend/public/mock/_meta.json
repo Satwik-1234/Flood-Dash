@@ -1,7 +1,20 @@
 {
-  "last_fetch": "2026-03-21T05:00:00Z",
-  "data_quality": {
-    "gap_filled_inputs": 2,
-    "confidence_multiplier": 1.15
+  "generated_at": "2026-03-21T07:04:56Z",
+  "scraper_version": "1.2.0",
+  "sources": {
+    "cwc_stations": {
+      "status": "ok",
+      "records": 5,
+      "last_fetch": "2026-03-21T07:04:56Z"
+    },
+    "imd_warnings": {
+      "status": "mock",
+      "records": 3,
+      "last_fetch": "2026-03-21T07:04:56Z"
+    },
+    "glofas_discharge": {
+      "status": "ok",
+      "last_fetch": "2026-03-21T07:04:56Z"
+    }
   }
 }

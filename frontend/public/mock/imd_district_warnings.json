@@ -1,34 +1,35 @@
 [
   {
-    "district_code": "001",
-    "district_name": "Satara",
-    "state_name": "Maharashtra",
-    "alert_level": 4,
-    "last_updated": "2026-03-21T09:40:00Z",
-    "warning_text": "Severe flood alert. Krishna river expected to cross extreme levels."
+    "id": "IMD-20260321-001",
+    "district": "Kolhapur",
+    "state": "Maharashtra",
+    "severity": "EXTREME",
+    "rainfall_24h_mm": 210.5,
+    "issued_at": "2026-03-21T07:04:56Z",
+    "valid_until": "",
+    "population_risk": 45000,
+    "is_stale": false
   },
   {
-    "district_code": "002",
-    "district_name": "Sangli",
-    "state_name": "Maharashtra",
-    "alert_level": 3,
-    "last_updated": "2026-03-21T09:40:00Z",
-    "warning_text": "High warning. River Panchganga discharge increasing."
+    "id": "IMD-20260321-002",
+    "district": "Sangli",
+    "state": "Maharashtra",
+    "severity": "SEVERE",
+    "rainfall_24h_mm": 148.2,
+    "issued_at": "2026-03-21T07:04:56Z",
+    "valid_until": "",
+    "population_risk": 32000,
+    "is_stale": false
   },
   {
-    "district_code": "003",
-    "district_name": "Kolhapur",
-    "state_name": "Maharashtra",
-    "alert_level": 4,
-    "last_updated": "2026-03-21T09:40:00Z",
-    "warning_text": "Severe flood alert in Kolhapur city suburbs. Discharge from Radhanagari dam high."
-  },
-  {
-    "district_code": "004",
-    "district_name": "Solapur",
-    "state_name": "Maharashtra",
-    "alert_level": 2,
-    "last_updated": "2026-03-21T09:40:00Z",
-    "warning_text": "Watch. Monitor Bhima river levels downstream of Ujani dam."
+    "id": "IMD-20260321-003",
+    "district": "Nashik",
+    "state": "Maharashtra",
+    "severity": "MODERATE",
+    "rainfall_24h_mm": 87.0,
+    "issued_at": "2026-03-21T07:04:56Z",
+    "valid_until": "",
+    "population_risk": 15000,
+    "is_stale": false
   }
 ]
