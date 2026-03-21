@@ -195,5 +195,3 @@ export const RainfallRadar: React.FC = () => {
 };
 
 export default RainfallRadar;
-
-export default RainfallRadar;

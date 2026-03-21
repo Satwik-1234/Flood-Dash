@@ -1,63 +1,130 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
-import { CWCStationSchema, IMDWarningSchema } from '../api/schemas';
+import { CWCStationSchema, IMDWarningSchema,
+         CWCFfsStationSchema, CWCInflowSchema } from '../api/schemas';
+import { fetchStationsAboveWarning, fetchInflowForecastStations,
+         fetchStationsAboveDanger, fetchFloodSituationSummary } from '../api/cwcFfsApi';
+import { fetchDistrictWarnings, fetchDistrictRainfall,
+         fetchStatewiseRainfall, fetchBasinQPF,
+         fetchStateDistrictForecast, fetchAWSData } from '../api/imdApi';
 
-const CWCArraySchema = z.array(CWCStationSchema);
-const IMDArraySchema = z.array(IMDWarningSchema);
-
-/**
- * Custom hooks to fetch Mock telemetry arrays via standard HTTP methods.
- * Note: Zod parses the array to ensure strict runtime type safety.
- */
-
-export const useCWCStations = () => {
-  return useQuery({
+// ── CWC mock stations (local file) ──────────────────────────────────────────
+export const useCWCStations = () =>
+  useQuery({
     queryKey: ['cwc-stations'],
     queryFn: async () => {
-      // In production, this would be `https://api.floodsentinel.gov.in/v1/cwc/stations`
       const res = await fetch('/mock/cwc_stations.json');
-      if (!res.ok) throw new Error('CWC Network Unavailable');
-      const raw = await res.json();
-      return CWCArraySchema.parse(raw);
+      if (!res.ok) throw new Error('CWC fetch failed');
+      return z.array(CWCStationSchema).parse(await res.json());
     }
   });
-};
 
-export const useIMDWarnings = () => {
-  return useQuery({
+// ── CWC FFS — real-time above warning (live flood alerts) ───────────────────
+export const useCWCAboveWarning = () =>
+  useQuery({
+    queryKey: ['cwc-ffs-warning'],
+    queryFn: async () => {
+      const data = await fetchStationsAboveWarning();
+      return z.array(CWCFfsStationSchema).parse(data);
+    },
+    refetchInterval: 15 * 60 * 1000,
+    staleTime:       12 * 60 * 1000,
+    retry: 2,
+  });
+
+// ── CWC FFS — above danger ──────────────────────────────────────────────────
+export const useCWCAboveDanger = () =>
+  useQuery({
+    queryKey: ['cwc-ffs-danger'],
+    queryFn: async () => {
+      try {
+        const data = await fetchStationsAboveDanger();
+        return z.array(CWCFfsStationSchema).parse(data);
+      } catch { return []; }
+    },
+    refetchInterval: 15 * 60 * 1000,
+  });
+
+// ── CWC FFS — inflow/reservoir stations ────────────────────────────────────
+export const useCWCInflowStations = () =>
+  useQuery({
+    queryKey: ['cwc-ffs-inflow'],
+    queryFn: async () => {
+      const data = await fetchInflowForecastStations();
+      return z.array(CWCInflowSchema).parse(data);
+    },
+    refetchInterval: 3 * 60 * 60 * 1000,
+    staleTime:       2 * 60 * 60 * 1000,
+  });
+
+// ── IMD district warnings ───────────────────────────────────────────────────
+export const useIMDWarnings = () =>
+  useQuery({
     queryKey: ['imd-warnings'],
     queryFn: async () => {
-      const res = await fetch('/mock/imd_district_warnings.json');
-      if (!res.ok) throw new Error('IMD API Failure');
-      const raw = await res.json();
-      return IMDArraySchema.parse(raw);
-    }
-  });
-};
-
-export const useGloFASSample = () => {
-  return useQuery({
-    queryKey: ['glofas-sample'],
-    queryFn: async () => {
-      const res = await fetch('/mock/glofas_sample_discharge.json');
-      if (!res.ok) throw new Error('GloFAS fetch failed');
-      return res.json();  // Raw GloFAS response — no strict schema for now
+      try {
+        const data = await fetchDistrictWarnings();
+        return z.array(IMDWarningSchema).parse(
+          Array.isArray(data) ? data : []
+        );
+      } catch {
+        const res = await fetch('/mock/imd_district_warnings.json');
+        return z.array(IMDWarningSchema).parse(await res.json());
+      }
     },
-    staleTime: 6 * 60 * 60 * 1000,  // 6h TTL matches GloFAS update cycle
+    refetchInterval: 3 * 60 * 60 * 1000,
   });
-};
 
-export const useDataMeta = () => {
-  return useQuery({
+// ── IMD district rainfall ───────────────────────────────────────────────────
+export const useIMDRainfall = () =>
+  useQuery({
+    queryKey: ['imd-rainfall'],
+    queryFn:  fetchDistrictRainfall,
+    refetchInterval: 3 * 60 * 60 * 1000,
+  });
+
+// ── IMD state rainfall ──────────────────────────────────────────────────────
+export const useIMDStatewiseRainfall = () =>
+  useQuery({
+    queryKey: ['imd-statewise'],
+    queryFn:  fetchStatewiseRainfall,
+    refetchInterval: 3 * 60 * 60 * 1000,
+  });
+
+// ── IMD basin QPF ───────────────────────────────────────────────────────────
+export const useBasinQPF = () =>
+  useQuery({
+    queryKey: ['imd-basin-qpf'],
+    queryFn:  fetchBasinQPF,
+    refetchInterval: 6 * 60 * 60 * 1000,
+  });
+
+// ── IMD 5-day state forecast ────────────────────────────────────────────────
+export const useStateDistrictForecast = () =>
+  useQuery({
+    queryKey: ['imd-5d-forecast'],
+    queryFn:  fetchStateDistrictForecast,
+    refetchInterval: 6 * 60 * 60 * 1000,
+  });
+
+// ── Data meta (freshness) ───────────────────────────────────────────────────
+export const useDataMeta = () =>
+  useQuery({
     queryKey: ['data-meta'],
     queryFn: async () => {
       const res = await fetch('/mock/_meta.json');
-      if (!res.ok) throw new Error('Meta fetch failed');
-      return res.json() as Promise<{
-        generated_at: string;
-        sources: Record<string, { status: string; records: number; last_fetch: string }>;
-      }>;
+      return res.json();
     },
-    refetchInterval: 5 * 60 * 1000,  // Check freshness every 5 min
+    refetchInterval: 5 * 60 * 1000,
   });
-};
+
+// ── GloFAS sample ───────────────────────────────────────────────────────────
+export const useGloFASSample = () =>
+  useQuery({
+    queryKey: ['glofas-sample'],
+    queryFn: async () => {
+      const res = await fetch('/mock/glofas_rivers.json');
+      return res.json();
+    },
+    staleTime: 6 * 60 * 60 * 1000,
+  });

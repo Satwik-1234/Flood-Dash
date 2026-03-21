@@ -11,6 +11,8 @@ import {
 } from 'phosphor-react';
 import { Link } from 'react-router-dom';
 
+import { useCWCAboveWarning, useCWCAboveDanger, useCWCInflowStations } from '../hooks/useTelemetry';
+
 const KPI_METRICS = [
   {
     title: 'Critical Alerts',
@@ -87,6 +89,16 @@ const RECENT_ALERTS = [
 ];
 
 export const Overview: React.FC = () => {
+  const { data: cwcWarning = [] } = useCWCAboveWarning();
+  const { data: cwcDanger  = [] } = useCWCAboveDanger();
+  const { data: cwcInflow  = [] } = useCWCInflowStations();
+
+  const alertCounts = {
+    warning:   cwcWarning.length,
+    danger:    cwcDanger.length,
+    reservoirs_critical: cwcInflow.filter(s => (s.fill_pct ?? 0) > 85).length,
+  };
+
   return (
     <div className="w-full h-full p-8 overflow-y-auto space-y-8 bg-bg-cream">
       
@@ -104,9 +116,15 @@ export const Overview: React.FC = () => {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {KPI_METRICS.map((kpi, idx) => (
-          <Link to={kpi.link} key={idx} className="block group">
-            <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
+        {KPI_METRICS.map((kpi, idx) => {
+          let dynamicValue = kpi.value;
+          if (kpi.title === 'Critical Alerts') {
+            dynamicValue = (alertCounts.danger + alertCounts.warning).toString().padStart(2, '0');
+          }
+          
+          return (
+            <Link to={kpi.link} key={idx} className="block group">
+              <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
               
               <div className="flex justify-between items-start mb-4 relative z-10">
                 <div className={`p-3 rounded-lg bg-${kpi.bg}`}>
@@ -126,7 +144,7 @@ export const Overview: React.FC = () => {
 
               <div className="mt-auto relative z-10">
                 <div className="flex items-baseline space-x-1">
-                  <span className="font-display text-4xl font-bold text-text-dark">{kpi.value}</span>
+                  <span className="font-display text-4xl font-bold text-text-dark">{dynamicValue}</span>
                   {kpi.unit && <span className="font-ui font-bold text-text-muted">{kpi.unit}</span>}
                 </div>
                 <h3 className="font-ui font-bold text-text-body mt-2">{kpi.title}</h3>
@@ -137,7 +155,8 @@ export const Overview: React.FC = () => {
               <kpi.icon className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none transition-transform group-hover:scale-110" weight="fill" />
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       {/* Two Column Layout: Alerts & System Health */}
