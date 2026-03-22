@@ -1,36 +1,36 @@
 {
-  "generated_at": "2026-03-22T18:56:38Z",
+  "generated_at": "2026-03-22T19:34:32Z",
   "scraper_version": "3.0.0",
   "strategy": "regional-first: CWC FFS + IMD + soil moisture only",
   "sources": {
     "cwc_above_warning": {
       "status": "empty",
       "records": 0,
-      "last_fetch": "2026-03-22T18:56:38Z",
+      "last_fetch": "2026-03-22T19:34:32Z",
       "note": "Real CWC FFS \u2014 replaces GloFAS proxy"
     },
     "cwc_inflow_stations": {
       "status": "empty",
       "records": 0,
-      "last_fetch": "2026-03-22T18:56:38Z"
+      "last_fetch": "2026-03-22T19:34:32Z"
     },
     "imd_warnings": {
       "status": "mock",
       "records": 2,
-      "last_fetch": "2026-03-22T18:56:38Z",
+      "last_fetch": "2026-03-22T19:34:32Z",
       "whitelist_pending": true
     },
     "soil_moisture": {
       "status": "ok",
       "records": 7,
-      "last_fetch": "2026-03-22T18:56:38Z",
+      "last_fetch": "2026-03-22T19:34:32Z",
       "note": "Only Open-Meteo data kept \u2014 no IMD substitute for soil moisture"
     },
     "radar": {
       "status": "ok",
-      "past_frames": 12,
+      "past_frames": 13,
       "nowcast_frames": 0,
-      "last_fetch": "2026-03-22T18:56:38Z"
+      "last_fetch": "2026-03-22T19:34:32Z"
     }
   },
   "removed": [
