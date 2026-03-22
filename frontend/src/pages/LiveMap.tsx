@@ -14,6 +14,12 @@ import {
   BHUVAN_LAYERS 
 } from '../constants/gisConfig';
 
+const riskColor = (ratio: number) => {
+  if (ratio >= 1.0) return '#991B1B';
+  if (ratio >= 0.85) return '#9A3412';
+  return '#166534';
+};
+
 export const LiveMap: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -99,7 +105,7 @@ export const LiveMap: React.FC = () => {
       const m = map.current!;
 
       // ── River basin polygons (bottom layer) ───────────────────────────────
-      m.addSource('india-basins', { type: 'geojson', data: GEO_LAYERS.INDIA_BASINS });
+      m.addSource('india-basins', { type: 'geojson', data: '/geo/india_basins.geojson' });
       m.addLayer({
         id: 'basins-fill',
         type: 'fill',
@@ -200,17 +206,7 @@ export const LiveMap: React.FC = () => {
       // ── CWC gauging stations (professional hydrological marker style) ──────
       m.addSource('cwc-stations', {
         type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: stations?.map(s => ({
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
-            properties: { 
-              ...s,
-              risk_ratio: s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0 
-            }
-          })) || []
-        }
+        data: { type: 'FeatureCollection', features: [] },
       });
       // Outer halo — glows for stations near/above warning
       m.addLayer({
@@ -220,12 +216,7 @@ export const LiveMap: React.FC = () => {
         filter: ['>=', ['get', 'risk_ratio'], 0.85],
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 10, 8, 17, 12, 24],
-          'circle-color': [
-            'case',
-            ['>=', ['get', 'risk_ratio'], 1.0], '#991B1B',
-            ['>=', ['get', 'risk_ratio'], 0.85], '#9A3412',
-            '#166534'
-          ],
+          'circle-color': ['get', 'color'],
           'circle-opacity': 0.18,
           'circle-stroke-width': 0,
         },
@@ -237,12 +228,7 @@ export const LiveMap: React.FC = () => {
         source: 'cwc-stations',
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 5, 8, 8, 12, 12],
-          'circle-color': [
-            'case',
-            ['>=', ['get', 'risk_ratio'], 1.0], '#991B1B',
-            ['>=', ['get', 'risk_ratio'], 0.85], '#9A3412',
-            '#166534'
-          ],
+          'circle-color': ['get', 'color'],
           'circle-stroke-width': 2.5,
           'circle-stroke-color': '#fff',
           'circle-opacity': 1,
@@ -334,7 +320,8 @@ export const LiveMap: React.FC = () => {
           geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
           properties: { 
             ...s,
-            risk_ratio: s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0
+            color: riskColor(s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0),
+            risk_ratio: s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0,
           }
         }))
       });
