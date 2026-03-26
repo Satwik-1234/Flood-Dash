@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
+import { useRealtimeTelemetry } from './hooks/useWebSocket';
 
 // Eager load — always needed immediately
 import { Overview }     from './pages/Overview';
@@ -38,6 +39,7 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 );
 
 function App() {
+  useRealtimeTelemetry(); // Connect WebSocket for live data push
   return (
     <BrowserRouter basename={(import.meta as any).env.PROD ? "/Flood-Dash" : "/"}>
       <Routes>

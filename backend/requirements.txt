@@ -1,23 +1,32 @@
 # Web framework
-fastapi==0.111.0
-uvicorn[standard]==0.30.1
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
 pydantic==2.7.0
 python-dotenv==1.0.1
 
-# HTTP client for data fetching
-requests==2.32.3
-httpx==0.27.0
-beautifulsoup4==4.12.3
+# Database
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.9
 
-# Full ML stack — now possible inside Docker
+# Task queue
+celery==5.3.6
+redis==5.0.3
+
+# Scraping
+selenium==4.21.0
+beautifulsoup4==4.12.3
+requests==2.31.0
+lxml==5.2.2
+
+# HTTP async client
+httpx==0.27.0
+
+# ML stack
 numpy==1.26.4
 pandas==2.2.2
 scikit-learn==1.5.0
 xgboost==2.0.3
 scipy==1.13.1
 
-# Hydrology & geospatial
+# Hydrology
 imdlib==0.1.9
-
-# Scheduling (for local scraper)
-apscheduler==3.10.4
