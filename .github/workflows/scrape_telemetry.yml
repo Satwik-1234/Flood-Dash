@@ -1,43 +1,35 @@
-name: 24/7 Telemetry Scraper
+name: 24/7 All-India Telemetry
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # Run every 15 minutes
-  workflow_dispatch:        # Allow manual trigger
+    - cron: '*/15 * * * *'   # Every 15 minutes, 24/7/365
+  workflow_dispatch:          # Manual trigger from Actions tab
+
+permissions:
+  contents: write
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install selenium beautifulsoup4 requests lxml
+      - name: Install deps
+        run: pip install requests
 
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+      - name: Run All-India Scraper
+        run: python backend/manual_scrape.py
 
-      - name: Run Scrapers
-        env:
-          PYTHONPATH: ./backend
+      - name: Commit & Push
         run: |
-          python backend/manual_scrape.py
-
-      - name: Commit and Push Changes
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config user.name "Pravhatattva Bot"
+          git config user.email "action@github.com"
           git add frontend/public/mock/*.json
-          git commit -m "chore: 24/7 telemetry update [skip ci]" || echo "No changes to commit"
+          git diff --cached --quiet || git commit -m "data: all-india telemetry update [skip ci]"
           git push
