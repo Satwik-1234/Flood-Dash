@@ -371,7 +371,9 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#FDE68A' }}>IMD NOWCAST</span>
               </div>
               <p style={{ fontSize: '11px', color: '#FEF3C7', margin: 0 }}>
-                Moderate rain expected over {station.district || 'the area'} in next 3-6 hours. AMC saturation at 82%.
+                {wx?.precipitation != null && wx.precipitation > 5
+                  ? `${(wx.precipitation * 24).toFixed(0)}mm forecast next 24h. Soil moisture: AMC-${scscn.amc_class}.`
+                  : `No significant precipitation forecast. Soil condition: AMC-${scscn.amc_class}.`}
               </p>
             </div>
           </div>
@@ -384,14 +386,25 @@ export const StationPopup: React.FC<StationPopupProps> = ({ station, onClose }) 
               <div style={S.metricLabel}>Catchment Runoff (SCS-CN)</div>
               <div style={{ background: '#020617', padding: '12px', borderRadius: '10px', border: '1px solid #1E293B' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>Infiltration Retention (S)</span>
-                  <span style={{ fontFamily: 'monospace', color: '#F1F5F9' }}>124.2 mm</span>
+                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>Effective Runoff Q</span>
+                  <span style={{ fontFamily: 'monospace', color: '#F1F5F9' }}>{scscn.runoff_Q_mm.toFixed(1)} mm</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>Retention S</span>
+                  <span style={{ fontFamily: 'monospace', color: '#F1F5F9' }}>{scscn.S_mm.toFixed(1)} mm</span>
                 </div>
                 <div style={{ height: '6px', width: '100%', background: '#1E293B', borderRadius: '3px' }}>
-                  <div style={{ height: '6px', width: '42%', background: '#4ADE80', borderRadius: '3px' }} />
+                  <div style={{
+                    height: '6px',
+                    width: `${Math.min(100, scscn.runoff_ratio * 100)}%`,
+                    background: scscn.runoff_ratio > 0.6 ? '#F87171' : '#4ADE80',
+                    borderRadius: '3px'
+                  }} />
                 </div>
                 <p style={{ fontSize: '10px', color: '#4ADE80', marginTop: '6px', margin: 0 }}>
-                  Soil capacity high. Immediate pluvial flooding risk is Low.
+                  {(scscn.runoff_ratio * 100).toFixed(0)}% of rainfall becomes runoff. AMC-{scscn.amc_class} ({
+                    scscn.amc_class === 'III' ? 'saturated' : scscn.amc_class === 'II' ? 'average' : 'dry'
+                  } soil).
                 </p>
               </div>
             </div>

@@ -38,11 +38,22 @@ def fetch_json(url: str, headers: dict = {}, label: str = "") -> list | dict | N
 
 
 def write(filename: str, data: object) -> None:
+    """Write data. NEVER overwrite non-empty file with empty list."""
     path = MOCK_DIR / filename
+    if isinstance(data, list) and len(data) == 0:
+        if path.exists():
+            try:
+                existing = json.loads(path.read_text())
+                if isinstance(existing, list) and len(existing) > 0:
+                    print(f"  ⚠ GUARD: {filename} — API=0, keeping {len(existing)} existing records")
+                    return
+            except Exception:
+                pass
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
     size = path.stat().st_size
-    print(f"  → Written: {filename} ({size//1024}KB)")
+    count = len(data) if isinstance(data, list) else "dict"
+    print(f"  → {filename}: {size//1024}KB ({count} records)")
 
 
 def main():

@@ -3,15 +3,13 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { StationPopup } from '../components/map/StationPopup';
 import { CWCStationData } from '../api/schemas';
-import { useCWCStations, useCWCAboveWarning, useCWCAboveDanger } from '../hooks/useTelemetry';
-import { SpinnerGap, MapTrifold, SquaresFour, Info } from 'phosphor-react';
-import { 
-  INDIA_CENTER, 
-  INDIA_BOUNDS, 
-  BASEMAPS, 
-  GEO_LAYERS, 
-  WMS_ENDPOINTS, 
-  BHUVAN_LAYERS 
+import {
+  useCWCStations, useCWCAboveWarning, useCWCAboveDanger,
+  useCWCInflowStations, useIMDWarnings
+} from '../hooks/useTelemetry';
+import { MapTrifold, Drop, CloudRain, Warning, X } from 'phosphor-react';
+import {
+  INDIA_CENTER, INDIA_BOUNDS, GEO_LAYERS, WMS_ENDPOINTS, BHUVAN_LAYERS
 } from '../constants/gisConfig';
 
 const riskColor = (ratio: number) => {
@@ -23,24 +21,23 @@ const riskColor = (ratio: number) => {
 export const LiveMap: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  
-  const { data: stations, isLoading } = useCWCStations();
-  const { data: cwcWarningMap = [] } = useCWCAboveWarning();
-  const { data: cwcDangerMap = [] } = useCWCAboveDanger();
-  const [selectedStation, setSelectedStation] = useState<CWCStationData | null>(null);
-  const [activeLayers, setActiveLayers] = useState({
-    lulc: true,
-    districts: true,
-    rivers: true,
-    stations: true
-  });
 
-  // ── Radar animation state ──────────────────────────────────────────────────
-  const [radarFrames, setRadarFrames]       = useState<{path: string; time: number}[]>([]);
-  const [radarFrameIdx, setRadarFrameIdx]   = useState(0);
-  const [radarPlaying, setRadarPlaying]     = useState(false);
-  const [showRadar, setShowRadar]           = useState(false);
-  const animIntervalRef                     = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { data: stations    = [] } = useCWCStations();
+  const { data: cwcWarning  = [] } = useCWCAboveWarning();
+  const { data: cwcDanger   = [] } = useCWCAboveDanger();
+  const { data: cwcInflow   = [] } = useCWCInflowStations();
+  const { data: imdWarnings = [] } = useIMDWarnings();
+
+  const [selectedStation,  setSelectedStation]  = useState<CWCStationData | null>(null);
+  const [selectedState,    setSelectedState]    = useState<string | null>(null);
+  const [showDistricts,    setShowDistricts]    = useState(true);
+  const [showRivers,       setShowRivers]       = useState(true);
+  const [showStations,     setShowStations]     = useState(true);
+  const [radarFrames,      setRadarFrames]      = useState<{path: string; time: number}[]>([]);
+  const [radarIdx,         setRadarIdx]         = useState(0);
+  const [radarPlaying,     setRadarPlaying]     = useState(false);
+  const [showRadar,        setShowRadar]        = useState(false);
+  const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load radar metadata from scraper output
   useEffect(() => {
@@ -52,10 +49,9 @@ export const LiveMap: React.FC = () => {
           ...(data.radar?.nowcast ?? []),
         ];
         setRadarFrames(frames);
-        setRadarFrameIdx(Math.max(0, frames.length - 3)); // Start near latest
+        setRadarIdx(Math.max(0, frames.length - 3));
       })
       .catch(() => {
-        // Fallback: fetch directly from RainViewer
         fetch('https://api.rainviewer.com/public/weather-maps.json')
           .then(r => r.json())
           .then(data => {
@@ -64,14 +60,14 @@ export const LiveMap: React.FC = () => {
               ...(data.radar?.nowcast ?? []),
             ];
             setRadarFrames(frames);
-            setRadarFrameIdx(Math.max(0, frames.length - 3));
+            setRadarIdx(Math.max(0, frames.length - 3));
           });
       });
   }, []);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
-    
+
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: {
@@ -79,7 +75,6 @@ export const LiveMap: React.FC = () => {
         sources: {
           'basemap': {
             type: 'raster',
-            // ESRI World Topo Map — free, no key, no CORS, shows rivers and terrain
             tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],
             tileSize: 256,
             attribution: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS'
@@ -96,7 +91,7 @@ export const LiveMap: React.FC = () => {
       center: INDIA_CENTER as [number, number],
       zoom: 5,
       maxBounds: INDIA_BOUNDS as [number, number, number, number],
-      attributionControl: false 
+      attributionControl: false
     });
 
     map.current.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
@@ -105,7 +100,7 @@ export const LiveMap: React.FC = () => {
       const m = map.current!;
 
       // ── River basin polygons (bottom layer) ───────────────────────────────
-      m.addSource('india-basins', { type: 'geojson', data: '/geo/india_basins.geojson' });
+      m.addSource('india-basins', { type: 'geojson', data: GEO_LAYERS.INDIA_BASINS });
       m.addLayer({
         id: 'basins-fill',
         type: 'fill',
@@ -166,7 +161,19 @@ export const LiveMap: React.FC = () => {
           'fill-opacity': 0.65,
           'fill-outline-color': 'rgba(255,255,255,0.08)'
         },
-        layout: { 'visibility': activeLayers.districts ? 'visible' : 'none' }
+        layout: { 'visibility': showDistricts ? 'visible' : 'none' }
+      });
+
+      // Districts outline
+      m.addLayer({
+        id: 'districts-outline',
+        type: 'line',
+        source: 'india-districts',
+        paint: {
+          'line-color': 'rgba(255,255,255,0.15)',
+          'line-width': 0.5,
+        },
+        layout: { 'visibility': showDistricts ? 'visible' : 'none' }
       });
 
       // 3. INDIA STATES OUTLINE
@@ -196,11 +203,11 @@ export const LiveMap: React.FC = () => {
         attribution: '© CWC India WRIS'
       });
       m.addLayer({
-        id: 'rivers-layer',
+        id: 'wris-rivers',
         type: 'raster',
         source: 'wris-rivers',
         paint: { 'raster-opacity': 0.8 },
-        layout: { 'visibility': activeLayers.rivers ? 'visible' : 'none' }
+        layout: { 'visibility': showRivers ? 'visible' : 'none' }
       });
 
       // ── CWC gauging stations (professional hydrological marker style) ──────
@@ -246,6 +253,25 @@ export const LiveMap: React.FC = () => {
           'circle-opacity': 0.95,
         },
       });
+      // Station labels
+      m.addLayer({
+        id: 'stations-label',
+        type: 'symbol',
+        source: 'cwc-stations',
+        minzoom: 8,
+        layout: {
+          'text-field': ['get', 'station_name'],
+          'text-size': 10,
+          'text-font': ['Open Sans Regular'],
+          'text-offset': [0, 1.5],
+          'text-anchor': 'top',
+        },
+        paint: {
+          'text-color': '#334155',
+          'text-halo-color': '#fff',
+          'text-halo-width': 1,
+        },
+      });
 
       m.on('click', 'stations-point', (e) => {
         if (e.features && e.features[0]) {
@@ -253,12 +279,18 @@ export const LiveMap: React.FC = () => {
         }
       });
 
-      m.on('mouseenter', 'stations-point', () => {
-        m.getCanvas().style.cursor = 'pointer';
+      m.on('click', 'districts-fill', (e) => {
+        const f = e.features?.[0];
+        if (f) {
+          const stateName = (f.properties?.ST_NM ?? '') as string;
+          setSelectedState(prev => prev === stateName ? null : stateName);
+        }
       });
-      m.on('mouseleave', 'stations-point', () => {
-        m.getCanvas().style.cursor = '';
-      });
+      m.on('mouseenter', 'districts-fill', () => { m.getCanvas().style.cursor = 'pointer'; });
+      m.on('mouseleave', 'districts-fill', () => { m.getCanvas().style.cursor = ''; });
+
+      m.on('mouseenter', 'stations-point', () => { m.getCanvas().style.cursor = 'pointer'; });
+      m.on('mouseleave', 'stations-point', () => { m.getCanvas().style.cursor = ''; });
     });
 
   }, [stations]);
@@ -267,18 +299,15 @@ export const LiveMap: React.FC = () => {
   useEffect(() => {
     const m = map.current;
     if (!m || !m.isStyleLoaded() || !showRadar || radarFrames.length === 0) return;
-    
-    const frame = radarFrames[radarFrameIdx];
+
+    const frame = radarFrames[radarIdx];
     if (!frame) return;
-    
-    // frame.path is already "/v2/radar/1774098600" — don't add prefix again
+
     const tileUrl = `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/4/1_1.png`;
-    
+
     if (m.getSource('radar-tiles')) {
-      // Update existing source
       (m.getSource('radar-tiles') as maplibregl.RasterTileSource).setTiles([tileUrl]);
     } else {
-      // Add source + layer
       m.addSource('radar-tiles', {
         type: 'raster',
         tiles: [tileUrl],
@@ -290,27 +319,27 @@ export const LiveMap: React.FC = () => {
         type: 'raster',
         source: 'radar-tiles',
         paint: { 'raster-opacity': 0.65 },
-      }, 'stations-point'); // Insert below station markers
+      }, 'stations-point');
     }
-  }, [radarFrames, radarFrameIdx, showRadar]);
+  }, [radarFrames, radarIdx, showRadar]);
 
   // Play/pause animation
   useEffect(() => {
     if (radarPlaying && radarFrames.length > 0) {
-      animIntervalRef.current = setInterval(() => {
-        setRadarFrameIdx(i => (i + 1) % radarFrames.length);
-      }, 500); // 500ms per frame
+      animRef.current = setInterval(() => {
+        setRadarIdx(i => (i + 1) % radarFrames.length);
+      }, 500);
     } else {
-      if (animIntervalRef.current) clearInterval(animIntervalRef.current);
+      if (animRef.current) clearInterval(animRef.current);
     }
-    return () => { if (animIntervalRef.current) clearInterval(animIntervalRef.current); };
+    return () => { if (animRef.current) clearInterval(animRef.current); };
   }, [radarPlaying, radarFrames.length]);
 
   // Handle station data updates
   useEffect(() => {
     const m = map.current;
     if (!m || !m.isStyleLoaded() || !stations) return;
-    
+
     const source = m.getSource('cwc-stations') as maplibregl.GeoJSONSource;
     if (source) {
       source.setData({
@@ -318,7 +347,7 @@ export const LiveMap: React.FC = () => {
         features: stations.map(s => ({
           type: 'Feature',
           geometry: { type: 'Point', coordinates: [(s.lon ?? 0), (s.lat ?? 0)] },
-          properties: { 
+          properties: {
             ...s,
             color: riskColor(s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0),
             risk_ratio: s.danger_level_m > 0 ? s.current_water_level_m / s.danger_level_m : 0,
@@ -336,10 +365,10 @@ export const LiveMap: React.FC = () => {
 
     const riskByDistrict = new Map<string, number>();
 
-    cwcDangerMap.forEach(s => {
+    cwcDanger.forEach((s: any) => {
       if (s.district) riskByDistrict.set(s.district.toLowerCase(), 4);
     });
-    cwcWarningMap.forEach(s => {
+    cwcWarning.forEach((s: any) => {
       if (s.district && !riskByDistrict.has(s.district.toLowerCase())) {
         riskByDistrict.set(s.district.toLowerCase(), 3);
       }
@@ -356,147 +385,318 @@ export const LiveMap: React.FC = () => {
         );
       }
     });
-  }, [cwcWarningMap, cwcDangerMap]);
+  }, [cwcWarning, cwcDanger]);
 
-  // Handle layer visibility changes
+  // Layer visibility
   useEffect(() => {
     const m = map.current;
-    if (!m || !m.isStyleLoaded()) return;
-    
-    if (m.getLayer('bhuvan-lulc-layer')) m.setLayoutProperty('bhuvan-lulc-layer', 'visibility', activeLayers.lulc ? 'visible' : 'none');
-    if (m.getLayer('districts-fill')) m.setLayoutProperty('districts-fill', 'visibility', activeLayers.districts ? 'visible' : 'none');
-    if (m.getLayer('rivers-layer')) m.setLayoutProperty('rivers-layer', 'visibility', activeLayers.rivers ? 'visible' : 'none');
-    if (m.getLayer('stations-point')) m.setLayoutProperty('stations-point', 'visibility', activeLayers.stations ? 'visible' : 'none');
-  }, [activeLayers]);
+    if (!m?.isStyleLoaded()) return;
+    ['districts-fill', 'districts-outline'].forEach(id => {
+      if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', showDistricts ? 'visible' : 'none');
+    });
+  }, [showDistricts]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m?.isStyleLoaded()) return;
+    if (m.getLayer('rivers-line'))   m.setLayoutProperty('rivers-line',   'visibility', showRivers   ? 'visible' : 'none');
+    if (m.getLayer('wris-rivers'))   m.setLayoutProperty('wris-rivers',   'visibility', showRivers   ? 'visible' : 'none');
+  }, [showRivers]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m?.isStyleLoaded()) return;
+    ['stations-halo','stations-point','stations-inner','stations-label'].forEach(id => {
+      if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', showStations ? 'visible' : 'none');
+    });
+  }, [showStations]);
+
+  // State panel: all data filtered to selected state
+  const statePanelData = selectedState ? {
+    cwcStations: (stations as any[]).filter(s => s.state === selectedState),
+    cwcAtWarn:   (cwcWarning as any[]).filter(s => s.state === selectedState),
+    cwcAtDanger: (cwcDanger  as any[]).filter(s => s.state === selectedState),
+    reservoirs:  (cwcInflow  as any[]).filter(r => r.state === selectedState),
+    imd:         (imdWarnings as any[]).filter(w => w.state === selectedState),
+  } : null;
 
   return (
-    <div className="w-full h-full relative border-l border-border-default">
-      <div 
-        ref={mapContainer} 
-        className="absolute inset-0 w-full h-full bg-[#f4f1eb]" 
-      />
-      
-      {/* Control Panel */}
-      <div className="absolute top-4 left-4 z-10 w-80 pointer-events-auto space-y-4">
-        <div className="bg-bg-white border border-border-default shadow-popup rounded-xl p-5">
-          <h2 className="font-display text-text-dark font-bold text-xl flex items-center mb-1">
-            <MapTrifold className="w-6 h-6 mr-2 text-suk-forest" weight="duotone" />
-            National Intel
-          </h2>
-          <p className="font-ui text-xs text-text-muted mb-4">India Integrated Flood Dashboard</p>
-          
-          <div className="space-y-3">
-            {[
-              { id: 'lulc', label: 'Bhuvan LULC (ISRO)', color: 'text-suk-forest', icon: SquaresFour },
-              { id: 'districts', label: 'District Risk (Choropleth)', color: 'text-suk-river', icon: SquaresFour },
-              { id: 'rivers', label: 'WRIS River Network', color: 'text-suk-sky', icon: SquaresFour },
-            ].map(l => (
-              <label key={l.id} className="flex items-center justify-between cursor-pointer group">
-                <span className={`font-ui text-sm font-semibold ${l.color}`}>{l.label}</span>
-                <input 
-                  type="checkbox" 
-                  checked={activeLayers[l.id as keyof typeof activeLayers]} 
-                  onChange={() => setActiveLayers(prev => ({ ...prev, [l.id]: !prev[l.id as keyof typeof activeLayers]}))}
-                  className="w-4 h-4 rounded border-border-default text-suk-forest focus:ring-suk-forest"
-                />
-              </label>
-            ))}
-          </div>
+    <div className="w-full h-full relative">
+      <div ref={mapContainer} className="absolute inset-0" />
 
-          <div className="mt-6 pt-4 border-t border-border-light">
-            <div className="flex justify-between items-center text-xs font-data font-bold uppercase tracking-wider text-text-muted mb-2">
-              <span>National Coverage</span>
-              <span className={stations ? "text-suk-forest" : "text-suk-fire"}>
-                {stations ? 'Live Sync' : 'Offline'}
-              </span>
-            </div>
-            <div className="h-2 bg-bg-surface rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-suk-forest transition-all duration-1000" 
-                style={{ width: stations ? '100%' : '0%' }}
-              />
-            </div>
+      {/* ── LEFT PANEL: LIVE OPERATIONS BOARD ─────────────────────────── */}
+      <div className="absolute top-4 left-4 z-10 w-72 space-y-3 pointer-events-auto">
+
+        {/* Header + live alert counts */}
+        <div className="bg-bg-white border border-border-default shadow-lg rounded-xl overflow-hidden">
+          <div className="bg-suk-forest px-4 py-3">
+            <h2 className="font-display text-white font-bold text-base leading-tight">
+              प्रवहतत्त्व
+            </h2>
+            <p className="font-ui text-white/60 text-[10px] mt-0.5">
+              India Flood Intelligence · {stations.length} stations
+            </p>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-border-light">
+            {[
+              { val: (cwcDanger  as any[]).length, label: 'Danger',     color: 'text-suk-fire',  bg: 'bg-risk-5' },
+              { val: (cwcWarning as any[]).length, label: 'Warning',    color: 'text-suk-amber', bg: 'bg-risk-3' },
+              { val: (cwcInflow  as any[]).filter((r:any) => (r.fill_pct ?? 0) > 80).length,
+                label: 'Reservoirs', color: 'text-suk-river', bg: 'bg-bg-surface' },
+            ].map(s => (
+              <div key={s.label} className={`${s.bg} p-3 text-center`}>
+                <div className={`font-display text-2xl font-bold ${s.color}`}>{s.val}</div>
+                <div className="font-ui text-[10px] text-text-muted mt-0.5">{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* RainViewer Radar Control */}
-        <div className="bg-bg-white border border-border-default shadow-popup rounded-xl p-5">
-          <h4 className="font-ui text-xs font-bold text-text-muted uppercase tracking-wider mb-3">
-            Atmospheric Sensors
-          </h4>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showRadar}
-                  onChange={e => setShowRadar(e.target.checked)}
-                  className="rounded border-border-default text-suk-forest focus:ring-suk-forest"
-                />
-                <span className="font-ui text-sm font-bold text-text-dark">
-                  Radar Overlay (Doppler)
-                </span>
-                <span className="font-data text-[10px] text-suk-river bg-bg-surface px-2 py-0.5 rounded">
-                  LIVE
-                </span>
-              </label>
+        {/* Layer toggles */}
+        <div className="bg-bg-white border border-border-default shadow-lg rounded-xl p-3">
+          <p className="font-ui text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Layers</p>
+          {[
+            { state: showDistricts, set: setShowDistricts, label: 'District Risk' },
+            { state: showRivers,    set: setShowRivers,    label: 'Rivers & Basins' },
+            { state: showStations,  set: setShowStations,  label: 'CWC Stations' },
+          ].map(l => (
+            <label key={l.label} className="flex items-center justify-between cursor-pointer px-1 py-1.5 rounded hover:bg-bg-surface">
+              <span className="font-ui text-xs font-medium text-text-body">{l.label}</span>
+              <input type="checkbox" checked={l.state}
+                     onChange={() => l.set(p => !p)}
+                     className="rounded accent-suk-forest" />
+            </label>
+          ))}
+        </div>
+
+        {/* Radar */}
+        <div className="bg-bg-white border border-border-default shadow-lg rounded-xl p-3">
+          <label className="flex items-center justify-between cursor-pointer">
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={showRadar}
+                     onChange={e => setShowRadar(e.target.checked)}
+                     className="rounded accent-suk-river" />
+              <span className="font-ui text-xs font-bold text-text-dark">Doppler Radar</span>
+              <span className="font-data text-[9px] bg-suk-river text-white px-1.5 py-0.5 rounded-full">LIVE</span>
             </div>
-            
             {showRadar && radarFrames.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={radarFrames.length - 1}
-                  value={radarFrameIdx}
-                  onChange={e => setRadarFrameIdx(Number(e.target.value))}
-                  className="w-full accent-suk-river"
-                />
-                
-                <div className="flex justify-between items-center">
-                  <span className="font-data text-[10px] text-text-muted">
-                    {radarFrames[radarFrameIdx]
-                      ? new Date(radarFrames[radarFrameIdx].time * 1000)
-                          .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
-                      : '–'}
+              <span className="font-data text-[10px] text-text-muted">
+                {new Date((radarFrames[radarIdx]?.time ?? 0) * 1000)
+                  .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
+              </span>
+            )}
+          </label>
+          {showRadar && radarFrames.length > 0 && (
+            <div className="mt-2 space-y-1.5">
+              <input type="range" min={0} max={radarFrames.length - 1} value={radarIdx}
+                     onChange={e => setRadarIdx(Number(e.target.value))}
+                     className="w-full h-1 accent-suk-river" />
+              <button onClick={() => setRadarPlaying(p => !p)}
+                      className="w-full text-[11px] font-bold py-1 bg-suk-river text-white rounded">
+                {radarPlaying ? '⏸ Pause' : '▶ Play'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* At-danger feed */}
+        {(cwcDanger as any[]).length > 0 && (
+          <div className="bg-bg-white border-2 border-suk-fire shadow-lg rounded-xl overflow-hidden">
+            <div className="bg-risk-5 px-3 py-2 flex justify-between items-center">
+              <span className="font-ui text-xs font-bold text-suk-fire">At Danger Level</span>
+              <span className="font-data text-[10px] text-suk-fire font-bold">{(cwcDanger as any[]).length}</span>
+            </div>
+            <div className="max-h-44 overflow-y-auto divide-y divide-border-light">
+              {(cwcDanger as any[]).slice(0, 6).map((s: any) => (
+                <button key={s.station_code ?? s.id}
+                        className="w-full flex items-center justify-between px-3 py-2 hover:bg-bg-surface text-left"
+                        onClick={() => {
+                          if (s.lat && s.lon && map.current)
+                            map.current.flyTo({ center: [s.lon, s.lat], zoom: 10, duration: 1200 });
+                          setSelectedStation(s as CWCStationData);
+                        }}>
+                  <div>
+                    <p className="font-ui text-xs font-bold text-text-dark">{s.river ?? s.station_name}</p>
+                    <p className="font-data text-[10px] text-text-muted">{s.district}, {s.state}</p>
+                  </div>
+                  <span className="font-data text-xs font-bold text-suk-fire ml-2 whitespace-nowrap">
+                    {(s.current_level_m ?? s.current_water_level_m ?? 0).toFixed(1)}m
                   </span>
-                  
-                  <button
-                    onClick={() => setRadarPlaying(p => !p)}
-                    className="flex items-center space-x-1 px-3 py-1 bg-suk-river text-bg-white rounded-lg text-xs font-bold font-ui hover:bg-opacity-90 transition-colors"
-                  >
-                    {radarPlaying ? '⏸ Pause' : '▶ Play'}
-                  </button>
-                  
-                  {radarFrames[radarFrameIdx] &&
-                   radarFrameIdx >= (radarFrames.filter(f => f.time <= Date.now()/1000).length) && (
-                    <span className="font-data text-[10px] text-suk-amber font-bold flex items-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-suk-amber animate-pulse mr-1"></div>
-                      NOWCAST
-                    </span>
-                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* IMD summary */}
+        {(imdWarnings as any[]).length > 0 && (
+          <div className="bg-bg-white border border-border-default shadow-lg rounded-xl overflow-hidden">
+            <div className="bg-risk-3 px-3 py-2">
+              <span className="font-ui text-xs font-bold text-risk-3-text">IMD Active Warnings</span>
+            </div>
+            <div className="max-h-32 overflow-y-auto divide-y divide-border-light">
+              {(imdWarnings as any[]).slice(0, 4).map((w: any) => (
+                <div key={w.id} className="flex items-center justify-between px-3 py-2">
+                  <div>
+                    <p className="font-ui text-xs font-bold text-text-dark">{w.district}</p>
+                    <p className="font-data text-[10px] text-text-muted">{w.rainfall_24h_mm}mm / 24h</p>
+                  </div>
+                  <span className={`font-data text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    w.severity === 'EXTREME' ? 'bg-risk-5 text-risk-5-text' :
+                    w.severity === 'SEVERE'  ? 'bg-risk-4 text-risk-4-text' :
+                    'bg-risk-3 text-risk-3-text'}`}>
+                    {w.severity}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Hint when no alerts */}
+        {(cwcDanger as any[]).length === 0 && (cwcWarning as any[]).length === 0 && (
+          <div className="bg-bg-white border border-border-default rounded-xl px-3 py-3">
+            <p className="font-ui text-[11px] text-text-muted">
+              Click any district on the map to see state-level flood intelligence.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ── RIGHT PANEL: STATE DRILLDOWN (appears when district clicked) ── */}
+      {selectedState && statePanelData && (
+        <div className="absolute top-4 right-4 z-10 w-80 bg-bg-white border border-border-default
+                        shadow-xl rounded-xl overflow-hidden pointer-events-auto">
+
+          {/* Header */}
+          <div className="bg-suk-forest px-4 py-3 flex items-center justify-between">
+            <div>
+              <h3 className="font-display text-white font-bold text-lg leading-tight">{selectedState}</h3>
+              <p className="font-ui text-white/60 text-[10px] mt-0.5">State Flood Intelligence</p>
+            </div>
+            <button onClick={() => setSelectedState(null)}
+                    className="text-white/60 hover:text-white transition-colors">
+              <X size={20} weight="bold" />
+            </button>
+          </div>
+
+          <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { val: statePanelData.cwcAtDanger.length, label: 'Danger',  color: 'text-suk-fire',  bg: 'bg-risk-5' },
+                { val: statePanelData.cwcAtWarn.length,   label: 'Warning', color: 'text-suk-amber', bg: 'bg-risk-3' },
+                { val: statePanelData.imd.length,          label: 'IMD',     color: 'text-suk-river', bg: 'bg-bg-surface' },
+              ].map(s => (
+                <div key={s.label} className={`${s.bg} rounded-lg p-2 text-center`}>
+                  <div className={`font-display text-xl font-bold ${s.color}`}>{s.val}</div>
+                  <div className="font-ui text-[10px] text-text-muted">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* CWC stations */}
+            <div>
+              <p className="font-ui text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Drop size={10} /> CWC Stations ({statePanelData.cwcStations.length})
+              </p>
+              {statePanelData.cwcStations.length === 0
+                ? <p className="font-ui text-xs text-text-muted italic">No stations mapped for this state</p>
+                : <div className="space-y-1.5 max-h-52 overflow-y-auto">
+                    {statePanelData.cwcStations.map((s: any) => {
+                      const ratio = s.danger_level_m > 0
+                        ? s.current_water_level_m / s.danger_level_m : 0;
+                      const atRisk = ratio >= 0.85;
+                      return (
+                        <button key={s.station_code}
+                                className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-colors ${atRisk ? 'bg-risk-4 border border-risk-4-border' : 'bg-bg-surface hover:bg-bg-surface-2'}`}
+                                onClick={() => {
+                                  if (s.lat && s.lon && map.current)
+                                    map.current.flyTo({ center: [s.lon, s.lat], zoom: 10, duration: 1000 });
+                                  setSelectedStation(s as CWCStationData);
+                                }}>
+                          <div>
+                            <p className="font-ui text-xs font-bold text-text-dark">{s.river}</p>
+                            <p className="font-data text-[10px] text-text-muted">{s.station_name} · {s.station_code}</p>
+                          </div>
+                          <div className="text-right ml-2 flex-shrink-0">
+                            <p className={`font-data text-sm font-bold ${atRisk ? 'text-suk-fire' : 'text-text-dark'}`}>
+                              {s.current_water_level_m.toFixed(2)}m
+                            </p>
+                            <div className="w-20 h-1 bg-bg-cream rounded overflow-hidden mt-1">
+                              <div className={`h-1 rounded ${atRisk ? 'bg-suk-fire' : 'bg-suk-forest'}`}
+                                   style={{ width: `${Math.min(100, ratio * 100)}%` }} />
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+              }
+            </div>
+
+            {/* IMD warnings */}
+            {statePanelData.imd.length > 0 && (
+              <div>
+                <p className="font-ui text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <CloudRain size={10} /> IMD Warnings ({statePanelData.imd.length})
+                </p>
+                <div className="space-y-1.5">
+                  {statePanelData.imd.map((w: any) => (
+                    <div key={w.id}
+                         className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                           w.severity === 'EXTREME' ? 'bg-risk-5 border-risk-5-border text-risk-5-text' :
+                           w.severity === 'SEVERE'  ? 'bg-risk-4 border-risk-4-border text-risk-4-text' :
+                           w.severity === 'MODERATE'? 'bg-risk-3 border-risk-3-border text-risk-3-text' :
+                           'bg-risk-2 border-risk-2-border text-risk-2-text'}`}>
+                      <div>
+                        <p className="font-ui text-xs font-bold">{w.district}</p>
+                        <p className="font-data text-[10px] opacity-80">{w.rainfall_24h_mm}mm / 24h</p>
+                      </div>
+                      <span className="font-data text-[10px] font-bold ml-2">{w.severity}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
+
+            {/* Reservoirs */}
+            {statePanelData.reservoirs.length > 0 && (
+              <div>
+                <p className="font-ui text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Warning size={10} /> Reservoirs ({statePanelData.reservoirs.length})
+                </p>
+                <div className="space-y-1.5">
+                  {statePanelData.reservoirs.map((r: any) => (
+                    <div key={r.station_code} className="flex items-center justify-between p-2.5 bg-bg-surface rounded-lg">
+                      <div>
+                        <p className="font-ui text-xs font-bold text-text-dark">{r.station_name}</p>
+                        <p className="font-data text-[10px] text-text-muted">{r.river}</p>
+                      </div>
+                      <div className="text-right ml-2">
+                        <p className={`font-data text-sm font-bold ${(r.fill_pct ?? 0) > 85 ? 'text-suk-fire' : 'text-text-dark'}`}>
+                          {r.fill_pct ?? '–'}%
+                        </p>
+                        <div className="w-16 h-1 bg-bg-cream rounded overflow-hidden mt-1">
+                          <div className={`h-1 rounded ${(r.fill_pct ?? 0) > 85 ? 'bg-suk-fire' : 'bg-suk-forest'}`}
+                               style={{ width: `${r.fill_pct ?? 0}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
-        </div>
-
-        <div className="bg-bg-cream border border-suk-forest/20 rounded-lg p-3 flex items-start space-x-2">
-          <Info className="w-5 h-5 text-suk-forest shrink-0 mt-0.5" weight="duotone" />
-          <p className="font-ui text-[10px] leading-tight text-text-body">
-            <strong>Bhuvan-ISRO WMS Active:</strong> Layers are rendered server-side by NRSC. 
-            Color classes match ISRO 2024-25 LULC standards (Agriculture, Forest, Built-up).
-          </p>
-        </div>
-      </div>
-
-      {selectedStation && (
-        <div className="absolute top-24 left-88 z-20 pointer-events-none">
-          <StationPopup station={selectedStation} onClose={() => setSelectedStation(null)} />
         </div>
       )}
 
+      {/* ── STATION POPUP ─────────────────────────────────────────────────── */}
+      {selectedStation && (
+        <StationPopup station={selectedStation} onClose={() => setSelectedStation(null)} />
+      )}
     </div>
   );
 };
