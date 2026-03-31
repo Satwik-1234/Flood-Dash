@@ -1,41 +1,7 @@
 {
-  "version": "2.0",
-  "generated": 1774929929,
-  "host": "https://tilecache.rainviewer.com",
+  "generated_at": "2026-03-31T05:26:27Z",
   "radar": {
     "past": [
-      {
-        "time": 1774922400,
-        "path": "/v2/radar/79fc17b205a1"
-      },
-      {
-        "time": 1774923000,
-        "path": "/v2/radar/abc6fa59e69e"
-      },
-      {
-        "time": 1774923600,
-        "path": "/v2/radar/f1b534e81fc4"
-      },
-      {
-        "time": 1774924200,
-        "path": "/v2/radar/96b6ea6f65c8"
-      },
-      {
-        "time": 1774924800,
-        "path": "/v2/radar/50808d1c2a86"
-      },
-      {
-        "time": 1774925400,
-        "path": "/v2/radar/ad425f69feb4"
-      },
-      {
-        "time": 1774926000,
-        "path": "/v2/radar/9029796a2932"
-      },
-      {
-        "time": 1774926600,
-        "path": "/v2/radar/03d438dcc6ab"
-      },
       {
         "time": 1774927200,
         "path": "/v2/radar/7827300068ad"
@@ -55,11 +21,45 @@
       {
         "time": 1774929600,
         "path": "/v2/radar/d725cb257a44"
+      },
+      {
+        "time": 1774930200,
+        "path": "/v2/radar/702222cfc274"
+      },
+      {
+        "time": 1774930800,
+        "path": "/v2/radar/249f2343f5ed"
+      },
+      {
+        "time": 1774931400,
+        "path": "/v2/radar/b374a69a36a2"
+      },
+      {
+        "time": 1774932000,
+        "path": "/v2/radar/b86e844873d6"
+      },
+      {
+        "time": 1774932600,
+        "path": "/v2/radar/b8bdc213cfa7"
+      },
+      {
+        "time": 1774933200,
+        "path": "/v2/radar/513f233ba08d"
+      },
+      {
+        "time": 1774933800,
+        "path": "/v2/radar/634722885b45"
+      },
+      {
+        "time": 1774934400,
+        "path": "/v2/radar/ce9772ce962e"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  }
+  },
+  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
+  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
 }
