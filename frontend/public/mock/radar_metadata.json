@@ -1,39 +1,9 @@
 {
-  "generated_at": "2026-04-01T14:21:28Z",
+  "version": "2.0",
+  "generated": 1775058026,
+  "host": "https://tilecache.rainviewer.com",
   "radar": {
     "past": [
-      {
-        "time": 1775046000,
-        "path": "/v2/radar/01801052918b"
-      },
-      {
-        "time": 1775046600,
-        "path": "/v2/radar/73b7663d39d1"
-      },
-      {
-        "time": 1775047200,
-        "path": "/v2/radar/72ece74eeee0"
-      },
-      {
-        "time": 1775047800,
-        "path": "/v2/radar/20886d1e8858"
-      },
-      {
-        "time": 1775048400,
-        "path": "/v2/radar/41c8b6fa4786"
-      },
-      {
-        "time": 1775049000,
-        "path": "/v2/radar/c49816d7506a"
-      },
-      {
-        "time": 1775049600,
-        "path": "/v2/radar/ae2d482f5124"
-      },
-      {
-        "time": 1775050200,
-        "path": "/v2/radar/33d57c8eb5c0"
-      },
       {
         "time": 1775050800,
         "path": "/v2/radar/878eca9fd662"
@@ -53,13 +23,43 @@
       {
         "time": 1775053200,
         "path": "/v2/radar/0f8bb66b9bd2"
+      },
+      {
+        "time": 1775053800,
+        "path": "/v2/radar/3f390a04fa97"
+      },
+      {
+        "time": 1775054400,
+        "path": "/v2/radar/65bf1b2dffcb"
+      },
+      {
+        "time": 1775055000,
+        "path": "/v2/radar/32a0516cd7a4"
+      },
+      {
+        "time": 1775055600,
+        "path": "/v2/radar/fca228745530"
+      },
+      {
+        "time": 1775056200,
+        "path": "/v2/radar/18164a2e2f7f"
+      },
+      {
+        "time": 1775056800,
+        "path": "/v2/radar/ce6c70ae2cf2"
+      },
+      {
+        "time": 1775057400,
+        "path": "/v2/radar/38a5fe9c4d79"
+      },
+      {
+        "time": 1775058000,
+        "path": "/v2/radar/3a3b3e8907d3"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  },
-  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
-  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
+  }
 }
