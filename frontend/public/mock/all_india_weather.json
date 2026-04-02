@@ -4,285 +4,33 @@
     "state": "Delhi",
     "lat": 28.6139,
     "lon": 77.209,
-    "temperature": 27.5,
-    "humidity": 53,
+    "temperature": 26.8,
+    "humidity": 62,
     "precipitation": 0.0,
     "windspeed": 3.1,
-    "winddirection": 306,
+    "winddirection": 291,
     "weathercode": 3,
-    "cloudcover": 98,
-    "pressure": 984.2,
+    "cloudcover": 81,
+    "pressure": 983.6,
     "daily": {
       "precip_sum": [
         0.1,
-        0.3,
-        1.5
+        1.2,
+        4.3
       ],
       "temp_max": [
         34.8,
-        32.6,
-        29.6
+        32.0,
+        29.1
       ],
       "temp_min": [
         21.2,
-        22.1,
-        20.9
+        21.7,
+        19.6
       ],
       "weathercode": [
         3,
         80,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449260+00:00"
-  },
-  {
-    "name": "Lucknow",
-    "state": "Uttar Pradesh",
-    "lat": 26.8467,
-    "lon": 80.9462,
-    "temperature": 28.8,
-    "humidity": 44,
-    "precipitation": 0.0,
-    "windspeed": 5.2,
-    "winddirection": 258,
-    "weathercode": 1,
-    "cloudcover": 31,
-    "pressure": 994.2,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "temp_max": [
-        37.7,
-        38.5,
-        37.2
-      ],
-      "temp_min": [
-        22.7,
-        23.8,
-        24.1
-      ],
-      "weathercode": [
-        3,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449296+00:00"
-  },
-  {
-    "name": "Varanasi",
-    "state": "Uttar Pradesh",
-    "lat": 25.3176,
-    "lon": 82.9739,
-    "temperature": 28.5,
-    "humidity": 53,
-    "precipitation": 0.0,
-    "windspeed": 5.0,
-    "winddirection": 249,
-    "weathercode": 1,
-    "cloudcover": 8,
-    "pressure": 998.3,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.0,
-        0.1
-      ],
-      "temp_max": [
-        37.8,
-        37.1,
-        39.7
-      ],
-      "temp_min": [
-        23.5,
-        24.6,
-        24.6
-      ],
-      "weathercode": [
-        3,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449301+00:00"
-  },
-  {
-    "name": "Jaipur",
-    "state": "Rajasthan",
-    "lat": 26.9124,
-    "lon": 75.7873,
-    "temperature": 26.0,
-    "humidity": 55,
-    "precipitation": 0.0,
-    "windspeed": 8.1,
-    "winddirection": 32,
-    "weathercode": 2,
-    "cloudcover": 78,
-    "pressure": 961.0,
-    "daily": {
-      "precip_sum": [
-        0.5,
-        0.8,
-        0.0
-      ],
-      "temp_max": [
-        34.8,
-        31.1,
-        31.7
-      ],
-      "temp_min": [
-        22.9,
-        21.8,
-        22.4
-      ],
-      "weathercode": [
-        80,
-        80,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449305+00:00"
-  },
-  {
-    "name": "Chandigarh",
-    "state": "Chandigarh",
-    "lat": 30.7333,
-    "lon": 76.7794,
-    "temperature": 23.9,
-    "humidity": 58,
-    "precipitation": 0.0,
-    "windspeed": 2.6,
-    "winddirection": 16,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 969.4,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        5.2,
-        2.7
-      ],
-      "temp_max": [
-        33.1,
-        31.2,
-        29.2
-      ],
-      "temp_min": [
-        19.5,
-        19.7,
-        18.3
-      ],
-      "weathercode": [
-        3,
-        95,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449309+00:00"
-  },
-  {
-    "name": "Dehradun",
-    "state": "Uttarakhand",
-    "lat": 30.3165,
-    "lon": 78.0322,
-    "temperature": 21.2,
-    "humidity": 55,
-    "precipitation": 0.0,
-    "windspeed": 4.1,
-    "winddirection": 75,
-    "weathercode": 2,
-    "cloudcover": 70,
-    "pressure": 936.8,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.4,
-        1.5
-      ],
-      "temp_max": [
-        33.2,
-        33.1,
-        28.7
-      ],
-      "temp_min": [
-        17.3,
-        17.0,
-        19.5
-      ],
-      "weathercode": [
-        3,
-        3,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449313+00:00"
-  },
-  {
-    "name": "Shimla",
-    "state": "Himachal Pradesh",
-    "lat": 31.1048,
-    "lon": 77.1734,
-    "temperature": 14.0,
-    "humidity": 54,
-    "precipitation": 0.0,
-    "windspeed": 8.4,
-    "winddirection": 80,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 785.3,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        6.7,
-        3.9
-      ],
-      "temp_max": [
-        21.5,
-        20.7,
-        17.9
-      ],
-      "temp_min": [
-        11.8,
-        12.4,
-        11.5
-      ],
-      "weathercode": [
-        3,
-        96,
         95
       ],
       "dates": [
@@ -291,40 +39,292 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449317+00:00"
+    "updated_at": "2026-04-02T16:43:27.008437+00:00"
+  },
+  {
+    "name": "Lucknow",
+    "state": "Uttar Pradesh",
+    "lat": 26.8467,
+    "lon": 80.9462,
+    "temperature": 28.1,
+    "humidity": 51,
+    "precipitation": 0.0,
+    "windspeed": 4.0,
+    "winddirection": 260,
+    "weathercode": 0,
+    "cloudcover": 0,
+    "pressure": 993.9,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "temp_max": [
+        37.7,
+        37.3,
+        36.3
+      ],
+      "temp_min": [
+        22.7,
+        23.8,
+        23.4
+      ],
+      "weathercode": [
+        3,
+        3,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008454+00:00"
+  },
+  {
+    "name": "Varanasi",
+    "state": "Uttar Pradesh",
+    "lat": 25.3176,
+    "lon": 82.9739,
+    "temperature": 28.0,
+    "humidity": 55,
+    "precipitation": 0.0,
+    "windspeed": 4.3,
+    "winddirection": 246,
+    "weathercode": 1,
+    "cloudcover": 26,
+    "pressure": 998.2,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "temp_max": [
+        37.8,
+        36.5,
+        38.9
+      ],
+      "temp_min": [
+        23.5,
+        25.2,
+        24.0
+      ],
+      "weathercode": [
+        3,
+        3,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008459+00:00"
+  },
+  {
+    "name": "Jaipur",
+    "state": "Rajasthan",
+    "lat": 26.9124,
+    "lon": 75.7873,
+    "temperature": 26.3,
+    "humidity": 61,
+    "precipitation": 0.0,
+    "windspeed": 7.4,
+    "winddirection": 39,
+    "weathercode": 3,
+    "cloudcover": 88,
+    "pressure": 960.5,
+    "daily": {
+      "precip_sum": [
+        0.5,
+        0.3,
+        0.1
+      ],
+      "temp_max": [
+        34.8,
+        31.2,
+        31.4
+      ],
+      "temp_min": [
+        22.9,
+        21.9,
+        21.0
+      ],
+      "weathercode": [
+        80,
+        80,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008463+00:00"
+  },
+  {
+    "name": "Chandigarh",
+    "state": "Chandigarh",
+    "lat": 30.7333,
+    "lon": 76.7794,
+    "temperature": 25.4,
+    "humidity": 45,
+    "precipitation": 0.0,
+    "windspeed": 3.3,
+    "winddirection": 96,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 969.3,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        5.8,
+        3.9
+      ],
+      "temp_max": [
+        33.1,
+        26.9,
+        28.0
+      ],
+      "temp_min": [
+        19.5,
+        18.1,
+        18.5
+      ],
+      "weathercode": [
+        3,
+        95,
+        96
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008467+00:00"
+  },
+  {
+    "name": "Dehradun",
+    "state": "Uttarakhand",
+    "lat": 30.3165,
+    "lon": 78.0322,
+    "temperature": 19.9,
+    "humidity": 57,
+    "precipitation": 0.0,
+    "windspeed": 5.2,
+    "winddirection": 74,
+    "weathercode": 2,
+    "cloudcover": 65,
+    "pressure": 936.9,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        1.8,
+        4.2
+      ],
+      "temp_max": [
+        33.2,
+        33.2,
+        29.2
+      ],
+      "temp_min": [
+        17.3,
+        17.2,
+        18.4
+      ],
+      "weathercode": [
+        3,
+        80,
+        95
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008470+00:00"
+  },
+  {
+    "name": "Shimla",
+    "state": "Himachal Pradesh",
+    "lat": 31.1048,
+    "lon": 77.1734,
+    "temperature": 14.0,
+    "humidity": 57,
+    "precipitation": 0.0,
+    "windspeed": 6.9,
+    "winddirection": 84,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 785.2,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        19.2,
+        12.6
+      ],
+      "temp_max": [
+        21.5,
+        20.6,
+        16.5
+      ],
+      "temp_min": [
+        11.8,
+        11.2,
+        10.8
+      ],
+      "weathercode": [
+        3,
+        95,
+        95
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008474+00:00"
   },
   {
     "name": "Srinagar",
     "state": "J&K",
     "lat": 34.0836,
     "lon": 74.7973,
-    "temperature": 11.1,
-    "humidity": 81,
+    "temperature": 10.3,
+    "humidity": 83,
     "precipitation": 0.0,
-    "windspeed": 7.4,
-    "winddirection": 203,
-    "weathercode": 2,
-    "cloudcover": 80,
-    "pressure": 842.0,
+    "windspeed": 7.9,
+    "winddirection": 204,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 841.8,
     "daily": {
       "precip_sum": [
         0.0,
-        8.8,
-        16.8
+        21.0,
+        6.7
       ],
       "temp_max": [
         17.4,
-        17.5,
-        11.7
+        14.0,
+        12.9
       ],
       "temp_min": [
         7.1,
-        8.6,
-        9.2
+        9.2,
+        9.0
       ],
       "weathercode": [
         3,
-        80,
+        63,
         80
       ],
       "dates": [
@@ -333,21 +333,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449330+00:00"
+    "updated_at": "2026-04-02T16:43:27.008487+00:00"
   },
   {
     "name": "Kolkata",
     "state": "West Bengal",
     "lat": 22.5726,
     "lon": 88.3639,
-    "temperature": 26.9,
-    "humidity": 83,
+    "temperature": 27.3,
+    "humidity": 89,
     "precipitation": 0.0,
     "windspeed": 7.6,
-    "winddirection": 183,
-    "weathercode": 0,
-    "cloudcover": 0,
-    "pressure": 1007.2,
+    "winddirection": 188,
+    "weathercode": 1,
+    "cloudcover": 8,
+    "pressure": 1007.1,
     "daily": {
       "precip_sum": [
         0.3,
@@ -356,13 +356,13 @@
       ],
       "temp_max": [
         35.1,
-        36.5,
-        36.8
+        36.0,
+        36.3
       ],
       "temp_min": [
         25.7,
-        25.1,
-        26.1
+        26.0,
+        26.0
       ],
       "weathercode": [
         80,
@@ -375,18 +375,18 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449336+00:00"
+    "updated_at": "2026-04-02T16:43:27.008493+00:00"
   },
   {
     "name": "Patna",
     "state": "Bihar",
     "lat": 25.6093,
     "lon": 85.1376,
-    "temperature": 28.5,
-    "humidity": 54,
+    "temperature": 28.2,
+    "humidity": 59,
     "precipitation": 0.0,
-    "windspeed": 6.1,
-    "winddirection": 242,
+    "windspeed": 5.6,
+    "winddirection": 243,
     "weathercode": 0,
     "cloudcover": 0,
     "pressure": 1000.5,
@@ -399,12 +399,12 @@
       "temp_max": [
         36.5,
         38.4,
-        39.5
+        38.9
       ],
       "temp_min": [
         24.0,
-        24.5,
-        25.0
+        24.7,
+        25.1
       ],
       "weathercode": [
         3,
@@ -417,7 +417,7 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449339+00:00"
+    "updated_at": "2026-04-02T16:43:27.008497+00:00"
   },
   {
     "name": "Guwahati",
@@ -425,33 +425,33 @@
     "lat": 26.1445,
     "lon": 91.7362,
     "temperature": 25.9,
-    "humidity": 83,
-    "precipitation": 0.1,
-    "windspeed": 4.3,
-    "winddirection": 95,
-    "weathercode": 80,
-    "cloudcover": 100,
-    "pressure": 1002.3,
+    "humidity": 84,
+    "precipitation": 0.0,
+    "windspeed": 4.0,
+    "winddirection": 90,
+    "weathercode": 2,
+    "cloudcover": 72,
+    "pressure": 1002.1,
     "daily": {
       "precip_sum": [
-        8.8,
-        1.1,
-        0.3
+        8.5,
+        0.0,
+        3.3
       ],
       "temp_max": [
         30.2,
-        29.5,
-        30.7
+        29.7,
+        31.0
       ],
       "temp_min": [
         22.0,
-        23.0,
-        23.8
+        23.1,
+        23.7
       ],
       "weathercode": [
         95,
-        80,
-        3
+        3,
+        80
       ],
       "dates": [
         "2026-04-02",
@@ -459,35 +459,35 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449343+00:00"
+    "updated_at": "2026-04-02T16:43:27.008500+00:00"
   },
   {
     "name": "Bhubaneswar",
     "state": "Odisha",
     "lat": 20.2961,
     "lon": 85.8245,
-    "temperature": 27.1,
-    "humidity": 78,
+    "temperature": 27.0,
+    "humidity": 84,
     "precipitation": 0.0,
-    "windspeed": 8.6,
-    "winddirection": 195,
-    "weathercode": 0,
-    "cloudcover": 0,
-    "pressure": 1005.2,
+    "windspeed": 8.5,
+    "winddirection": 192,
+    "weathercode": 1,
+    "cloudcover": 31,
+    "pressure": 1005.0,
     "daily": {
       "precip_sum": [
         0.0,
-        0.4,
-        2.0
+        1.3,
+        1.1
       ],
       "temp_max": [
         37.3,
-        39.5,
-        39.3
+        38.9,
+        38.5
       ],
       "temp_min": [
         25.1,
-        25.1,
+        25.4,
         26.1
       ],
       "weathercode": [
@@ -501,36 +501,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449347+00:00"
+    "updated_at": "2026-04-02T16:43:27.008503+00:00"
   },
   {
     "name": "Ranchi",
     "state": "Jharkhand",
     "lat": 23.3441,
     "lon": 85.3096,
-    "temperature": 25.6,
+    "temperature": 25.5,
     "humidity": 58,
     "precipitation": 0.0,
-    "windspeed": 7.1,
-    "winddirection": 229,
-    "weathercode": 0,
-    "cloudcover": 5,
-    "pressure": 940.1,
+    "windspeed": 5.9,
+    "winddirection": 223,
+    "weathercode": 1,
+    "cloudcover": 15,
+    "pressure": 939.9,
     "daily": {
       "precip_sum": [
         0.5,
-        0.3,
-        0.2
+        0.2,
+        0.1
       ],
       "temp_max": [
         33.8,
-        35.2,
-        35.0
+        35.1,
+        34.7
       ],
       "temp_min": [
         23.0,
-        23.8,
-        23.7
+        23.6,
+        23.0
       ],
       "weathercode": [
         3,
@@ -543,36 +543,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449351+00:00"
+    "updated_at": "2026-04-02T16:43:27.008506+00:00"
   },
   {
     "name": "Imphal",
     "state": "Manipur",
     "lat": 24.817,
     "lon": 93.9368,
-    "temperature": 19.5,
-    "humidity": 84,
+    "temperature": 19.2,
+    "humidity": 86,
     "precipitation": 0.0,
-    "windspeed": 8.9,
-    "winddirection": 291,
-    "weathercode": 2,
-    "cloudcover": 64,
-    "pressure": 925.3,
+    "windspeed": 8.2,
+    "winddirection": 293,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 925.1,
     "daily": {
       "precip_sum": [
-        3.2,
-        2.1,
-        1.5
+        2.9,
+        4.1,
+        1.8
       ],
       "temp_max": [
         22.4,
-        23.9,
-        24.8
+        25.0,
+        24.4
       ],
       "temp_min": [
         18.0,
-        18.0,
-        19.3
+        17.9,
+        19.0
       ],
       "weathercode": [
         80,
@@ -585,21 +585,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449354+00:00"
+    "updated_at": "2026-04-02T16:43:27.008509+00:00"
   },
   {
     "name": "Shillong",
     "state": "Meghalaya",
     "lat": 25.5788,
     "lon": 91.8933,
-    "temperature": 15.7,
-    "humidity": 88,
+    "temperature": 15.8,
+    "humidity": 89,
     "precipitation": 0.0,
-    "windspeed": 15.1,
-    "winddirection": 242,
+    "windspeed": 15.8,
+    "winddirection": 240,
     "weathercode": 2,
-    "cloudcover": 52,
-    "pressure": 857.8,
+    "cloudcover": 61,
+    "pressure": 857.6,
     "daily": {
       "precip_sum": [
         0.0,
@@ -608,12 +608,12 @@
       ],
       "temp_max": [
         21.1,
-        22.1,
-        22.9
+        22.0,
+        22.6
       ],
       "temp_min": [
         14.5,
-        15.2,
+        14.9,
         16.2
       ],
       "weathercode": [
@@ -627,82 +627,40 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449357+00:00"
+    "updated_at": "2026-04-02T16:43:27.008512+00:00"
   },
   {
     "name": "Agartala",
     "state": "Tripura",
     "lat": 23.8315,
     "lon": 91.2868,
-    "temperature": 26.5,
-    "humidity": 82,
+    "temperature": 27.1,
+    "humidity": 84,
     "precipitation": 0.0,
-    "windspeed": 6.3,
-    "winddirection": 149,
-    "weathercode": 1,
-    "cloudcover": 38,
-    "pressure": 1007.2,
-    "daily": {
-      "precip_sum": [
-        6.0,
-        0.0,
-        0.6
-      ],
-      "temp_max": [
-        34.0,
-        35.8,
-        35.7
-      ],
-      "temp_min": [
-        21.9,
-        24.6,
-        25.3
-      ],
-      "weathercode": [
-        95,
-        3,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449359+00:00"
-  },
-  {
-    "name": "Aizawl",
-    "state": "Mizoram",
-    "lat": 23.7271,
-    "lon": 92.7176,
-    "temperature": 21.1,
-    "humidity": 77,
-    "precipitation": 0.0,
-    "windspeed": 4.5,
-    "winddirection": 241,
+    "windspeed": 6.6,
+    "winddirection": 158,
     "weathercode": 2,
-    "cloudcover": 64,
-    "pressure": 894.8,
+    "cloudcover": 49,
+    "pressure": 1007.0,
     "daily": {
       "precip_sum": [
-        1.4,
-        0.3,
+        5.3,
+        5.0,
         0.0
       ],
       "temp_max": [
-        26.9,
-        28.1,
-        28.9
+        34.0,
+        34.7,
+        35.4
       ],
       "temp_min": [
-        18.4,
-        18.4,
-        18.5
+        21.9,
+        24.8,
+        25.6
       ],
       "weathercode": [
-        80,
-        3,
+        95,
+        81,
         3
       ],
       "dates": [
@@ -711,7 +669,49 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449362+00:00"
+    "updated_at": "2026-04-02T16:43:27.008515+00:00"
+  },
+  {
+    "name": "Aizawl",
+    "state": "Mizoram",
+    "lat": 23.7271,
+    "lon": 92.7176,
+    "temperature": 20.3,
+    "humidity": 82,
+    "precipitation": 0.0,
+    "windspeed": 1.8,
+    "winddirection": 143,
+    "weathercode": 2,
+    "cloudcover": 50,
+    "pressure": 894.4,
+    "daily": {
+      "precip_sum": [
+        1.4,
+        1.5,
+        3.4
+      ],
+      "temp_max": [
+        26.9,
+        27.1,
+        27.5
+      ],
+      "temp_min": [
+        18.4,
+        18.3,
+        18.8
+      ],
+      "weathercode": [
+        80,
+        80,
+        95
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008517+00:00"
   },
   {
     "name": "Kohima",
@@ -719,28 +719,28 @@
     "lat": 25.6751,
     "lon": 94.1086,
     "temperature": 16.2,
-    "humidity": 86,
+    "humidity": 79,
     "precipitation": 0.0,
-    "windspeed": 6.1,
-    "winddirection": 208,
-    "weathercode": 2,
-    "cloudcover": 74,
-    "pressure": 857.9,
+    "windspeed": 6.2,
+    "winddirection": 201,
+    "weathercode": 0,
+    "cloudcover": 0,
+    "pressure": 857.4,
     "daily": {
       "precip_sum": [
-        2.9,
-        0.4,
+        2.8,
+        0.3,
         0.0
       ],
       "temp_max": [
         21.9,
-        21.4,
-        23.1
+        21.8,
+        23.0
       ],
       "temp_min": [
         15.9,
-        16.2,
-        16.7
+        15.8,
+        16.2
       ],
       "weathercode": [
         80,
@@ -753,7 +753,7 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449367+00:00"
+    "updated_at": "2026-04-02T16:43:27.008522+00:00"
   },
   {
     "name": "Itanagar",
@@ -761,28 +761,28 @@
     "lat": 27.0844,
     "lon": 93.6053,
     "temperature": 21.7,
-    "humidity": 91,
+    "humidity": 92,
     "precipitation": 0.0,
-    "windspeed": 5.2,
-    "winddirection": 74,
-    "weathercode": 2,
-    "cloudcover": 79,
-    "pressure": 977.4,
+    "windspeed": 4.9,
+    "winddirection": 73,
+    "weathercode": 3,
+    "cloudcover": 92,
+    "pressure": 977.2,
     "daily": {
       "precip_sum": [
         14.1,
-        0.4,
-        2.5
+        0.8,
+        3.8
       ],
       "temp_max": [
         25.3,
-        28.2,
-        27.3
+        28.1,
+        26.5
       ],
       "temp_min": [
         20.0,
-        20.6,
-        21.5
+        20.5,
+        21.4
       ],
       "weathercode": [
         95,
@@ -795,41 +795,41 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449370+00:00"
+    "updated_at": "2026-04-02T16:43:27.008525+00:00"
   },
   {
     "name": "Gangtok",
     "state": "Sikkim",
     "lat": 27.3389,
     "lon": 88.6065,
-    "temperature": 17.5,
-    "humidity": 93,
+    "temperature": 17.0,
+    "humidity": 94,
     "precipitation": 0.0,
-    "windspeed": 1.8,
-    "winddirection": 143,
+    "windspeed": 0.8,
+    "winddirection": 117,
     "weathercode": 3,
     "cloudcover": 100,
-    "pressure": 853.6,
+    "pressure": 853.5,
     "daily": {
       "precip_sum": [
-        0.1,
-        1.9,
-        5.6
+        0.0,
+        1.0,
+        2.5
       ],
       "temp_max": [
         23.0,
         23.0,
-        23.5
+        23.3
       ],
       "temp_min": [
         11.8,
-        16.4,
-        16.8
+        16.5,
+        16.2
       ],
       "weathercode": [
         3,
         80,
-        95
+        80
       ],
       "dates": [
         "2026-04-02",
@@ -837,21 +837,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449373+00:00"
+    "updated_at": "2026-04-02T16:43:27.008528+00:00"
   },
   {
     "name": "Mumbai",
     "state": "Maharashtra",
     "lat": 19.076,
     "lon": 72.8777,
-    "temperature": 27.9,
-    "humidity": 72,
+    "temperature": 27.8,
+    "humidity": 71,
     "precipitation": 0.0,
-    "windspeed": 8.9,
-    "winddirection": 320,
-    "weathercode": 1,
-    "cloudcover": 43,
-    "pressure": 1011.1,
+    "windspeed": 5.8,
+    "winddirection": 338,
+    "weathercode": 0,
+    "cloudcover": 1,
+    "pressure": 1011.2,
     "daily": {
       "precip_sum": [
         0.0,
@@ -861,7 +861,7 @@
       "temp_max": [
         27.9,
         28.4,
-        28.0
+        28.2
       ],
       "temp_min": [
         26.8,
@@ -879,36 +879,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449376+00:00"
+    "updated_at": "2026-04-02T16:43:27.008531+00:00"
   },
   {
     "name": "Pune",
     "state": "Maharashtra",
     "lat": 18.5204,
     "lon": 73.8567,
-    "temperature": 26.5,
+    "temperature": 25.5,
     "humidity": 78,
     "precipitation": 0.0,
-    "windspeed": 2.3,
-    "winddirection": 252,
+    "windspeed": 2.2,
+    "winddirection": 261,
     "weathercode": 0,
     "cloudcover": 0,
     "pressure": 951.1,
     "daily": {
       "precip_sum": [
-        3.8,
+        4.0,
         0.0,
         0.0
       ],
       "temp_max": [
         32.8,
-        34.1,
-        35.1
+        34.2,
+        34.8
       ],
       "temp_min": [
-        24.6,
-        21.6,
-        18.9
+        24.5,
+        21.0,
+        18.7
       ],
       "weathercode": [
         95,
@@ -921,7 +921,7 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449379+00:00"
+    "updated_at": "2026-04-02T16:43:27.008533+00:00"
   },
   {
     "name": "Nagpur",
@@ -929,28 +929,28 @@
     "lat": 21.1458,
     "lon": 79.0882,
     "temperature": 25.5,
-    "humidity": 76,
+    "humidity": 77,
     "precipitation": 0.0,
-    "windspeed": 4.6,
-    "winddirection": 321,
+    "windspeed": 3.6,
+    "winddirection": 360,
     "weathercode": 3,
     "cloudcover": 100,
-    "pressure": 976.7,
+    "pressure": 976.6,
     "daily": {
       "precip_sum": [
-        6.8,
-        1.8,
-        2.0
+        11.0,
+        3.2,
+        2.4
       ],
       "temp_max": [
         34.2,
-        35.6,
-        35.6
+        35.4,
+        35.5
       ],
       "temp_min": [
         23.4,
-        23.7,
-        24.0
+        23.5,
+        23.1
       ],
       "weathercode": [
         81,
@@ -963,41 +963,41 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449381+00:00"
+    "updated_at": "2026-04-02T16:43:27.008536+00:00"
   },
   {
     "name": "Ahmedabad",
     "state": "Gujarat",
     "lat": 23.0225,
     "lon": 72.5714,
-    "temperature": 30.5,
-    "humidity": 38,
+    "temperature": 28.7,
+    "humidity": 45,
     "precipitation": 0.0,
-    "windspeed": 8.2,
-    "winddirection": 311,
-    "weathercode": 2,
-    "cloudcover": 58,
-    "pressure": 1003.4,
+    "windspeed": 5.4,
+    "winddirection": 307,
+    "weathercode": 1,
+    "cloudcover": 35,
+    "pressure": 1004.0,
     "daily": {
       "precip_sum": [
         0.0,
-        0.2,
+        0.1,
         0.0
       ],
       "temp_max": [
         36.3,
-        32.6,
-        33.3
+        33.3,
+        33.7
       ],
       "temp_min": [
         23.7,
-        22.8,
-        21.6
+        22.9,
+        23.6
       ],
       "weathercode": [
         3,
         3,
-        2
+        3
       ],
       "dates": [
         "2026-04-02",
@@ -1005,36 +1005,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449384+00:00"
+    "updated_at": "2026-04-02T16:43:27.008539+00:00"
   },
   {
     "name": "Surat",
     "state": "Gujarat",
     "lat": 21.1702,
     "lon": 72.8311,
-    "temperature": 26.8,
-    "humidity": 71,
+    "temperature": 26.4,
+    "humidity": 77,
     "precipitation": 0.0,
-    "windspeed": 9.5,
-    "winddirection": 205,
-    "weathercode": 1,
-    "cloudcover": 12,
-    "pressure": 1008.9,
+    "windspeed": 8.6,
+    "winddirection": 195,
+    "weathercode": 0,
+    "cloudcover": 0,
+    "pressure": 1009.1,
     "daily": {
       "precip_sum": [
         0.0,
         0.0,
-        2.0
+        3.7
       ],
       "temp_max": [
         32.6,
-        31.1,
-        28.9
+        31.7,
+        27.9
       ],
       "temp_min": [
         25.9,
-        26.3,
-        24.6
+        26.2,
+        25.2
       ],
       "weathercode": [
         3,
@@ -1047,21 +1047,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449387+00:00"
+    "updated_at": "2026-04-02T16:43:27.008541+00:00"
   },
   {
     "name": "Panaji",
     "state": "Goa",
     "lat": 15.4909,
     "lon": 73.8278,
-    "temperature": 28.8,
-    "humidity": 77,
+    "temperature": 28.6,
+    "humidity": 78,
     "precipitation": 0.0,
-    "windspeed": 7.1,
-    "winddirection": 311,
+    "windspeed": 8.2,
+    "winddirection": 308,
     "weathercode": 1,
-    "cloudcover": 30,
-    "pressure": 1003.8,
+    "cloudcover": 38,
+    "pressure": 1004.0,
     "daily": {
       "precip_sum": [
         0.0,
@@ -1070,264 +1070,12 @@
       ],
       "temp_max": [
         31.9,
-        32.3,
+        32.5,
         32.1
       ],
       "temp_min": [
         26.8,
-        26.9,
-        25.8
-      ],
-      "weathercode": [
-        2,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449390+00:00"
-  },
-  {
-    "name": "Bengaluru",
-    "state": "Karnataka",
-    "lat": 12.9716,
-    "lon": 77.5946,
-    "temperature": 26.0,
-    "humidity": 40,
-    "precipitation": 0.0,
-    "windspeed": 5.2,
-    "winddirection": 115,
-    "weathercode": 1,
-    "cloudcover": 7,
-    "pressure": 913.3,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        1.1,
-        0.2
-      ],
-      "temp_max": [
-        33.3,
-        33.6,
-        32.7
-      ],
-      "temp_min": [
-        20.2,
-        20.4,
-        20.8
-      ],
-      "weathercode": [
-        2,
-        61,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449392+00:00"
-  },
-  {
-    "name": "Chennai",
-    "state": "Tamil Nadu",
-    "lat": 13.0827,
-    "lon": 80.2707,
-    "temperature": 28.0,
-    "humidity": 81,
-    "precipitation": 0.0,
-    "windspeed": 6.1,
-    "winddirection": 135,
-    "weathercode": 1,
-    "cloudcover": 22,
-    "pressure": 1009.8,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "temp_max": [
-        34.4,
-        35.8,
-        35.1
-      ],
-      "temp_min": [
-        24.7,
-        25.4,
-        25.5
-      ],
-      "weathercode": [
-        2,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449397+00:00"
-  },
-  {
-    "name": "Hyderabad",
-    "state": "Telangana",
-    "lat": 17.385,
-    "lon": 78.4867,
-    "temperature": 29.0,
-    "humidity": 45,
-    "precipitation": 0.0,
-    "windspeed": 10.7,
-    "winddirection": 123,
-    "weathercode": 3,
-    "cloudcover": 87,
-    "pressure": 955.5,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "temp_max": [
-        35.6,
-        36.5,
-        35.9
-      ],
-      "temp_min": [
-        23.2,
-        23.9,
-        24.6
-      ],
-      "weathercode": [
-        3,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449400+00:00"
-  },
-  {
-    "name": "Kochi",
-    "state": "Kerala",
-    "lat": 9.9312,
-    "lon": 76.2673,
-    "temperature": 28.8,
-    "humidity": 79,
-    "precipitation": 0.0,
-    "windspeed": 8.2,
-    "winddirection": 308,
-    "weathercode": 2,
-    "cloudcover": 65,
-    "pressure": 1011.1,
-    "daily": {
-      "precip_sum": [
-        4.3,
-        3.7,
-        3.2
-      ],
-      "temp_max": [
-        29.1,
-        29.6,
-        29.5
-      ],
-      "temp_min": [
-        27.6,
-        27.7,
-        27.8
-      ],
-      "weathercode": [
-        95,
-        80,
-        95
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449402+00:00"
-  },
-  {
-    "name": "Thiruvananthapuram",
-    "state": "Kerala",
-    "lat": 8.5241,
-    "lon": 76.9366,
-    "temperature": 29.6,
-    "humidity": 72,
-    "precipitation": 0.0,
-    "windspeed": 4.7,
-    "winddirection": 302,
-    "weathercode": 2,
-    "cloudcover": 66,
-    "pressure": 1010.4,
-    "daily": {
-      "precip_sum": [
-        0.9,
-        1.9,
-        1.9
-      ],
-      "temp_max": [
-        29.8,
-        29.4,
-        29.5
-      ],
-      "temp_min": [
-        28.3,
-        27.8,
-        27.6
-      ],
-      "weathercode": [
-        2,
-        80,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449405+00:00"
-  },
-  {
-    "name": "Visakhapatnam",
-    "state": "Andhra Pradesh",
-    "lat": 17.6868,
-    "lon": 83.2185,
-    "temperature": 26.8,
-    "humidity": 82,
-    "precipitation": 0.0,
-    "windspeed": 4.9,
-    "winddirection": 216,
-    "weathercode": 2,
-    "cloudcover": 48,
-    "pressure": 1006.9,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "temp_max": [
-        34.5,
-        35.9,
-        36.2
-      ],
-      "temp_min": [
-        24.4,
-        25.3,
+        26.8,
         25.6
       ],
       "weathercode": [
@@ -1341,292 +1089,40 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449407+00:00"
+    "updated_at": "2026-04-02T16:43:27.008544+00:00"
   },
   {
-    "name": "Coimbatore",
-    "state": "Tamil Nadu",
-    "lat": 11.0168,
-    "lon": 76.9558,
-    "temperature": 25.9,
-    "humidity": 79,
-    "precipitation": 0.0,
-    "windspeed": 13.7,
-    "winddirection": 240,
-    "weathercode": 2,
-    "cloudcover": 74,
-    "pressure": 964.0,
-    "daily": {
-      "precip_sum": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "temp_max": [
-        35.8,
-        35.2,
-        34.1
-      ],
-      "temp_min": [
-        22.0,
-        22.0,
-        23.4
-      ],
-      "weathercode": [
-        45,
-        45,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449412+00:00"
-  },
-  {
-    "name": "Madurai",
-    "state": "Tamil Nadu",
-    "lat": 9.9252,
-    "lon": 78.1198,
-    "temperature": 28.4,
-    "humidity": 70,
-    "precipitation": 0.0,
-    "windspeed": 13.0,
-    "winddirection": 180,
-    "weathercode": 2,
-    "cloudcover": 67,
-    "pressure": 995.8,
-    "daily": {
-      "precip_sum": [
-        0.2,
-        0.0,
-        0.0
-      ],
-      "temp_max": [
-        36.2,
-        35.5,
-        36.2
-      ],
-      "temp_min": [
-        24.5,
-        24.9,
-        25.3
-      ],
-      "weathercode": [
-        80,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449415+00:00"
-  },
-  {
-    "name": "Mangaluru",
+    "name": "Bengaluru",
     "state": "Karnataka",
-    "lat": 12.9141,
-    "lon": 74.856,
-    "temperature": 28.9,
-    "humidity": 81,
+    "lat": 12.9716,
+    "lon": 77.5946,
+    "temperature": 25.3,
+    "humidity": 47,
     "precipitation": 0.0,
-    "windspeed": 14.9,
-    "winddirection": 323,
-    "weathercode": 2,
-    "cloudcover": 48,
-    "pressure": 1009.1,
-    "daily": {
-      "precip_sum": [
-        3.0,
-        1.0,
-        3.0
-      ],
-      "temp_max": [
-        29.5,
-        29.9,
-        29.9
-      ],
-      "temp_min": [
-        28.3,
-        27.8,
-        28.0
-      ],
-      "weathercode": [
-        80,
-        80,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449418+00:00"
-  },
-  {
-    "name": "Bhopal",
-    "state": "Madhya Pradesh",
-    "lat": 23.2599,
-    "lon": 77.4126,
-    "temperature": 27.5,
-    "humidity": 57,
-    "precipitation": 0.0,
-    "windspeed": 2.6,
-    "winddirection": 146,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 956.3,
-    "daily": {
-      "precip_sum": [
-        1.7,
-        0.1,
-        1.0
-      ],
-      "temp_max": [
-        36.1,
-        36.0,
-        34.7
-      ],
-      "temp_min": [
-        22.4,
-        23.4,
-        21.1
-      ],
-      "weathercode": [
-        80,
-        3,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449421+00:00"
-  },
-  {
-    "name": "Indore",
-    "state": "Madhya Pradesh",
-    "lat": 22.7196,
-    "lon": 75.8577,
-    "temperature": 26.5,
-    "humidity": 61,
-    "precipitation": 0.0,
-    "windspeed": 12.2,
-    "winddirection": 199,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 950.4,
+    "windspeed": 5.0,
+    "winddirection": 120,
+    "weathercode": 1,
+    "cloudcover": 10,
+    "pressure": 913.8,
     "daily": {
       "precip_sum": [
         0.0,
-        0.0,
-        0.3
+        0.5,
+        6.9
       ],
       "temp_max": [
-        35.4,
-        33.7,
-        30.0
+        33.3,
+        33.0,
+        30.7
       ],
       "temp_min": [
-        22.4,
-        22.2,
-        20.2
+        20.2,
+        20.8,
+        21.3
       ],
       "weathercode": [
-        3,
-        3,
-        3
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449424+00:00"
-  },
-  {
-    "name": "Raipur",
-    "state": "Chhattisgarh",
-    "lat": 21.2514,
-    "lon": 81.6296,
-    "temperature": 29.9,
-    "humidity": 49,
-    "precipitation": 0.0,
-    "windspeed": 8.4,
-    "winddirection": 239,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 977.5,
-    "daily": {
-      "precip_sum": [
-        0.3,
-        1.1,
-        1.4
-      ],
-      "temp_max": [
-        37.2,
-        37.3,
-        37.6
-      ],
-      "temp_min": [
-        25.6,
-        26.1,
-        26.2
-      ],
-      "weathercode": [
-        3,
+        2,
         80,
-        80
-      ],
-      "dates": [
-        "2026-04-02",
-        "2026-04-03",
-        "2026-04-04"
-      ]
-    },
-    "updated_at": "2026-04-02T15:48:44.449428+00:00"
-  },
-  {
-    "name": "Dibrugarh",
-    "state": "Assam",
-    "lat": 27.4728,
-    "lon": 94.912,
-    "temperature": 22.2,
-    "humidity": 91,
-    "precipitation": 0.0,
-    "windspeed": 9.0,
-    "winddirection": 53,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 998.4,
-    "daily": {
-      "precip_sum": [
-        12.0,
-        0.0,
-        8.1
-      ],
-      "temp_max": [
-        23.3,
-        28.0,
-        27.4
-      ],
-      "temp_min": [
-        21.5,
-        21.1,
-        23.0
-      ],
-      "weathercode": [
-        95,
-        3,
         95
       ],
       "dates": [
@@ -1635,35 +1131,539 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449431+00:00"
+    "updated_at": "2026-04-02T16:43:27.008547+00:00"
+  },
+  {
+    "name": "Chennai",
+    "state": "Tamil Nadu",
+    "lat": 13.0827,
+    "lon": 80.2707,
+    "temperature": 28.1,
+    "humidity": 81,
+    "precipitation": 0.0,
+    "windspeed": 5.6,
+    "winddirection": 130,
+    "weathercode": 1,
+    "cloudcover": 28,
+    "pressure": 1010.0,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "temp_max": [
+        34.4,
+        36.5,
+        35.8
+      ],
+      "temp_min": [
+        24.7,
+        25.9,
+        25.7
+      ],
+      "weathercode": [
+        2,
+        3,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008552+00:00"
+  },
+  {
+    "name": "Hyderabad",
+    "state": "Telangana",
+    "lat": 17.385,
+    "lon": 78.4867,
+    "temperature": 28.5,
+    "humidity": 49,
+    "precipitation": 0.0,
+    "windspeed": 8.9,
+    "winddirection": 130,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 955.6,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.1,
+        1.5
+      ],
+      "temp_max": [
+        35.6,
+        36.3,
+        35.6
+      ],
+      "temp_min": [
+        23.2,
+        23.4,
+        24.1
+      ],
+      "weathercode": [
+        3,
+        3,
+        80
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008556+00:00"
+  },
+  {
+    "name": "Kochi",
+    "state": "Kerala",
+    "lat": 9.9312,
+    "lon": 76.2673,
+    "temperature": 28.8,
+    "humidity": 79,
+    "precipitation": 0.1,
+    "windspeed": 4.0,
+    "winddirection": 350,
+    "weathercode": 80,
+    "cloudcover": 66,
+    "pressure": 1011.3,
+    "daily": {
+      "precip_sum": [
+        5.3,
+        4.0,
+        3.1
+      ],
+      "temp_max": [
+        29.9,
+        29.6,
+        29.5
+      ],
+      "temp_min": [
+        27.6,
+        27.2,
+        27.6
+      ],
+      "weathercode": [
+        95,
+        95,
+        80
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008559+00:00"
+  },
+  {
+    "name": "Thiruvananthapuram",
+    "state": "Kerala",
+    "lat": 8.5241,
+    "lon": 76.9366,
+    "temperature": 28.8,
+    "humidity": 80,
+    "precipitation": 0.0,
+    "windspeed": 5.6,
+    "winddirection": 310,
+    "weathercode": 1,
+    "cloudcover": 21,
+    "pressure": 1010.6,
+    "daily": {
+      "precip_sum": [
+        1.8,
+        5.1,
+        3.4
+      ],
+      "temp_max": [
+        30.3,
+        29.3,
+        29.5
+      ],
+      "temp_min": [
+        28.3,
+        27.6,
+        27.9
+      ],
+      "weathercode": [
+        80,
+        95,
+        80
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008562+00:00"
+  },
+  {
+    "name": "Visakhapatnam",
+    "state": "Andhra Pradesh",
+    "lat": 17.6868,
+    "lon": 83.2185,
+    "temperature": 26.9,
+    "humidity": 85,
+    "precipitation": 0.0,
+    "windspeed": 4.5,
+    "winddirection": 209,
+    "weathercode": 1,
+    "cloudcover": 43,
+    "pressure": 1006.6,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "temp_max": [
+        34.5,
+        35.9,
+        35.9
+      ],
+      "temp_min": [
+        24.4,
+        25.6,
+        25.2
+      ],
+      "weathercode": [
+        2,
+        2,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008565+00:00"
+  },
+  {
+    "name": "Coimbatore",
+    "state": "Tamil Nadu",
+    "lat": 11.0168,
+    "lon": 76.9558,
+    "temperature": 25.6,
+    "humidity": 77,
+    "precipitation": 0.0,
+    "windspeed": 13.2,
+    "winddirection": 241,
+    "weathercode": 3,
+    "cloudcover": 88,
+    "pressure": 964.2,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.3,
+        0.5
+      ],
+      "temp_max": [
+        35.8,
+        34.3,
+        34.3
+      ],
+      "temp_min": [
+        22.0,
+        23.1,
+        23.6
+      ],
+      "weathercode": [
+        45,
+        80,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008567+00:00"
+  },
+  {
+    "name": "Madurai",
+    "state": "Tamil Nadu",
+    "lat": 9.9252,
+    "lon": 78.1198,
+    "temperature": 27.7,
+    "humidity": 75,
+    "precipitation": 0.0,
+    "windspeed": 9.9,
+    "winddirection": 170,
+    "weathercode": 3,
+    "cloudcover": 89,
+    "pressure": 996.1,
+    "daily": {
+      "precip_sum": [
+        0.7,
+        0.7,
+        0.1
+      ],
+      "temp_max": [
+        36.2,
+        34.5,
+        36.4
+      ],
+      "temp_min": [
+        24.5,
+        24.5,
+        25.1
+      ],
+      "weathercode": [
+        80,
+        80,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008571+00:00"
+  },
+  {
+    "name": "Mangaluru",
+    "state": "Karnataka",
+    "lat": 12.9141,
+    "lon": 74.856,
+    "temperature": 28.5,
+    "humidity": 81,
+    "precipitation": 0.1,
+    "windspeed": 13.4,
+    "winddirection": 329,
+    "weathercode": 80,
+    "cloudcover": 83,
+    "pressure": 1009.6,
+    "daily": {
+      "precip_sum": [
+        2.9,
+        0.5,
+        1.9
+      ],
+      "temp_max": [
+        30.1,
+        29.7,
+        29.7
+      ],
+      "temp_min": [
+        28.3,
+        28.0,
+        27.9
+      ],
+      "weathercode": [
+        80,
+        3,
+        80
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008573+00:00"
+  },
+  {
+    "name": "Bhopal",
+    "state": "Madhya Pradesh",
+    "lat": 23.2599,
+    "lon": 77.4126,
+    "temperature": 27.6,
+    "humidity": 49,
+    "precipitation": 0.1,
+    "windspeed": 2.4,
+    "winddirection": 153,
+    "weathercode": 80,
+    "cloudcover": 100,
+    "pressure": 955.9,
+    "daily": {
+      "precip_sum": [
+        1.6,
+        0.1,
+        0.1
+      ],
+      "temp_max": [
+        36.1,
+        35.2,
+        34.9
+      ],
+      "temp_min": [
+        22.4,
+        22.8,
+        21.1
+      ],
+      "weathercode": [
+        80,
+        3,
+        3
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008576+00:00"
+  },
+  {
+    "name": "Indore",
+    "state": "Madhya Pradesh",
+    "lat": 22.7196,
+    "lon": 75.8577,
+    "temperature": 26.3,
+    "humidity": 54,
+    "precipitation": 0.0,
+    "windspeed": 9.8,
+    "winddirection": 204,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 950.4,
+    "daily": {
+      "precip_sum": [
+        0.0,
+        0.0,
+        0.4
+      ],
+      "temp_max": [
+        35.4,
+        33.8,
+        30.3
+      ],
+      "temp_min": [
+        22.4,
+        22.0,
+        21.1
+      ],
+      "weathercode": [
+        3,
+        3,
+        80
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008579+00:00"
+  },
+  {
+    "name": "Raipur",
+    "state": "Chhattisgarh",
+    "lat": 21.2514,
+    "lon": 81.6296,
+    "temperature": 29.7,
+    "humidity": 52,
+    "precipitation": 0.0,
+    "windspeed": 6.0,
+    "winddirection": 213,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 977.2,
+    "daily": {
+      "precip_sum": [
+        0.3,
+        0.9,
+        1.0
+      ],
+      "temp_max": [
+        37.2,
+        37.6,
+        36.4
+      ],
+      "temp_min": [
+        25.6,
+        26.5,
+        25.8
+      ],
+      "weathercode": [
+        3,
+        80,
+        80
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008584+00:00"
+  },
+  {
+    "name": "Dibrugarh",
+    "state": "Assam",
+    "lat": 27.4728,
+    "lon": 94.912,
+    "temperature": 22.1,
+    "humidity": 93,
+    "precipitation": 0.0,
+    "windspeed": 7.7,
+    "winddirection": 62,
+    "weathercode": 3,
+    "cloudcover": 92,
+    "pressure": 998.3,
+    "daily": {
+      "precip_sum": [
+        12.0,
+        0.0,
+        3.5
+      ],
+      "temp_max": [
+        23.3,
+        28.0,
+        28.0
+      ],
+      "temp_min": [
+        21.5,
+        20.9,
+        22.6
+      ],
+      "weathercode": [
+        95,
+        3,
+        81
+      ],
+      "dates": [
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ]
+    },
+    "updated_at": "2026-04-02T16:43:27.008587+00:00"
   },
   {
     "name": "Silchar",
     "state": "Assam",
     "lat": 24.8333,
     "lon": 92.7789,
-    "temperature": 24.9,
-    "humidity": 88,
-    "precipitation": 0.3,
-    "windspeed": 2.9,
-    "winddirection": 330,
+    "temperature": 24.1,
+    "humidity": 90,
+    "precipitation": 0.2,
+    "windspeed": 3.4,
+    "winddirection": 302,
     "weathercode": 80,
-    "cloudcover": 85,
+    "cloudcover": 100,
     "pressure": 1007.1,
     "daily": {
       "precip_sum": [
-        26.3,
-        14.2,
-        9.3
+        35.2,
+        23.7,
+        26.8
       ],
       "temp_max": [
         29.4,
-        30.1,
-        31.1
+        30.9,
+        31.2
       ],
       "temp_min": [
         22.1,
-        22.3,
+        22.0,
         23.5
       ],
       "weathercode": [
@@ -1677,21 +1677,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449433+00:00"
+    "updated_at": "2026-04-02T16:43:27.008590+00:00"
   },
   {
     "name": "Muzaffarpur",
     "state": "Bihar",
     "lat": 26.1209,
     "lon": 85.3647,
-    "temperature": 26.9,
-    "humidity": 48,
+    "temperature": 26.3,
+    "humidity": 50,
     "precipitation": 0.0,
     "windspeed": 5.8,
     "winddirection": 248,
     "weathercode": 0,
     "cloudcover": 0,
-    "pressure": 1000.1,
+    "pressure": 1000.2,
     "daily": {
       "precip_sum": [
         0.0,
@@ -1700,13 +1700,13 @@
       ],
       "temp_max": [
         36.8,
-        39.1,
-        40.2
+        38.7,
+        39.8
       ],
       "temp_min": [
         22.2,
-        22.3,
-        23.6
+        22.7,
+        23.3
       ],
       "weathercode": [
         3,
@@ -1719,21 +1719,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449438+00:00"
+    "updated_at": "2026-04-02T16:43:27.008594+00:00"
   },
   {
     "name": "Darbhanga",
     "state": "Bihar",
     "lat": 26.1542,
     "lon": 85.8918,
-    "temperature": 26.2,
+    "temperature": 25.8,
     "humidity": 64,
     "precipitation": 0.0,
-    "windspeed": 6.4,
-    "winddirection": 232,
+    "windspeed": 5.7,
+    "winddirection": 235,
     "weathercode": 0,
     "cloudcover": 0,
-    "pressure": 999.6,
+    "pressure": 999.8,
     "daily": {
       "precip_sum": [
         0.0,
@@ -1742,13 +1742,13 @@
       ],
       "temp_max": [
         35.4,
-        37.8,
-        38.3
+        37.7,
+        38.5
       ],
       "temp_min": [
         21.8,
-        21.8,
-        22.7
+        22.1,
+        22.6
       ],
       "weathercode": [
         3,
@@ -1761,21 +1761,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449441+00:00"
+    "updated_at": "2026-04-02T16:43:27.008597+00:00"
   },
   {
     "name": "Gorakhpur",
     "state": "Uttar Pradesh",
     "lat": 26.7606,
     "lon": 83.3732,
-    "temperature": 27.5,
-    "humidity": 35,
+    "temperature": 26.7,
+    "humidity": 44,
     "precipitation": 0.0,
-    "windspeed": 6.3,
-    "winddirection": 246,
+    "windspeed": 5.5,
+    "winddirection": 247,
     "weathercode": 0,
     "cloudcover": 0,
-    "pressure": 996.8,
+    "pressure": 996.9,
     "daily": {
       "precip_sum": [
         0.0,
@@ -1784,13 +1784,13 @@
       ],
       "temp_max": [
         38.5,
-        36.7,
-        40.6
+        38.3,
+        40.2
       ],
       "temp_min": [
         21.4,
-        22.4,
-        23.6
+        21.3,
+        23.7
       ],
       "weathercode": [
         1,
@@ -1803,36 +1803,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449443+00:00"
+    "updated_at": "2026-04-02T16:43:27.008600+00:00"
   },
   {
     "name": "Prayagraj",
     "state": "Uttar Pradesh",
     "lat": 25.4358,
     "lon": 81.8463,
-    "temperature": 30.4,
-    "humidity": 47,
+    "temperature": 30.0,
+    "humidity": 50,
     "precipitation": 0.0,
-    "windspeed": 2.9,
-    "winddirection": 180,
+    "windspeed": 3.1,
+    "winddirection": 135,
     "weathercode": 3,
-    "cloudcover": 92,
-    "pressure": 997.0,
+    "cloudcover": 100,
+    "pressure": 996.6,
     "daily": {
       "precip_sum": [
         0.0,
         0.0,
-        0.9
+        0.4
       ],
       "temp_max": [
         38.0,
-        36.8,
-        39.3
+        37.2,
+        39.0
       ],
       "temp_min": [
         24.0,
-        26.0,
-        24.8
+        26.1,
+        24.6
       ],
       "weathercode": [
         3,
@@ -1845,40 +1845,40 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449446+00:00"
+    "updated_at": "2026-04-02T16:43:27.008603+00:00"
   },
   {
     "name": "Haridwar",
     "state": "Uttarakhand",
     "lat": 29.9457,
     "lon": 78.1642,
-    "temperature": 22.2,
-    "humidity": 60,
+    "temperature": 21.6,
+    "humidity": 61,
     "precipitation": 0.0,
-    "windspeed": 5.5,
-    "winddirection": 23,
-    "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 975.4,
+    "windspeed": 5.9,
+    "winddirection": 38,
+    "weathercode": 2,
+    "cloudcover": 48,
+    "pressure": 975.3,
     "daily": {
       "precip_sum": [
         0.0,
-        0.2,
-        0.8
+        0.0,
+        3.0
       ],
       "temp_max": [
         34.7,
-        34.9,
-        29.9
+        35.3,
+        30.3
       ],
       "temp_min": [
         19.7,
-        19.8,
-        20.5
+        20.2,
+        20.8
       ],
       "weathercode": [
         3,
-        80,
+        3,
         80
       ],
       "dates": [
@@ -1887,36 +1887,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449449+00:00"
+    "updated_at": "2026-04-02T16:43:27.008606+00:00"
   },
   {
     "name": "Port Blair",
     "state": "Andaman & Nicobar",
     "lat": 11.6234,
     "lon": 92.7265,
-    "temperature": 29.0,
-    "humidity": 78,
+    "temperature": 29.1,
+    "humidity": 79,
     "precipitation": 0.0,
-    "windspeed": 15.2,
-    "winddirection": 14,
+    "windspeed": 13.2,
+    "winddirection": 17,
     "weathercode": 3,
     "cloudcover": 100,
-    "pressure": 1009.2,
+    "pressure": 1009.0,
     "daily": {
       "precip_sum": [
-        0.0,
+        0.2,
         0.0,
         0.0
       ],
       "temp_max": [
-        29.1,
-        29.0,
-        29.3
+        29.5,
+        29.2,
+        29.5
       ],
       "temp_min": [
         28.0,
-        28.1,
-        28.6
+        28.4,
+        28.7
       ],
       "weathercode": [
         3,
@@ -1929,41 +1929,41 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449452+00:00"
+    "updated_at": "2026-04-02T16:43:27.008608+00:00"
   },
   {
     "name": "Amritsar",
     "state": "Punjab",
     "lat": 31.634,
     "lon": 74.8723,
-    "temperature": 25.3,
-    "humidity": 55,
+    "temperature": 25.1,
+    "humidity": 58,
     "precipitation": 0.0,
-    "windspeed": 2.6,
-    "winddirection": 34,
+    "windspeed": 2.3,
+    "winddirection": 39,
     "weathercode": 3,
-    "cloudcover": 100,
-    "pressure": 981.4,
+    "cloudcover": 89,
+    "pressure": 981.1,
     "daily": {
       "precip_sum": [
         0.0,
-        24.0,
-        8.6
+        18.5,
+        1.8
       ],
       "temp_max": [
         32.9,
         23.2,
-        22.0
+        24.1
       ],
       "temp_min": [
         19.1,
-        19.0,
-        17.1
+        18.0,
+        16.9
       ],
       "weathercode": [
         3,
         95,
-        95
+        80
       ],
       "dates": [
         "2026-04-02",
@@ -1971,41 +1971,41 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449455+00:00"
+    "updated_at": "2026-04-02T16:43:27.008611+00:00"
   },
   {
     "name": "Ludhiana",
     "state": "Punjab",
     "lat": 30.901,
     "lon": 75.8573,
-    "temperature": 26.1,
-    "humidity": 51,
+    "temperature": 25.9,
+    "humidity": 50,
     "precipitation": 0.0,
-    "windspeed": 2.7,
-    "winddirection": 23,
-    "weathercode": 2,
-    "cloudcover": 60,
-    "pressure": 979.7,
+    "windspeed": 1.9,
+    "winddirection": 248,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 979.4,
     "daily": {
       "precip_sum": [
         0.0,
-        8.9,
-        8.5
+        10.6,
+        7.4
       ],
       "temp_max": [
         33.6,
-        28.1,
-        27.3
+        24.3,
+        26.7
       ],
       "temp_min": [
         20.4,
-        19.6,
-        18.1
+        19.1,
+        18.4
       ],
       "weathercode": [
         3,
         95,
-        95
+        96
       ],
       "dates": [
         "2026-04-02",
@@ -2013,36 +2013,36 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449459+00:00"
+    "updated_at": "2026-04-02T16:43:27.008615+00:00"
   },
   {
     "name": "Jammu",
     "state": "J&K",
     "lat": 32.7266,
     "lon": 74.857,
-    "temperature": 25.8,
-    "humidity": 51,
+    "temperature": 25.0,
+    "humidity": 54,
     "precipitation": 0.0,
-    "windspeed": 4.4,
-    "winddirection": 35,
-    "weathercode": 1,
-    "cloudcover": 15,
-    "pressure": 973.6,
+    "windspeed": 4.8,
+    "winddirection": 42,
+    "weathercode": 3,
+    "cloudcover": 100,
+    "pressure": 973.1,
     "daily": {
       "precip_sum": [
         0.0,
-        16.7,
-        6.2
+        19.7,
+        19.4
       ],
       "temp_max": [
         33.0,
-        23.4,
-        23.0
+        21.9,
+        24.4
       ],
       "temp_min": [
         19.5,
-        19.6,
-        18.6
+        20.0,
+        17.8
       ],
       "weathercode": [
         3,
@@ -2055,21 +2055,21 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449462+00:00"
+    "updated_at": "2026-04-02T16:43:27.008619+00:00"
   },
   {
     "name": "Leh",
     "state": "Ladakh",
     "lat": 34.1526,
     "lon": 77.5771,
-    "temperature": 4.9,
-    "humidity": 32,
+    "temperature": 4.5,
+    "humidity": 35,
     "precipitation": 0.0,
-    "windspeed": 9.6,
-    "winddirection": 56,
+    "windspeed": 8.2,
+    "winddirection": 49,
     "weathercode": 2,
-    "cloudcover": 74,
-    "pressure": 680.6,
+    "cloudcover": 62,
+    "pressure": 680.9,
     "daily": {
       "precip_sum": [
         0.0,
@@ -2078,13 +2078,13 @@
       ],
       "temp_max": [
         9.2,
-        10.2,
+        11.0,
         8.7
       ],
       "temp_min": [
         -2.3,
-        0.8,
-        2.0
+        0.6,
+        1.7
       ],
       "weathercode": [
         3,
@@ -2097,6 +2097,6 @@
         "2026-04-04"
       ]
     },
-    "updated_at": "2026-04-02T15:48:44.449466+00:00"
+    "updated_at": "2026-04-02T16:43:27.008623+00:00"
   }
 ]
