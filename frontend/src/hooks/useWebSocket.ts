@@ -1,16 +1,12 @@
 // frontend/src/hooks/useWebSocket.ts
 /**
  * Real-time WebSocket hook for Pravhatattva v4.0
- * Connects to /ws/telemetry, receives CWC and IMD updates
- * pushed by the Celery worker via Redis pub/sub.
- * Updates TanStack Query cache so all components re-render automatically.
- * Auto-reconnects on connection drop.
+ * Only connects when a backend server is available (not on GitHub Pages).
+ * In production (GitHub Pages), data comes from static JSON files via
+ * GitHub Actions — no WebSocket needed.
  */
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-
-const WS_URL = ((import.meta.env.VITE_API_URL as string) || 'http://localhost')
-               .replace('http', 'ws') + '/ws/telemetry';
 
 export function useRealtimeTelemetry() {
   const queryClient = useQueryClient();
@@ -18,14 +14,22 @@ export function useRealtimeTelemetry() {
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Skip WebSocket entirely on GitHub Pages (production build)
+    // The static JSON pipeline handles data freshness via GitHub Actions.
+    const apiUrl = (import.meta.env.VITE_API_URL as string) || '';
+    if (!apiUrl || import.meta.env.PROD) {
+      return; // No WebSocket in production — data comes from JSON files
+    }
+
+    const wsUrl = apiUrl.replace('http', 'ws') + '/ws/telemetry';
+
     const connect = () => {
       try {
-        wsRef.current = new WebSocket(WS_URL);
+        wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onmessage = (event) => {
           try {
             const payload = JSON.parse(event.data);
-            // Backend sends tagged messages: { type: 'cwc_update', data: [...] }
             if (payload.type === 'cwc_update' && payload.data) {
               queryClient.setQueryData(['cwc-stations'], payload.data);
             }
@@ -42,17 +46,13 @@ export function useRealtimeTelemetry() {
         };
 
         wsRef.current.onclose = () => {
-          console.log('[WS] Disconnected — reconnecting in 5s');
-          // Reconnect after 5 seconds if connection drops
           reconnectTimer.current = setTimeout(connect, 5000);
         };
 
         wsRef.current.onerror = () => {
-          // Will trigger onclose, which handles reconnect
           wsRef.current?.close();
         };
       } catch {
-        // WebSocket constructor can throw if URL is invalid
         reconnectTimer.current = setTimeout(connect, 5000);
       }
     };

@@ -7,7 +7,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
-import { CWCStationSchema, IMDWarningSchema, CWCFfsStationSchema, CWCInflowSchema } from '../api/schemas';
+import { CWCStationSchema, IMDDistrictWarningSchema, CWCFfsStationSchema, CWCInflowSchema } from '../api/schemas';
 
 async function fetchMockJson(path: string): Promise<unknown> {
   const baseUrl = import.meta.env.BASE_URL || '/';
@@ -17,28 +17,29 @@ async function fetchMockJson(path: string): Promise<unknown> {
   return res.json();
 }
 
-// ── CWC gauge stations ─────────────────────────────────────────────────────
+// ── CWC gauge stations (Full Catalog) ──────────────────────────────────────
 export const useCWCStations = () =>
   useQuery({
     queryKey: ['cwc-stations'],
     queryFn: async () => {
       const raw = await fetchMockJson('/mock/cwc_stations.json');
       if (!Array.isArray(raw) || raw.length === 0) return [];
+      // Schema validation with Zod - lenient on failures to prevent dashboard blanking
       try { return z.array(CWCStationSchema).parse(raw); } catch { return raw as any[]; }
     },
+    staleTime: 10 * 60 * 1000,
   });
 
-// ── CWC FFS — above WARNING ────────────────────────────────────────────────
-export const useCWCAboveWarning = () =>
+// ── IMD district warnings (v4.0 API) ──────────────────────────────────────
+export const useIMDWarnings = () =>
   useQuery({
-    queryKey: ['cwc-ffs-warning'],
+    queryKey: ['imd-warnings'],
     queryFn: async () => {
-      const raw = await fetchMockJson('/mock/cwc_above_warning.json');
+      const raw = await fetchMockJson('/mock/imd_district_warnings.json');
       if (!Array.isArray(raw) || raw.length === 0) return [];
-      try { return z.array(CWCFfsStationSchema).parse(raw); } catch { return raw as any[]; }
+      try { return z.array(IMDDistrictWarningSchema).parse(raw); } catch { return raw as any[]; }
     },
-    refetchInterval: 15 * 60 * 1000,
-    staleTime: 12 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
   });
 
 // ── CWC FFS — above DANGER ─────────────────────────────────────────────────
@@ -65,21 +66,9 @@ export const useCWCInflowStations = () =>
     refetchInterval: 3 * 60 * 60 * 1000,
   });
 
-// ── IMD district warnings ───────────────────────────────────────────────────
-export const useIMDWarnings = () =>
-  useQuery({
-    queryKey: ['imd-warnings'],
-    queryFn: async () => {
-      const raw = await fetchMockJson('/mock/imd_district_warnings.json');
-      if (!Array.isArray(raw) || raw.length === 0) return [];
-      try { return z.array(IMDWarningSchema).parse(raw); } catch { return raw as any[]; }
-    },
-    refetchInterval: 3 * 60 * 60 * 1000,
-  });
-
-export const useIMDRainfall = () => useQuery({ queryKey: ['imd-rainfall'], queryFn: () => fetchMockJson('/mock/imd_district_warnings.json') });
-export const useIMDStatewiseRainfall = () => useQuery({ queryKey: ['imd-statewise'], queryFn: () => fetchMockJson('/mock/imd_district_warnings.json') });
-export const useBasinQPF = () => useQuery({ queryKey: ['imd-basin-qpf'], queryFn: () => fetchMockJson('/mock/soil_moisture_basins.json'), staleTime: 6 * 60 * 60 * 1000 });
+export const useIMDRainfall = () => useQuery({ queryKey: ['imd-rainfall'], queryFn: () => fetchMockJson('/mock/imd_district_rainfall.json') });
+export const useIMDStatewiseRainfall = () => useQuery({ queryKey: ['imd-statewise'], queryFn: () => fetchMockJson('/mock/imd_state_rainfall.json') });
+export const useBasinQPF = () => useQuery({ queryKey: ['imd-basin-qpf'], queryFn: () => fetchMockJson('/mock/imd_basin_qpf.json'), staleTime: 6 * 60 * 60 * 1000 });
 export const useStateDistrictForecast = () => useQuery({ queryKey: ['imd-5d-forecast'], queryFn: () => fetchMockJson('/mock/imd_district_warnings.json') });
 
 // ── Data meta (freshness) ───────────────────────────────────────────────────

@@ -38,27 +38,31 @@ const PlaceholderPage = ({ title }: { title: string }) => (
   </div>
 );
 
+import { IntelProvider } from './context/IntelContext';
+
 function App() {
   useRealtimeTelemetry(); // Connect WebSocket for live data push
   return (
-    <BrowserRouter basename={(import.meta as any).env.PROD ? "/Flood-Dash" : "/"}>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Overview />} />
-          <Route path="alerts" element={<AlertCenter />} />
-          <Route path="map"    element={<Suspense fallback={<PageSkeleton />}><LiveMap /></Suspense>} />
-          <Route path="rivers" element={<Suspense fallback={<PageSkeleton />}><RiverForecast /></Suspense>} />
-          <Route path="rain"   element={<Suspense fallback={<PageSkeleton />}><RainfallRadar /></Suspense>} />
-          <Route path="ml"     element={<Suspense fallback={<PageSkeleton />}><MLAnalysis /></Suspense>} />
-          <Route path="hist"   element={<Suspense fallback={<PageSkeleton />}><HistoricalEvents /></Suspense>} />
-          <Route path="urban"  element={<Suspense fallback={<PageSkeleton />}><UrbanFloodRisk /></Suspense>} />
-          <Route path="about"  element={<Suspense fallback={<PageSkeleton />}><AboutPage /></Suspense>} />
-          <Route path="status" element={<Suspense fallback={<PageSkeleton />}><DataSources /></Suspense>} />
-          <Route path="dist"   element={<Suspense fallback={<PageSkeleton />}><DistrictDrilldown /></Suspense>} />
-          <Route path="*"      element={<PlaceholderPage title="404 — Not Found" />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <IntelProvider>
+      <BrowserRouter basename={(import.meta as any).env.PROD ? "/Flood-Dash" : "/"}>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Overview />} />
+            <Route path="alerts" element={<AlertCenter />} />
+            <Route path="map"    element={<Suspense fallback={<PageSkeleton />}><LiveMap /></Suspense>} />
+            <Route path="rivers" element={<Suspense fallback={<PageSkeleton />}><RiverForecast /></Suspense>} />
+            <Route path="rain"   element={<Suspense fallback={<PageSkeleton />}><RainfallRadar /></Suspense>} />
+            <Route path="ml"     element={<Suspense fallback={<PageSkeleton />}><MLAnalysis /></Suspense>} />
+            <Route path="hist"   element={<Suspense fallback={<PageSkeleton />}><HistoricalEvents /></Suspense>} />
+            <Route path="urban"  element={<Suspense fallback={<PageSkeleton />}><UrbanFloodRisk /></Suspense>} />
+            <Route path="about"  element={<Suspense fallback={<PageSkeleton />}><AboutPage /></Suspense>} />
+            <Route path="status" element={<Suspense fallback={<PageSkeleton />}><DataSources /></Suspense>} />
+            <Route path="dist"   element={<Suspense fallback={<PageSkeleton />}><DistrictDrilldown /></Suspense>} />
+            <Route path="*"      element={<PlaceholderPage title="404 — Not Found" />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </IntelProvider>
   );
 }
 

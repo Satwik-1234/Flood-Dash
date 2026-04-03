@@ -25,10 +25,23 @@ export const GEO_LAYERS = {
 export const WMS_ENDPOINTS = {
   BHUVAN_BASE:      'https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms',
   BHUVAN_RASTER:    'https://bhuvan-ras2.nrsc.gov.in/cgi-bin/',
+  WRIS_ADMIN:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Admin_subinfo_a/MapServer/WMSServer',
   WRIS_BASIN:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Basin/MapServer/WMSServer',
-  WRIS_WATER:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/SurfaceWaterBodyInfoSysWetLands/MapServer/WMSServer',
-  WRIS_DAMS:        'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Dam/MapServer/WMSServer',
+  WRIS_WATER:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/SWB/MapServer/WMSServer',
+  WRIS_DAMS:        'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/WRP/MapServer/WMSServer',
   WRIS_STATIONS:    'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/FloodForecasting/MapServer/WMSServer',
+} as const;
+
+export const WRIS_LAYERS = {
+  STATES:           '7',
+  DISTRICTS:        '5',
+  BASINS:           '9',
+  RIVERS:           '1',
+  WETLANDS:         '4',
+  DAMS:             '9',
+  BARRAGES:         '10',
+  COMMAND_AREAS:    '1',
+  WATER_BODIES:     '10,11,12,13'
 } as const;
 
 export const BHUVAN_LAYERS = {

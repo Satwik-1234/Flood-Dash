@@ -1,11 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Brain, CloudRain, Waves, Drop, TrendUp,
-         WarningOctagon, CaretRight, Info, MapPin } from 'phosphor-react';
+         WarningOctagon, CaretRight, Info, MapPin, Activity, Cpu, ChartBar, Database } from 'phosphor-react';
 import { useCWCStations } from '../hooks/useTelemetry';
 import { fetchStationWeather, getCurrentHourWeather } from '../api/openMeteoApi';
 import { useQuery } from '@tanstack/react-query';
-
-const API_BASE = (import.meta as any).env.VITE_API_BASE_URL || '';
 
 // ─── PURE BROWSER ML ENGINE ───────────────────────────────────────────────
 interface HydroParams {
@@ -25,7 +23,6 @@ interface PredictionResult {
   recommended_action: string;
 }
 
-// Exact feature contributions (SHAP-style)
 function computeSHAP(params: HydroParams): Record<string, number> {
   const levelRatio    = params.danger_level_m > 0 ? (params.river_level_m / params.danger_level_m) : 0;
   const rainFactor    = (params.rainfall_24h_mm / 250.0) * params.soil_moisture_idx;
@@ -33,11 +30,11 @@ function computeSHAP(params: HydroParams): Record<string, number> {
   const intensity     = Math.min(1, params.rainfall_intensity_mmphr / 50.0);
   
   return {
-    "River level saturation": 4.5 * levelRatio,
-    "Rainfall × soil moisture": 3.2 * rainFactor,
-    "Terrain susceptibility": 1.5 * topoFactor,
-    "Rainfall intensity": 2.0 * intensity,
-    "Base rate (intercept)": -4.0,
+    "Level Saturation": 4.5 * levelRatio,
+    "Soil Moisture x Rain": 3.2 * rainFactor,
+    "Terrain Susceptibility": 1.5 * topoFactor,
+    "Pluvials Intensity": 2.0 * intensity,
+    "Kernel Bias": -4.0,
   };
 }
 
@@ -60,11 +57,11 @@ function runBrowserInference(params: HydroParams, decay = 1.0): PredictionResult
   let action: string;
   let plain: string;
 
-  if      (probPct > 85) { level = 5; label = 'EMERGENCY'; action = 'Evacuate immediately.'; plain = 'Extreme inundation highly likely.'; }
-  else if (probPct > 65) { level = 4; label = 'ALERT';     action = 'Move to high ground now.'; plain = 'Severe flooding probable.'; }
-  else if (probPct > 40) { level = 3; label = 'WARNING';   action = 'Prepare emergency bag.'; plain = 'Significant flood risk. Conditions deteriorating.'; }
-  else if (probPct > 20) { level = 2; label = 'WATCH';     action = 'Avoid low-lying areas.'; plain = 'Elevated risk. Situation could worsen.'; }
-  else                   { level = 1; label = 'NORMAL';    action = 'Stay informed.'; plain = 'Current conditions within normal range.'; }
+  if      (probPct > 85) { level = 5; label = 'FATAL';     action = 'IMMEDIATE_DEPARTURE'; plain = 'Extreme inundation protocol active.'; }
+  else if (probPct > 65) { level = 4; label = 'CRITICAL';  action = 'MOVE_HIGH_GROUND'; plain = 'Severe flood risk imminent.'; }
+  else if (probPct > 40) { level = 3; label = 'WARN';      action = 'PREPARE_KIT'; plain = 'Condition vector deteriorating.'; }
+  else if (probPct > 20) { level = 2; label = 'WATCH';     action = 'AVOID_LOW_ZONES'; plain = 'Elevated hydrological tension.'; }
+  else                   { level = 1; label = 'STABLE';    action = 'NOMINAL_MONITOR'; plain = 'Conditions within reference bounds.'; }
 
   return { probability_pct: probPct, risk_level: level, risk_label: label, plain_language: plain, recommended_action: action };
 }
@@ -72,18 +69,17 @@ function runBrowserInference(params: HydroParams, decay = 1.0): PredictionResult
 function runMultiHorizon(params: HydroParams) {
   return {
     h24: runBrowserInference(params, 1.0),
-    h48: runBrowserInference(params, 0.82),
-    h72: runBrowserInference(params, 0.68),
+    h48: runBrowserInference(params, 0.85),
+    h72: runBrowserInference(params, 0.70),
   };
 }
 
-// ─── RISK THEME HELPER ────────────────────────────────────────────────────
 const RISK_THEMES = {
-  1: { bg: 'bg-risk-1', text: 'text-risk-1-text', border: 'border-risk-1-border' },
-  2: { bg: 'bg-risk-2', text: 'text-risk-2-text', border: 'border-risk-2-border' },
-  3: { bg: 'bg-risk-3', text: 'text-risk-3-text', border: 'border-risk-3-border' },
-  4: { bg: 'bg-risk-4', text: 'text-risk-4-text', border: 'border-risk-4-border' },
-  5: { bg: 'bg-risk-5', text: 'text-risk-5-text', border: 'border-risk-5-border' },
+  1: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-200' },
+  2: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' },
+  3: { bg: 'bg-amber-500/10', text: 'text-amber-600', border: 'border-amber-200' },
+  4: { bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-200' },
+  5: { bg: 'bg-red-500/10', text: 'text-red-600', border: 'border-red-200' },
 } as const;
 
 export const MLAnalysis: React.FC = () => {
@@ -91,7 +87,6 @@ export const MLAnalysis: React.FC = () => {
   const [shap, setShap]       = useState<Record<string, number> | null>(null);
   const [isRunning, setRunning] = useState(false);
 
-  // Selector state
   const { data: stations } = useCWCStations();
   const [selectedStationCode, setSelectedStationCode] = useState<string>('');
   const selectedStation = stations?.find(s => s.station_code === selectedStationCode);
@@ -105,7 +100,6 @@ export const MLAnalysis: React.FC = () => {
     rainfall_intensity_mmphr:  32.0,
   });
 
-  // Auto-fetch weather when station selected
   const { data: stationWeather, isLoading: wxLoading } = useQuery({
     queryKey: ['ml-station-weather', selectedStation?.lat, selectedStation?.lon],
     queryFn: () => fetchStationWeather(
@@ -116,7 +110,6 @@ export const MLAnalysis: React.FC = () => {
     staleTime: 30 * 60 * 1000,
   });
 
-  // Auto-populate params
   useEffect(() => {
     if (!selectedStation || !stationWeather) return;
     const wx = getCurrentHourWeather(
@@ -136,9 +129,7 @@ export const MLAnalysis: React.FC = () => {
   const handlePredict = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setRunning(true);
-    
-    // Always use robust local SHAP + multi-horizon inference
-    await new Promise(r => setTimeout(r, 420));
+    await new Promise(r => setTimeout(r, 600));
     setResult(runMultiHorizon(params));
     setShap(computeSHAP(params));
     setRunning(false);
@@ -147,187 +138,180 @@ export const MLAnalysis: React.FC = () => {
   const setField = (field: keyof HydroParams, val: string) =>
     setParams(prev => ({ ...prev, [field]: parseFloat(val) || 0 }));
 
-  const theme = result ? RISK_THEMES[result.h24.risk_level] : null;
-
   return (
-    <div className="w-full h-full p-8 overflow-y-auto space-y-8 bg-bg-cream">
-
-      {/* Header */}
-      <div className="flex justify-between items-end">
-        <div>
-          <h2 className="font-display text-text-dark text-3xl font-bold flex items-center">
-            <Brain className="w-8 h-8 mr-3 text-suk-forest" weight="duotone" />
-            ML Flood Diagnostics
-          </h2>
-          <p className="font-ui text-text-muted mt-1">
-            Browser-native inference · Zero server · SHAP Attribution
-          </p>
+    <div className="w-full h-full flex flex-col bg-[#F8F9FA] selection:bg-suk-forest/20 overflow-hidden">
+      
+      {/* ── INDUSTRIAL HEADER ──────────────────────────────────────────────── */}
+      <div className="px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-300 gap-4 bg-white shadow-sm shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="bg-slate-900 p-2 rounded">
+             <Brain size={24} className="text-violet-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <h1 className="font-display text-slate-900 text-2xl font-black tracking-tighter uppercase leading-none">
+                NEURAL-GRID <span className="font-light text-slate-400">/ DIAGNOSTICS</span>
+              </h1>
+              <div className="bg-violet-500/10 text-violet-600 px-1.5 py-0.5 rounded text-[9px] font-black font-data uppercase border border-violet-500/20">
+                WASM_IN_BROWSER
+              </div>
+            </div>
+            <p className="font-data text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+              NON-DETERMINISTIC INFERENCE • SHAP ATTRIBUTION • HYDROMETRIC BIAS
+            </p>
+          </div>
         </div>
-        <div className="flex items-center space-x-2 text-xs font-data font-bold
-                        bg-bg-white border border-border-default px-3 py-2 rounded-lg
-                        text-suk-forest shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-suk-forest animate-pulse inline-block mr-1"></span>
-          WASM · In-Browser
+        
+        <div className="flex gap-2">
+          <div className="px-3 py-1.5 bg-slate-900 rounded text-[10px] font-black font-data text-white shadow-xl flex items-center gap-2 uppercase tracking-widest">
+            <Cpu size={14} className="text-violet-400" /> KERNEL: ACTIVE
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Input Form */}
-        <div className="lg:col-span-1 bg-bg-white border border-border-default
-                        rounded-xl shadow-sm p-6 flex flex-col h-full">
-
-          <div className="mb-6 pb-6 border-b border-border-light">
-            <label className="flex items-center text-sm font-ui font-bold text-text-dark mb-2">
-              <MapPin className="w-4 h-4 mr-2 text-suk-river" />
-              Auto-fill from CWC Station
-            </label>
-            <select
-              value={selectedStationCode}
-              onChange={e => setSelectedStationCode(e.target.value)}
-              className="w-full bg-bg-surface border border-border-default rounded-lg px-3 py-2 text-sm font-ui font-semibold text-text-body focus:ring-suk-forest focus:border-suk-forest transition-colors shadow-inner"
-            >
-              <option value="">— Manual Context —</option>
-              {stations?.map(s => (
-                <option key={s.station_code} value={s.station_code}>
-                  {s.river} at {s.station_name} ({s.station_code})
-                </option>
-              ))}
-            </select>
-            {selectedStation && (
-              <p className="text-[10px] text-suk-forest mt-2 font-ui flex items-center">
-                <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${wxLoading ? 'bg-suk-amber animate-pulse' : 'bg-suk-forest'}`} />
-                {wxLoading ? 'Syncing Open-Meteo payload...' : `Loaded live CWC conditions`}
-              </p>
-            )}
-          </div>
-
-          <h3 className="font-display font-bold text-lg text-text-dark mb-4">
-            Hydrological Parameters
-          </h3>
-
-          <form onSubmit={handlePredict} className="space-y-4 flex-1 flex flex-col">
-            {([
-              { key: 'rainfall_24h_mm',         label: '24h Rainfall (mm)',           icon: CloudRain, step: '0.1', min: '0', max: undefined },
-              { key: 'rainfall_intensity_mmphr', label: 'Peak 1h Intensity (mm/hr)',   icon: CloudRain, step: '0.1', min: '0', max: undefined },
-              { key: 'river_level_m',            label: 'River Level (m)',             icon: Waves,     step: '0.1', min: '0', max: undefined },
-              { key: 'danger_level_m',           label: 'Danger Threshold (m)',        icon: WarningOctagon, step: '0.1', min: '0', max: undefined },
-              { key: 'soil_moisture_idx',        label: 'Soil Moisture Index (0–1)',   icon: Drop,      step: '0.01', min: '0', max: '1' },
-              { key: 'elevation_m',              label: 'Catchment Elevation (m)',     icon: TrendUp,   step: '1',   min: '0', max: undefined },
-            ] as const).map(({ key, label, icon: Icon, step, min, max }) => (
-              <div key={key}>
-                <label className="flex items-center text-xs font-ui font-bold text-text-muted mb-1.5">
-                  <Icon className="w-3.5 h-3.5 mr-1.5 opacity-70" />
-                  {label}
-                </label>
-                <input
-                  type="number" step={step} min={min} max={max} required
-                  value={Number(params[key]).toString()}
-                  onChange={e => setField(key, e.target.value)}
-                  className="w-full bg-bg-surface border border-border-default rounded-md
-                             px-3 py-1.5 text-text-dark font-data text-sm
-                             focus:outline-none focus:border-suk-forest transition-colors shadow-inner"
-                />
-              </div>
-            ))}
-
-            <div className="mt-auto pt-4">
-              <button
-                type="submit" disabled={isRunning || wxLoading}
-                className="w-full bg-suk-forest hover:bg-suk-forest-mid text-bg-white
-                           font-ui font-bold py-3 rounded-lg flex items-center justify-center
-                           transition-colors shadow-sm disabled:opacity-50"
-              >
-                {isRunning ? 'Computing Parameters…' : 'Run Ensemble Inference'}
-                <CaretRight className="w-4 h-4 ml-2" />
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Results */}
-        <div className="lg:col-span-2 space-y-6">
-          {result && theme ? (
-            <>
-              {/* Multi-Horizon Risk Banner */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { horizon: '24h Nowcast', res: result.h24 },
-                  { horizon: '48h Outlook',  res: result.h48 },
-                  { horizon: '72h Forecast', res: result.h72 },
-                ].map((item, i) => {
-                  const t = RISK_THEMES[item.res.risk_level];
-                  return (
-                    <div key={i} className={`${t.bg} border ${t.border} rounded-xl p-6 relative overflow-hidden shadow-sm flex flex-col justify-between`}>
-                      <div>
-                        <p className={`font-ui font-bold tracking-widest uppercase text-[10px] ${t.text} opacity-70 mb-2`}>
-                          {item.horizon}
-                        </p>
-                        <div className={`font-display text-4xl font-black ${t.text} tracking-tighter leading-none`}>
-                          {item.res.probability_pct}<span className="text-xl">%</span>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${t.bg} border ${t.border} ${t.text}`}>
-                          LVL {item.res.risk_level} • {item.res.risk_label}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Exact SHAP Attribution Breakdown */}
-              <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm">
-                <h3 className="font-display font-bold text-lg text-text-dark mb-6">SHAP Feature Influence</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {shap && Object.entries(shap).map(([key, val]) => (
-                    <div key={key} className="flex flex-col">
-                      <h4 className="font-ui text-xs font-bold text-text-muted mb-2 border-b border-border-light pb-2">
-                        {key}
-                      </h4>
-                      <div className={`font-data text-3xl font-light tracking-tight ${val > 0 ? 'text-suk-fire' : 'text-suk-forest'}`}>
-                        {val > 0 ? '+' : ''}{val.toFixed(2)}
-                      </div>
-                    </div>
+      {/* ── TECHNICAL CONTENT ──────────────────────────────────────────────── */}
+      <div className="flex-1 min-h-0 p-6 flex flex-col lg:flex-row gap-6 overflow-hidden">
+        
+        {/* LEFT: INPUT KERNEL */}
+        <div className="lg:w-[320px] bg-white border border-slate-300 rounded shadow-xl p-6 flex flex-col shrink-0 overflow-y-auto scrollbar-hide">
+           <div className="mb-6 pb-6 border-b border-slate-100">
+             <label className="block font-data text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Target Node Mapping</label>
+             <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
+                <select
+                  value={selectedStationCode}
+                  onChange={e => setSelectedStationCode(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded pl-9 pr-4 py-2 font-data text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-slate-900 transition-all appearance-none"
+                >
+                  <option value="">MANUAL_OVERRIDE</option>
+                  {stations?.map(s => (
+                    <option key={s.station_code} value={s.station_code}>
+                      {s.river.split(' ')[0]} // {s.station_name}
+                    </option>
                   ))}
-                </div>
-              </div>
+                </select>
+             </div>
+             {selectedStation && (
+               <p className="font-data text-[9px] font-bold text-emerald-600 mt-2 flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> METEO_PAYLOAD_LOCKED
+               </p>
+             )}
+           </div>
 
-              {/* Actionable Insights */}
-              <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm flex items-start space-x-4">
-                <div className="p-3 bg-risk-1 rounded-full shrink-0">
-                  <Info className="w-6 h-6 text-suk-forest" weight="duotone" />
-                </div>
-                <div>
-                  <h4 className="font-ui font-bold text-text-dark text-sm mb-1">Inference Insight (24h)</h4>
-                  <p className="font-ui text-sm text-text-body leading-relaxed mb-2">
-                    {result.h24.plain_language}
-                  </p>
-                  <p className="font-ui text-xs font-bold text-suk-forest tracking-wide uppercase">
-                    ▶ {result.h24.recommended_action}
-                  </p>
-                </div>
-              </div>
+           <form onSubmit={handlePredict} className="space-y-4 flex-1">
+             <label className="block font-data text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Observation Params</label>
+             {([
+               { key: 'rainfall_24h_mm',         label: 'Rain_Sum_24H', icon: CloudRain },
+               { key: 'rainfall_intensity_mmphr', label: 'Peak_Flux_1H', icon: CloudRain },
+               { key: 'river_level_m',            label: 'Stage_Lvl_M', icon: Waves },
+               { key: 'danger_level_m',           label: 'Fatal_Thresh', icon: WarningOctagon },
+               { key: 'soil_moisture_idx',        label: 'Soil_Saturation', icon: Drop },
+               { key: 'elevation_m',              label: 'Terrain_Alt', icon: TrendUp },
+             ] as const).map(({ key, label, icon: Icon }) => (
+               <div key={key} className="space-y-1">
+                 <div className="flex items-center gap-2">
+                    <Icon size={12} className="text-slate-400" />
+                    <span className="font-data text-[9px] font-black text-slate-500 uppercase">{label}</span>
+                 </div>
+                 <input
+                   type="number" step="0.1" required
+                   value={Number(params[key]).toString()}
+                   onChange={e => setField(key, e.target.value)}
+                   className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-1.5 font-data text-xs font-black text-slate-900 focus:outline-none focus:border-slate-900 shadow-inner"
+                 />
+               </div>
+             ))}
 
-              <p className="font-ui text-[10px] text-text-muted text-right">
-                Model: HydroLogit-Ensemble v1.1 · Weights calibrated via continuous Indian regional backtesting
-              </p>
-            </>
-          ) : (
-            <div className="bg-bg-surface-2 border border-dashed border-border-default
-                            rounded-xl h-full min-h-[500px] flex flex-col items-center
-                            justify-center p-12 text-center opacity-70">
-              <Brain className="w-16 h-16 text-text-muted mb-4 opacity-50" />
-              <h3 className="font-display text-xl text-text-body mb-2">
-                Awaiting Context
-              </h3>
-              <p className="font-ui text-sm text-text-muted max-w-sm">
-                Select a CWC station to auto-fetch meteorological payload and conduct deterministic SHAP analysis.
-              </p>
-            </div>
-          )}
+             <div className="pt-6">
+               <button
+                 type="submit" disabled={isRunning || wxLoading}
+                 className="w-full bg-slate-900 hover:bg-black text-white py-3 rounded text-[10px] font-black font-data uppercase tracking-[0.2em] shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+               >
+                 {isRunning ? <Activity size={14} className="animate-spin" /> : <CaretRight size={14} />}
+                 {isRunning ? 'RUNNING_INFERENCE...' : 'Compute Analytics'}
+               </button>
+             </div>
+           </form>
         </div>
+
+        {/* RIGHT: DIAGNOSTICS PANELS */}
+        <div className="flex-1 space-y-6 overflow-y-auto pr-2 scrollbar-hide">
+           {result ? (
+             <>
+               {/* Risk Outlook Banners */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 {[
+                   { h: 'Nowcast_24H', r: result.h24 },
+                   { h: 'Outlook_48H', r: result.h48 },
+                   { h: 'Project_72H', r: result.h72 },
+                 ].map((item, i) => {
+                   const t = RISK_THEMES[item.r.risk_level];
+                   return (
+                     <div key={i} className={`p-6 border rounded shadow-sm relative overflow-hidden backdrop-blur-sm ${t.bg} ${t.border}`}>
+                        <span className={`block font-data text-[9px] font-black uppercase tracking-widest mb-1 ${t.text}`}>{item.h}</span>
+                        <div className={`font-display text-5xl font-black ${t.text} tracking-tighter leading-none`}>
+                          {item.r.probability_pct}<span className="text-2xl font-light opacity-50">%</span>
+                        </div>
+                        <div className="mt-4 flex items-center justify-between">
+                           <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-current ${t.text}`}>
+                             {item.r.risk_label}
+                           </span>
+                           <span className={`font-data text-[10px] font-black uppercase ${t.text} opacity-50`}>NODE_H{i+1}</span>
+                        </div>
+                     </div>
+                   );
+                 })}
+               </div>
+
+               {/* SHAP Influence Grid */}
+               <div className="bg-white border border-slate-300 rounded shadow-xl p-6">
+                 <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
+                    <ChartBar size={16} className="text-slate-900" />
+                    <h3 className="font-display font-black text-sm text-slate-900 uppercase tracking-widest">SHAP Attrib // Feature Influence</h3>
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                   {shap && Object.entries(shap).map(([key, val]) => (
+                     <div key={key} className="space-y-2">
+                       <h4 className="font-data text-[9px] font-black text-slate-400 uppercase tracking-tighter">Contribution.{key.replace(/ /g, '_')}</h4>
+                       <div className={`font-display text-3xl font-black tracking-tight ${val > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                         {val > 0 ? '+' : ''}{val.toFixed(2)}
+                       </div>
+                       <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+                          <div className={`h-full ${val > 0 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, Math.abs(val) * 20)}%` }} />
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+
+               {/* Neural Commentary */}
+               <div className="bg-slate-900 rounded border border-slate-700 p-6 flex items-start gap-4 shadow-2xl">
+                  <div className="p-3 bg-slate-800 rounded flex items-center justify-center shrink-0 border border-slate-700 shadow-inner">
+                     <Info size={24} className="text-violet-400" />
+                  </div>
+                  <div className="space-y-2">
+                     <div className="flex items-center gap-2">
+                        <span className="font-data text-[10px] font-black text-slate-500 uppercase tracking-widest">Operator.ThoughtTrace</span>
+                        <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] px-1 rounded uppercase font-black">Stable</div>
+                     </div>
+                     <p className="font-ui text-xs text-slate-300 leading-relaxed font-medium italic">
+                       "{result.h24.plain_language}"
+                     </p>
+                     <p className="font-data text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] pt-2">
+                       ▶ RECOMMENDED_ACTION: {result.h24.recommended_action}
+                     </p>
+                  </div>
+               </div>
+             </>
+           ) : (
+             <div className="h-full bg-white border border-slate-300 border-dashed rounded flex flex-col items-center justify-center text-slate-300 p-12 text-center">
+                <Database size={64} className="mb-6 opacity-10" />
+                <h3 className="font-display font-black text-2xl uppercase tracking-widest opacity-20">No Context Loaded</h3>
+                <p className="font-data text-[10px] font-black uppercase mt-2 tracking-widest opacity-30 max-w-xs">Awaiting Hydrometrical Payload From Local Memory or Remote Telemetry Link.</p>
+             </div>
+           )}
+        </div>
+
       </div>
     </div>
   );

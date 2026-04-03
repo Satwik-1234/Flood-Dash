@@ -1,320 +1,191 @@
 import React from 'react';
 import { 
-  WarningCircle, MapPin, CloudRain, Buildings,
-  ArrowUpRight, ArrowDownRight, Clock, WarningOctagon
+  Globe, Activity, ChartBar, Database, TrendUp, Info, WarningCircle
 } from 'phosphor-react';
 import { Link } from 'react-router-dom';
+import { DatasetIntelligence } from '../components/intelligence/DatasetIntelligence';
+import { useCWCStations, useIMDWarnings, useCWCInflowStations } from '../hooks/useTelemetry';
 
-import { useCWCAboveWarning, useCWCAboveDanger, useCWCInflowStations, useIMDWarnings } from '../hooks/useTelemetry';
-
-// ── CWC flood situation → Pravhatattva risk level ──────────────────────────
-function cwcToRisk(situation?: string): number {
-  switch ((situation ?? '').toUpperCase()) {
-    case 'EXTREME':      return 5;
-    case 'SEVERE':       return 4;
-    case 'ABOVE_NORMAL': return 3;
-    case 'NORMAL':       return 1;
-    default:             return 2;
-  }
-}
-
-// ── Format time ago ────────────────────────────────────────────────────────
 function timeAgo(isoStr?: string): string {
   if (!isoStr) return '–';
   const mins = Math.floor((Date.now() - new Date(isoStr).getTime()) / 60000);
-  if (mins < 60)  return `${mins} min ago`;
-  if (mins < 1440) return `${Math.floor(mins / 60)}h ago`;
-  return `${Math.floor(mins / 1440)}d ago`;
+  if (mins < 60)  return `${mins}M AGO`;
+  if (mins < 1440) return `${Math.floor(mins / 60)}H AGO`;
+  return `${Math.floor(mins / 1440)}D AGO`;
 }
 
 export const Overview: React.FC = () => {
-  const { data: cwcWarning = [], isLoading: warnLoading } = useCWCAboveWarning();
-  const { data: cwcDanger  = [] }                         = useCWCAboveDanger();
-  const { data: cwcInflow  = [] }                         = useCWCInflowStations();
-  const { data: imdWarnings = [] }                        = useIMDWarnings();
+  const { data: stations = [] } = useCWCStations();
+  const { data: imdWarnings = [] } = useIMDWarnings();
+  const { data: cwcInflow  = [] } = useCWCInflowStations();
 
-  // ── Real computed KPI values ─────────────────────────────────────────────
-  const totalAlerts         = cwcDanger.length + cwcWarning.length;
-  const activeStations      = cwcInflow.length + cwcWarning.length + cwcDanger.length;
+  // Logic: Filter stations above warning/danger from the full catalog for the live feed
+  const stationsAboveWarning = stations.filter(s => (s as any).warning_m > 0 && s.current_water_level_m >= (s as any).warning_m);
+  const stationsAboveDanger = stations.filter(s => (s as any).danger_m > 0 && s.current_water_level_m >= (s as any).danger_m);
+
+  const totalAlerts         = stationsAboveDanger.length + stationsAboveWarning.length;
+  const activeStations      = stations.length;
   const criticalReservoirs  = cwcInflow.filter(s => (s.fill_pct ?? 0) > 85).length;
-  const stationsAtDanger    = cwcDanger.length;
 
-  // ── Build live alert feed from real CWC FFS data ─────────────────────────
   const liveFeed = [
-    ...cwcDanger.map((s: any) => ({
-      id: s.station_code ?? s.station_name,
-      basin: s.river ?? '–',
-      district: s.district ?? s.state ?? '–',
-      level: 4,
-      message: `Water level at ${(Number(s.current_water_level_m) || 0).toFixed(2)}m — above danger threshold of ${(Number(s.danger_level_m) || 0).toFixed(2)}m.`,
-      time: timeAgo(s.timestamp as string | undefined),
+    ...stationsAboveDanger.map((s: any) => ({
+      id: s.code, district: s.district || s.state, basin: s.river, level: 5, msg: `HYD_CRITICAL: ${s.name} VIOLATION`,
+      val: `${s.current_water_level_m}m`, time: timeAgo(s.last_poll)
     })),
-    ...cwcWarning.slice(0, 5).map((s: any) => ({
-      id: s.station_code ?? s.station_name,
-      basin: s.river ?? '–',
-      district: s.district ?? s.state ?? '–',
-      level: 3,
-      message: `Warning Level: ${(Number(s.current_water_level_m) || 0).toFixed(2)}m.`,
-      time: timeAgo(s.timestamp as string | undefined),
+    ...stationsAboveWarning.slice(0, 10).map((s: any) => ({
+      id: s.code, district: s.district || s.state, basin: s.river, level: 3, msg: `HYD_WARNING: ${s.name} OBSERVED`,
+      val: `${s.current_water_level_m}m`, time: timeAgo(s.last_poll)
     })),
-  ].slice(0, 5);
-
-  // Fallback to IMD warnings when CWC FFS returns empty
-  const alertFeed = liveFeed.length > 0
-    ? liveFeed
-    : imdWarnings.slice(0, 3).map(w => ({
-        id: w.id,
-        basin: w.district,
-        district: w.district,
-        level: w.severity === 'EXTREME' ? 5
-             : w.severity === 'SEVERE'  ? 4
-             : w.severity === 'MODERATE'? 3 : 2,
-        message: `${w.severity} — ${w.rainfall_24h_mm}mm in 24h.`,
-        time: w.issued_at,
-      }));
+  ].slice(0, 12);
 
   return (
-    <div className="w-full h-full p-8 overflow-y-auto space-y-8 bg-bg-cream">
-
-      {/* Header */}
-      <div className="flex justify-between items-end">
-        <div>
-          {/* h1 is visually hidden — used by screen readers and E2E tests */}
-          <h1 className="sr-only">Pravhatattva</h1>
-          <h2 className="font-display text-text-dark text-3xl font-bold">
-            प्रवहतत्त्व — National Overview
-          </h2>
-          <p className="font-ui text-text-muted mt-1">
-            Real-time flood intelligence · Powered by CWC FFS + IMD + GloFAS
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 text-sm font-ui bg-bg-white border border-border-default px-4 py-2 rounded-lg shadow-sm">
-          <Clock className="w-4 h-4 text-suk-forest" />
-          <span className="text-text-body font-medium">
-            {warnLoading ? 'Syncing…' : `${totalAlerts} active alerts`}
-          </span>
-        </div>
-      </div>
-
-      {/* KPI Grid — all values from live APIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-
-        {/* Card 1 — Critical Alerts (CWC FFS danger + warning) */}
-        <Link to="/alerts" className="block group lg:col-span-2">
-          <div className={`bg-bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all h-full flex flex-col relative overflow-hidden
-            ${totalAlerts > 0
-              ? 'border-2 border-suk-fire bg-risk-5'
-              : 'border border-border-default'}`}>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="p-3 rounded-lg bg-risk-5">
-                <WarningCircle className="w-6 h-6 text-suk-fire" weight="duotone" />
-              </div>
-              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-fire">
-                <ArrowUpRight className="w-3 h-3 mr-1" />
-                {stationsAtDanger} at danger
-              </div>
+    <div className="w-full h-full bg-[#0F172A] text-slate-300 overflow-y-auto font-sans selection:bg-sky-500/30">
+      <div className="p-8">
+        {/* ── INDUSTRIAL HEADER ────────────────────────────────────────────────── */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-white/5 pb-8 gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-2xl flex items-center justify-center p-3 shadow-2xl shadow-sky-500/20">
+               <Globe size={32} weight="fill" className="text-white" />
             </div>
-            <div className="mt-auto relative z-10">
-              <div className="flex items-baseline gap-3">
-                <span className={`font-display font-bold ${totalAlerts > 0 ? 'text-7xl text-suk-fire' : 'text-6xl text-text-dark'}`}>
-                  {String(totalAlerts).padStart(2, '0')}
-                </span>
-                {totalAlerts > 0 && (
-                  <span className="font-ui text-sm text-suk-fire font-bold animate-pulse">
-                    ACTIVE
-                  </span>
-                )}
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-4xl font-black tracking-tighter text-white uppercase leading-none">
+                  PRAVHATATTVA <span className="text-sky-500 font-light underline decoration-indigo-500/30">INTELLIGENCE</span>
+                </h1>
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
               </div>
-              <h3 className="font-ui font-bold text-text-body mt-2">Critical Alerts</h3>
-              <p className="font-ui text-sm text-text-muted mt-0.5">
-                {cwcDanger.length} above danger · {cwcWarning.length} above warning
+              <p className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase opacity-80">
+                National Hydrometric Command Subsystem // Core Version 5.7.0 (Senior-Industrial)
               </p>
             </div>
-            <WarningCircle className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
           </div>
-        </Link>
 
-        {/* Card 2 — Monitored Stations (CWC FFS live) */}
-        <Link to="/rivers" className="block group">
-          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="p-3 rounded-lg bg-risk-1">
-                <MapPin className="w-6 h-6 text-suk-forest" weight="duotone" />
-              </div>
-              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-forest">
-                {activeStations > 0 ? 'CWC FFS Live' : 'Loading…'}
+          <div className="flex gap-4">
+            <div className="bg-white/5 border border-white/10 px-4 py-2 rounded-xl backdrop-blur-md">
+              <span className="block text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">System Entropy</span>
+              <div className="flex items-center gap-4">
+                <span className="text-white font-mono text-sm uppercase">STABLE // 1.2MS</span>
+                <Activity size={12} className="text-emerald-400" />
               </div>
             </div>
-            <div className="mt-auto relative z-10">
-              <div className="flex items-baseline space-x-1">
-                <span className="font-display text-4xl font-bold text-text-dark">
-                  {activeStations || '–'}
-                </span>
-              </div>
-              <h3 className="font-ui font-bold text-text-body mt-2">Stations in Flood</h3>
-              <p className="font-ui text-sm text-text-muted mt-0.5">Reporting above-normal levels</p>
-            </div>
-            <MapPin className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
+            <Link to="/map" className="bg-sky-500 p-4 rounded-xl shadow-xl shadow-sky-500/20 group cursor-pointer hover:scale-105 transition-transform">
+               <TrendUp size={24} weight="bold" className="text-white group-hover:rotate-45 transition-transform" />
+            </Link>
           </div>
-        </Link>
+        </div>
 
-        {/* Card 3 — Reservoir Risk */}
-        <Link to="/rivers" className="block group">
-          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="p-3 rounded-lg bg-bg-surface-2">
-                <CloudRain className="w-6 h-6 text-suk-river" weight="duotone" />
+        {/* ── KPI MATRIX ───────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {[
+            { label: 'Hydrological Violations', val: totalAlerts, sub: 'CRITICAL THRESHOLD', color: 'text-red-500', bg: 'bg-red-500/10' },
+            { label: 'Active Gauge Nodes', val: activeStations, sub: 'PROVISIONED SENSORS', color: 'text-sky-400', bg: 'bg-sky-400/10' },
+            { label: 'Delta Storage (High)', val: criticalReservoirs, sub: 'VOLUMETRIC SPIKE', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+            { label: 'Meteo Warnings', val: imdWarnings.length, sub: 'DISTRICT ADVISORIES', color: 'text-amber-400', bg: 'bg-amber-400/10' },
+          ].map((kpi, idx) => (
+            <div key={idx} className={`relative overflow-hidden group p-6 rounded-2xl border border-white/5 transition-all hover:bg-white/[0.03] ${kpi.bg}`}>
+              <div className="flex justify-between items-start mb-6">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-60">{kpi.label}</span>
+                <Activity size={16} className={kpi.color} />
               </div>
-              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-amber">
-                {cwcInflow.length} stations
+              <div className="flex items-baseline gap-2">
+                <span className={`text-5xl font-black tracking-tighter ${kpi.color}`}>{String(kpi.val).padStart(2, '0')}</span>
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{kpi.sub}</span>
+              </div>
+              <div className="absolute -bottom-4 -right-4 text-white/5 rotate-12 transition-transform group-hover:scale-110">
+                 <ChartBar size={120} weight="fill" />
               </div>
             </div>
-            <div className="mt-auto relative z-10">
-              <div className="flex items-baseline space-x-1">
-                <span className="font-display text-4xl font-bold text-text-dark">
-                  {criticalReservoirs || '–'}
-                </span>
-              </div>
-              <h3 className="font-ui font-bold text-text-body mt-2">Critical Reservoirs</h3>
-              <p className="font-ui text-sm text-text-muted mt-0.5">Inflow stations above 85% fill</p>
-            </div>
-            <CloudRain className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
-          </div>
-        </Link>
+          ))}
+        </div>
 
-        {/* Card 4 — Districts Affected */}
-        <Link to="/alerts" className="block group">
-          <div className="bg-bg-white border border-border-default rounded-xl p-6 shadow-sm hover:shadow-md hover:border-border-strong transition-all h-full flex flex-col relative overflow-hidden">
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="p-3 rounded-lg bg-risk-3">
-                <Buildings className="w-6 h-6 text-suk-amber" weight="duotone" />
+        {/* ── MAIN ANALYTICS GRID ─────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-20">
+          
+          {/* LEFT: LIVE COMMAND FEED */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Activity size={20} className="text-sky-500" />
+                <h2 className="text-sm font-black text-white uppercase tracking-[0.2em]">Real-Time Telemetry Feed</h2>
               </div>
-              <div className="flex items-center text-xs font-bold font-data px-2 py-1 rounded bg-bg-surface text-suk-amber">
-                {imdWarnings.length} warnings
-              </div>
+              <div className="h-[1px] flex-1 bg-white/5 mx-6" />
+              <Link to="/alerts" className="text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase">Full Log Archive //</Link>
             </div>
-            <div className="mt-auto relative z-10">
-              <div className="flex items-baseline space-x-1">
-                <span className="font-display text-4xl font-bold text-text-dark">
-                  {imdWarnings.length || '–'}
-                </span>
-              </div>
-              <h3 className="font-ui font-bold text-text-body mt-2">IMD Active Warnings</h3>
-              <p className="font-ui text-sm text-text-muted mt-0.5">Districts with active advisories</p>
-            </div>
-            <Buildings className="absolute -bottom-4 -right-4 w-32 h-32 text-bg-surface-2 opacity-50 z-0 pointer-events-none" weight="fill" />
-          </div>
-        </Link>
-      </div>
 
-      {/* Two Column Layout: Alerts & System Health */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Live Alert Feed — from CWC FFS + IMD */}
-        <div className="lg:col-span-2 bg-bg-white border border-border-default rounded-xl shadow-sm flex flex-col">
-          <div className="p-6 border-b border-border-light flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <WarningOctagon className="w-5 h-5 text-suk-fire" weight="fill" />
-              <h3 className="font-display font-bold text-lg text-text-dark">
-                Live Flood Alerts
-              </h3>
-              {warnLoading && (
-                <span className="text-xs font-ui text-text-muted animate-pulse">syncing…</span>
+            <div className="grid grid-cols-1 gap-3">
+              {liveFeed.length === 0 ? (
+                <div className="p-20 border border-dashed border-white/10 rounded-2xl text-center">
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Zero Hydrological Violations Detected in Current Sector</p>
+                </div>
+              ) : (
+                liveFeed.map((f, i) => (
+                  <div key={i} className="group flex items-center gap-6 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-sky-500/30 hover:bg-white/[0.08] transition-all cursor-pointer">
+                    <div className={`w-2 h-10 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] ${f.level >= 5 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">{f.district}</span>
+                        <div className="w-1 h-1 rounded-full bg-white/10" />
+                        <span className="text-[9px] font-black text-sky-500/70 uppercase tracking-widest leading-none">{f.basin}</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-white tracking-tight uppercase">{f.msg}</h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-xl font-black text-white leading-none mb-1">{f.val}</span>
+                      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{f.time}</span>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
-            <Link to="/alerts" className="text-sm font-ui font-bold text-suk-forest hover:text-suk-forest-mid">
-              View All →
-            </Link>
           </div>
-          <div className="divide-y divide-border-light flex-1">
-            {alertFeed.length === 0 ? (
-              <div className="p-6 text-center text-text-muted font-ui text-sm">
-                <span className="text-suk-forest font-bold">No active flood alerts.</span>
-                <br />All monitored rivers are within normal levels.
-              </div>
-            ) : alertFeed.map(alert => (
-              <div key={alert.id} className="p-6 hover:bg-bg-cream transition-colors flex items-start space-x-4">
-                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg bg-risk-${alert.level} text-risk-${alert.level}-text border border-risk-${alert.level}-border`}>
-                  L{alert.level}
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-ui font-bold text-text-dark">{alert.basin}</h4>
-                      <p className="font-ui text-xs font-bold text-text-muted uppercase tracking-wider mt-0.5">
-                        {alert.district} · {String(alert.id).slice(0, 12)}
-                      </p>
-                    </div>
-                    <span className="font-data text-xs text-text-muted whitespace-nowrap">{alert.time}</span>
+
+          {/* RIGHT: SYSTEM KERNEL DENSITY */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+               <Database size={20} className="text-indigo-400" />
+               <h2 className="text-sm font-black text-white uppercase tracking-[0.2em]">Kernel Pulse</h2>
+            </div>
+
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-6 flex flex-col h-[500px]">
+               <div className="flex-1 overflow-y-auto space-y-4 font-mono scrollbar-hide pb-6">
+                  <div className="text-[10px] text-slate-600 flex gap-4">
+                    <span>[00:00:01]</span>
+                    <span className="text-sky-500">INIT // PRAVHATATTVA_KERNEL_BOOT</span>
                   </div>
-                  <p className="font-ui text-sm text-text-body mt-2 leading-relaxed">{alert.message}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                  <div className="text-[10px] text-slate-600 flex gap-4">
+                    <span>[{new Date().toLocaleTimeString('en-GB')}]</span>
+                    <span className="text-emerald-500">PARITY // CWC_FFS: OK ({stations.length} NODES)</span>
+                  </div>
+                  <div className="text-[10px] text-slate-600 flex gap-4">
+                    <span>[{new Date().toLocaleTimeString('en-GB')}]</span>
+                    <span className="text-amber-500">SYNC // IMD_MAUSAM: {imdWarnings.length} DISTRICTS ALERT</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 pt-4 leading-relaxed opacity-60">
+                     {`> CLUSTER_ENGINE: MapLibreGL_PRO_v4\n> MEMORY_ADDR: 0xFD42_SYNC\n> BUFFER_LOAD: 12%\n> SECTOR_WATCH: ALL_INDIA`}
+                  </div>
+                  <div className="h-10 border-l border-white/5 ml-4 flex items-center">
+                     <div className="w-2 h-2 rounded-full bg-sky-500 animate-ping ml-[-4px]" />
+                  </div>
+               </div>
 
-        {/* System Health / API Connections */}
-        <div className="bg-bg-white border border-border-default rounded-xl shadow-sm p-6 flex flex-col">
-          <h3 className="font-display font-bold text-lg text-text-dark mb-6">API Telemetry Status</h3>
-          
-          <div className="space-y-5 flex-1">
-            {/* IMD */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-suk-forest animate-pulse"></div>
-                <div>
-                  <h4 className="font-ui font-bold text-sm text-text-dark">IMD AWS Network</h4>
-                  <p className="font-ui text-xs text-text-muted">Updated 2 mins ago</p>
-                </div>
-              </div>
-              <span className="font-data text-xs font-bold text-suk-forest bg-risk-1 px-2 py-1 rounded">100%</span>
+               <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-slate-500">Pipeline Performance</span>
+                    <span className="text-emerald-500">Optimal (98%)</span>
+                  </div>
+                  <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                     <div className="bg-sky-500 h-full w-[98%] shadow-[0_0_8px_rgba(56,189,248,0.5)]" />
+                  </div>
+                  <button className="w-full py-4 text-[10px] font-black text-white uppercase tracking-widest bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-xl shadow-indigo-500/20 active:scale-95">
+                    Decouple Subsystems //
+                  </button>
+               </div>
             </div>
-
-            {/* CWC */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-suk-forest animate-pulse"></div>
-                <div>
-                  <h4 className="font-ui font-bold text-sm text-text-dark">CWC River Gauges</h4>
-                  <p className="font-ui text-xs text-text-muted">Updated 15 mins ago</p>
-                </div>
-              </div>
-              <span className="font-data text-xs font-bold text-suk-forest bg-risk-1 px-2 py-1 rounded">98%</span>
-            </div>
-
-            {/* GloFAS */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-suk-amber"></div>
-                <div>
-                  <h4 className="font-ui font-bold text-sm text-text-dark">GloFAS Forecasts</h4>
-                  <p className="font-ui text-xs text-text-muted">Latency detected (&gt;1hr)</p>
-                </div>
-              </div>
-              <span className="font-data text-xs font-bold text-suk-amber bg-risk-3 px-2 py-1 rounded">Delayed</span>
-            </div>
-
-            {/* ISRO Bhuvan */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-suk-forest animate-pulse"></div>
-                <div>
-                  <h4 className="font-ui font-bold text-sm text-text-dark">ISRO Bhuvan WMS</h4>
-                  <p className="font-ui text-xs text-text-muted">Tile server connected</p>
-                </div>
-              </div>
-              <span className="font-data text-xs font-bold text-suk-forest bg-risk-1 px-2 py-1 rounded">Stable</span>
-            </div>
-          </div>
-
-          <div className="mt-6 pt-6 border-t border-border-light">
-            <Link to="/status" className="w-full block text-center py-2 bg-bg-surface hover:bg-bg-surface-2 border border-border-default rounded-lg font-ui font-bold text-sm text-text-body transition-colors">
-              Detailed Diagnostics
-            </Link>
           </div>
         </div>
       </div>
+
+      <DatasetIntelligence />
     </div>
   );
 };

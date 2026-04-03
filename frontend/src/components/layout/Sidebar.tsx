@@ -10,21 +10,23 @@ import {
   ClockCounterClockwise, 
   Buildings, 
   Info, 
-  List
+  List,
+  Activity,
+  Cpu
 } from 'phosphor-react';
 import { useDataMeta } from '../../hooks/useTelemetry';
 
 const navItems = [
   { path: '/', name: 'Overview', icon: MapPin },
   { path: '/map', name: 'Live Map', icon: MapTrifold },
-  { path: '/rivers', name: 'Rivers', icon: Waves },
-  { path: '/rain', name: 'Rainfall', icon: CloudRain },
-  { path: '/alerts', name: 'Alerts', icon: WarningCircle, badge: 47 },
+  { path: '/rivers', name: 'Hydro-Logic', icon: Waves },
+  { path: '/rain', name: 'Meteo-Grid', icon: CloudRain },
+  { path: '/alerts', name: 'Risk Log', icon: WarningCircle, badge: 47 },
   { path: '/ml', name: 'ML Analysis', icon: ChartLineUp },
-  { path: '/hist', name: 'Historical', icon: ClockCounterClockwise },
-  { path: '/urban', name: 'Urban Flood', icon: Buildings },
-  { path: '/about', name: 'About & Credits', icon: Info },
-  { path: '/status', name: 'Data Status', icon: List },
+  { path: '/hist', name: 'Archive', icon: ClockCounterClockwise },
+  { path: '/urban', name: 'Urban Pulse', icon: Buildings },
+  { path: '/about', name: 'System Info', icon: Info },
+  { path: '/status', name: 'Telemetry', icon: List },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -41,40 +43,48 @@ export const Sidebar: React.FC = () => {
   }
 
   const freshnessColor = {
-    fresh:  'bg-suk-forest',
-    aging:  'bg-suk-amber',
-    stale:  'bg-suk-fire animate-pulse',
+    fresh:  'bg-emerald-500',
+    aging:  'bg-amber-500',
+    stale:  'bg-red-500 animate-pulse',
   };
 
   return (
-    <aside className="w-64 h-screen flex flex-col bg-bg-surface border-r border-border-default shrink-0">
-      <div className="p-6">
-        <h1 className="font-display text-text-dark font-bold text-2xl tracking-[0.10em] mt-1">
-          Pravhatattva
-        </h1>
-        <p className="font-data text-text-muted text-[10px] tracking-widest mt-1 uppercase">Flood Intelligence</p>
+    <aside className="w-64 h-screen flex flex-col bg-slate-900 border-r border-slate-800 shrink-0 selection:bg-emerald-500/30">
+      
+      {/* Sidebar Header */}
+      <div className="p-6 border-b border-slate-800/50">
+        <div className="flex items-center gap-2 mb-1">
+           <div className="bg-emerald-500 p-1.5 rounded-sm">
+              <Activity size={16} className="text-slate-900" />
+           </div>
+           <h1 className="font-display text-white font-black text-xl tracking-tighter uppercase leading-none">
+              PRAVHAT <span className="font-light text-slate-500">IVV</span>
+           </h1>
+        </div>
+        <p className="font-data text-slate-500 text-[9px] tracking-[0.2em] font-black uppercase mt-1">Kernel v4.0.Alpha</p>
       </div>
 
-      <nav className="flex-1 overflow-y-auto pt-2 pb-6 px-3">
-        <ul className="space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide">
+        <ul className="space-y-1.5">
           {navItems.map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center w-full px-3 py-2.5 rounded-md transition-all text-sm font-ui font-medium ${
+                  `flex items-center w-full px-3 py-2.5 rounded transition-all text-[11px] font-data font-black uppercase tracking-widest border ${
                     isActive 
-                      ? 'bg-bg-white text-suk-forest border border-suk-forest shadow-panel' 
-                      : 'text-text-muted hover:bg-bg-white hover:text-text-dark border border-transparent'
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]' 
+                      : 'text-slate-500 hover:text-slate-300 border-transparent'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={`w-5 h-5 mr-3 shrink-0 ${isActive ? 'text-suk-forest opacity-100' : 'opacity-80'}`} weight={isActive ? 'fill' : 'regular'} />
+                    <item.icon className={`w-4 h-4 mr-3 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-600'}`} weight={isActive ? 'fill' : 'bold'} />
                     <span className="flex-1 whitespace-nowrap">{item.name}</span>
                     {item.badge && (
-                      <span className="bg-risk-4-border text-bg-white text-[10px] font-data font-bold py-0.5 px-2 rounded-full ml-auto">
+                      <span className={`text-[9px] font-black font-data py-0.5 px-1.5 rounded border ${isActive ? 'bg-emerald-500 text-slate-900 border-emerald-600' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
                         {item.badge}
                       </span>
                     )}
@@ -86,30 +96,38 @@ export const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-border-default shrink-0 bg-bg-surface-2/50">
-        <div className="flex items-center justify-between px-2 mb-4">
+      {/* Bottom Profile / Status */}
+      <div className="p-4 bg-slate-950 border-t border-slate-800 shrink-0">
+        <div className="flex items-center justify-between px-2 mb-5">
           {/* IMD */}
-          <div className="flex items-center group">
-            <span className={`w-2 h-2 rounded-full mr-2 transition-colors ${freshnessColor[getFreshness('imd_warnings')]}`}></span>
-            <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">IMD</span>
+          <div className="flex flex-col items-center gap-1 group">
+            <span className={`w-1.5 h-1.5 rounded-full transition-colors ${freshnessColor[getFreshness('imd_warnings')]}`}></span>
+            <span className="text-[8px] font-black text-slate-600 group-hover:text-slate-400 font-data transition-colors">MAUSAM</span>
           </div>
           {/* CWC */}
-          <div className="flex items-center group">
-            <span className={`w-2 h-2 rounded-full mr-2 transition-colors ${freshnessColor[getFreshness('cwc_above_warning')]}`}></span>
-            <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">CWC</span>
+          <div className="flex flex-col items-center gap-1 group">
+            <span className={`w-1.5 h-1.5 rounded-full transition-colors ${freshnessColor[getFreshness('cwc_above_warning')]}`}></span>
+            <span className="text-[8px] font-black text-slate-600 group-hover:text-slate-400 font-data transition-colors">CWC_FFS</span>
           </div>
           {/* Radar */}
-          <div className="flex items-center group">
-            <span className={`w-2 h-2 rounded-full mr-2 transition-colors ${freshnessColor[getFreshness('radar')]}`}></span>
-            <span className="text-xs text-text-muted group-hover:text-text-body font-ui transition-colors">Radar</span>
+          <div className="flex flex-col items-center gap-1 group">
+            <span className={`w-1.5 h-1.5 rounded-full transition-colors ${freshnessColor[getFreshness('radar')]}`}></span>
+            <span className="text-[8px] font-black text-slate-600 group-hover:text-slate-400 font-data transition-colors">RADAR</span>
           </div>
         </div>
         
-        <div className="px-2">
-          <p className="text-[11px] font-ui text-text-body font-bold tracking-wide">Satwik Laxmikamalakar Udupi</p>
-          <p className="text-[10px] font-ui text-text-muted mt-0.5">B.Tech Agricultural Engr.</p>
+        <div className="px-2 py-3 bg-slate-900/50 border border-slate-800 rounded flex items-center gap-3">
+           <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+              <Cpu size={14} className="text-slate-500" />
+           </div>
+           <div>
+              <p className="text-[9px] font-black font-data text-white leading-none uppercase tracking-tighter">S. L. Udupi</p>
+              <p className="text-[8px] font-black font-data text-slate-500 mt-1 uppercase tracking-widest leading-none">OPERATOR // IN_CORE</p>
+           </div>
         </div>
       </div>
     </aside>
   );
 };
+
+export default Sidebar;

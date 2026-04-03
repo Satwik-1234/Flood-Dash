@@ -2,21 +2,22 @@ import { z } from 'zod';
 
 export const CWCStationSchema = z.object({
   station_code:          z.string(),
-  basin:                 z.string(),
+  basin:                 z.string().optional(),
   river:                 z.string(),
-  timestamp:             z.string(),
+  timestamp:             z.string().optional(),
   current_water_level_m: z.number(),
   warning_level_m:       z.number(),
   danger_level_m:        z.number(),
-  trend:                 z.enum(['RISING', 'FALLING', 'STEADY']),
+  trend:                 z.enum(['RISING', 'FALLING', 'STEADY']).optional(),
   is_stale:              z.boolean().default(false),
   lat:                   z.number().optional(),
   lon:                   z.number().optional(),
   station_name:          z.string().optional(),
   state:                 z.string().optional(),
   district:              z.string().optional(),
+  type:                  z.string().optional(),
   cwc_id:                z.number().optional(),
-});
+}).passthrough();
 
 export type CWCStationData = z.infer<typeof CWCStationSchema>;
 

@@ -21,10 +21,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install deps
-        run: pip install requests
+        run: pip install requests httpx
 
-      - name: Run All-India Scraper
-        run: python backend/manual_scrape.py
+      - name: Run All-India Scraper v4.0
+        run: python backend/scraper_v4.py
 
       - name: Commit & Push
         run: |
