@@ -139,7 +139,7 @@ export const MLAnalysis: React.FC = () => {
     setParams(prev => ({ ...prev, [field]: parseFloat(val) || 0 }));
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#F8F9FA] selection:bg-suk-forest/20 overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-[#F8FAFC] font-auth selection:bg-suk-forest/20 overflow-hidden">
       
       {/* ── INDUSTRIAL HEADER ──────────────────────────────────────────────── */}
       <div className="px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-300 gap-4 bg-white shadow-sm shrink-0">

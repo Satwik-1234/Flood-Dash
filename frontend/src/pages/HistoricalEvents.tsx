@@ -6,7 +6,7 @@ export const HistoricalEvents: React.FC = () => {
   const { data: stations, isLoading, isError } = useCWCStations();
 
   return (
-    <div className="w-full h-full p-8 overflow-y-auto bg-bg-cream">
+    <div className="w-full h-full p-12 bg-[#F8FAFC] font-auth overflow-y-auto">
 
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 space-y-4 md:space-y-0">
         <div>

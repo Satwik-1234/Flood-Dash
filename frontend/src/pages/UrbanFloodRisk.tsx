@@ -57,34 +57,34 @@ export const UrbanFloodRisk: React.FC = () => {
   const criticalCount = cityData.filter(c => c.ratio >= 1.0).length;
 
   return (
-    <div className="w-full h-full p-8 overflow-y-auto bg-bg-cream">
+    <div className="w-full h-full p-12 overflow-y-auto bg-[#F8FAFC] font-auth">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 space-y-4 md:space-y-0">
         <div>
           <h2 className="font-display text-text-dark text-3xl font-bold flex items-center">
-            <Buildings className="w-8 h-8 mr-3 text-suk-forest" weight="duotone" />
+            <Buildings className="w-10 h-10 mr-4 text-sky-500" />
             Urban Pluvial Flood Risk
           </h2>
           <p className="font-ui text-text-muted mt-1">
             Real-time drainage exceedance · Open-Meteo ECMWF IFS04 · 8 Tier-1 cities
           </p>
         </div>
-        <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg border font-ui text-sm font-bold ${criticalCount > 0 ? 'bg-risk-4 text-risk-4-text border-risk-4-border' : 'bg-bg-white border-border-default text-suk-forest'}`}>
+        <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg border font-ui text-sm font-bold ${criticalCount > 0 ? 'bg-red-50 text-red-900 border-red-200' : 'bg-white border-slate-200 text-slate-700'}`}>
           <WarningOctagon className="w-4 h-4" weight={criticalCount > 0 ? 'fill' : 'regular'} />
           <span>{criticalCount > 0 ? `${criticalCount} cities at/above drainage capacity` : 'All cities within drainage capacity'}</span>
         </div>
       </div>
 
-      <div className="bg-bg-white border border-border-default rounded-xl shadow-sm p-4 mb-6 text-sm font-ui text-text-muted">
-        <strong className="text-text-dark">How this works:</strong> Urban flooding occurs when 1-hour rainfall intensity exceeds the city's storm drain design capacity. This page shows the exceedance ratio = current intensity ÷ capacity. When ratio ≥ 1.0, waterlogging is likely.
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 mb-6 text-sm font-ui text-slate-600">
+        <strong className="text-slate-900">How this works:</strong> Urban flooding occurs when 1-hour rainfall intensity exceeds the city's storm drain design capacity. This page shows the exceedance ratio = current intensity ÷ capacity. When ratio ≥ 1.0, waterlogging is likely.
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {sortedCities.map(city => (
-          <div key={city.city} className={`bg-bg-white border rounded-xl p-5 shadow-sm ${city.risk.level >= 3 ? 'border-suk-fire' : 'border-border-default'}`}>
+          <div key={city.city} className={`bg-white border rounded-xl p-5 shadow-sm ${city.risk.level >= 3 ? 'border-red-300' : 'border-slate-200'}`}>
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h3 className="font-display font-bold text-lg text-text-dark">{city.city}</h3>
-                <p className="font-ui text-xs text-text-muted mt-0.5">{city.state}</p>
+                <h3 className="font-display font-bold text-lg text-slate-900">{city.city}</h3>
+                <p className="font-ui text-xs text-slate-500 mt-0.5">{city.state}</p>
               </div>
               <span className={`text-xs font-bold font-data px-2 py-1 rounded border ${city.risk.color}`}>
                 {city.risk.label}
@@ -92,14 +92,10 @@ export const UrbanFloodRisk: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-3 gap-3 my-4 text-center">
-              <div className="bg-bg-surface rounded-lg py-2">
-                <div className="font-data text-lg font-bold text-text-dark">
+              <div className="bg-slate-50 rounded-lg py-2">
+                <div className="font-data text-lg font-bold text-slate-900">
                   {city.loading ? '–' : city.maxIntensity.toFixed(1)}
                 </div>
-                <div className="font-ui text-[10px] text-text-muted mt-0.5">mm/hr (peak)</div>
-              </div>
-              <div className="bg-bg-surface rounded-lg py-2">
-                <div className="font-data text-lg font-bold text-text-dark">{city.capacity_mmphr}</div>
                 <div className="font-ui text-[10px] text-text-muted mt-0.5">mm/hr capacity</div>
               </div>
               <div className="bg-bg-surface rounded-lg py-2">

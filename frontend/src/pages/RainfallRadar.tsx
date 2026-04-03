@@ -100,7 +100,7 @@ export const RainfallRadar: React.FC = () => {
   }, [view]);
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#F8F9FA] selection:bg-suk-forest/20 overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-[#F8FAFC] font-auth">
       
       {/* ── INDUSTRIAL HEADER ──────────────────────────────────────────────── */}
       <div className="px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-300 gap-4 bg-white shadow-sm">

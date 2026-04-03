@@ -1,5 +1,5 @@
 // frontend/src/constants/gisConfig.ts
-// Complete GIS configuration for Pravhatattva — All India
+// Authoritative India-WRIS / NWIC GIS Configuration
 
 export const INDIA_BOUNDS: [number, number, number, number] = [68, 6, 98, 38];
 export const INDIA_CENTER: [number, number] = [82, 22];
@@ -18,40 +18,25 @@ const BASE = import.meta.env.BASE_URL || '/';
 export const GEO_LAYERS = {
   INDIA_DISTRICTS:  `${BASE}geo/india_districts.geojson`,
   INDIA_STATES:     `${BASE}geo/india_states.geojson`,
-  INDIA_RIVERS:     `${BASE}geo/india_rivers.geojson`,
-  INDIA_BASINS:     `${BASE}geo/india_basins.geojson`,
+  // Official CWC Basin GeoJSON fallback (local)
+  INDIA_BASINS:     `${BASE}geo/basin_cwc.geojson`,
 } as const;
 
-// ─── GIS SECURITY & FALLBACKS ───────────────────────────────
-export const WMS_ENDPOINTS = {
-  BHUVAN_BASE:      'https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms',
-  BHUVAN_RASTER:    'https://bhuvan-ras2.nrsc.gov.in/cgi-bin/',
-  // Note: WRIS servers typically do not support HTTPS. Falling back to local GeoJSON.
-  WRIS_ADMIN:       'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Admin_subinfo_a/MapServer/WMSServer',
-  WRIS_BASIN:       'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Basin/MapServer/WMSServer',
-  WRIS_WATER:       'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/SWB/MapServer/WMSServer',
-  WRIS_DAMS:        'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/WRP/MapServer/WMSServer',
-  WRIS_STATIONS:    'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/FloodForecasting/MapServer/WMSServer',
+// ─── AUTHORITATIVE WRIS REST ENDPOINTS (HTTPS) ─────────────────────────
+export const WRIS_REST = {
+  SERVICES:   'https://arc.indiawris.gov.in/server/rest/services',
+  BASIN:      'https://arc.indiawris.gov.in/server/rest/services/Common/Basin_WRP/MapServer',
+  RIVER:      'https://arc.indiawris.gov.in/server/rest/services/Common/River_WRP/MapServer',
+  WATER_PROJECTS: 'https://arc.indiawris.gov.in/server/rest/services/DataDownload/Water_Resource_Project_Data/MapServer',
+  TELEMETRY:  'https://arc.indiawris.gov.in/server/rest/services/DataDownload/Telemetry_Stations_Data/MapServer',
 } as const;
 
 export const WRIS_LAYERS = {
-  STATES:           '7',
-  DISTRICTS:        '5',
-  BASINS:           '9',
-  RIVERS:           '1',
-  WETLANDS:         '4',
-  DAMS:             '9',
-  BARRAGES:         '10',
-  COMMAND_AREAS:    '1',
-  WATER_BODIES:     '10,11,12,13'
-} as const;
-
-export const BHUVAN_LAYERS = {
-  LULC_2425:        'LULC250K_2425',
-  FLOOD_HAZARD:     'flood_hazard',
-  FLOOD_ANNUAL:     (year: number) => `flood_annual_${year}`,
-  GLACIAL_LAKES:    'glacial_lake',
-  WATER_BODIES:     'india_waterbody',
+  BASIN:    0,
+  RIVERS:   0,
+  DAMS:     3,
+  BARRAGES: 1,
+  TELEMETRY: 0,
 } as const;
 
 export const OPEN_METEO = {
@@ -69,19 +54,4 @@ export const IMD_APIS = {
   DISTRICT_RAINFALL:  'https://mausam.imd.gov.in/api/districtwise_rainfall_api.php',
   DISTRICT_NOWCAST:   'https://mausam.imd.gov.in/api/nowcast_district_api.php',
   STATEWISE_RAINFALL: 'https://mausam.imd.gov.in/api/statewise_rainfall_api.php',
-  BASIN_QPF:          'https://mausam.imd.gov.in/api/basin_qpf_api.php',
-  AWS_DATA:           'https://city.imd.gov.in/api/aws_data_api.php',
-  FIVE_DAY_FORECAST:  'https://mausam.imd.gov.in/api/api_5d_statewisedistricts_rf_forecast.php',
-} as const;
-
-export const MAPPLS = {
-  TOKEN_URL:    'https://outpost.mapmyindia.com/api/security/oauth/token',
-  TILES:        'https://apis.mappls.com/advancedmaps/v1/{token}/{z}/{x}/{y}.png',
-  GEOCODE:      'https://atlas.mappls.com/api/places/geocode',
-  SEARCH:       'https://atlas.mappls.com/api/places/search/json',
-  DEVELOPER:    'https://developer.mappls.com/',
-} as const;
-
-export const GDACS = {
-  INDIA_FLOODS: 'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventtype=FL&country=IND',
 } as const;

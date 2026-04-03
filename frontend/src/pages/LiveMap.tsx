@@ -9,7 +9,7 @@ import {
   Warning, Waves, Globe, MapPin, Drop, Selection as SelectionIcon
 } from 'phosphor-react';
 import {
-  INDIA_CENTER, INDIA_BOUNDS, WMS_ENDPOINTS, WRIS_LAYERS
+  INDIA_CENTER, INDIA_BOUNDS, WRIS_REST, WRIS_LAYERS
 } from '../constants/gisConfig';
 
 const riskColor = (ratio: number) => {
@@ -34,9 +34,9 @@ export const LiveMap: React.FC = () => {
   const { data: imdWarnings = [] } = useIMDWarnings();
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [layers, setLayers] = useState({
-    basins: false,
-    rivers: false,
+  const [activeLayers, setActiveLayers] = useState({
+    basins: true,
+    rivers: true,
     districts: false,
     stations: true
   });
@@ -75,7 +75,7 @@ export const LiveMap: React.FC = () => {
     const m = map.current;
 
     m.on('load', () => {
-      // --- 1. National Gauge Source ---
+      // --- 1. National Gauge Source (Local Registry) ---
       m.addSource('stations', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
@@ -84,24 +84,24 @@ export const LiveMap: React.FC = () => {
         clusterRadius: 40
       });
 
-      // --- 2. Official WMS Sources ---
+      // --- 2. Authoritative India-WRIS REST MapServers (HTTPS) ---
       m.addSource('wris-basins', {
         type: 'raster',
-        tiles: [`${WMS_ENDPOINTS.WRIS_BASIN}?service=WMS&request=GetMap&layers=${WRIS_LAYERS.BASINS}&styles=&format=image/png&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}`],
+        tiles: [`${WRIS_REST.BASIN}/export?dpi=96&transparent=true&format=png32&layers=show:${WRIS_LAYERS.BASIN}&bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&f=image`],
         tileSize: 256
       });
 
       m.addSource('wris-rivers', {
         type: 'raster',
-        tiles: [`${WMS_ENDPOINTS.WRIS_BASIN}?service=WMS&request=GetMap&layers=${WRIS_LAYERS.RIVERS}&styles=&format=image/png&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}`],
+        tiles: [`${WRIS_REST.RIVER}/export?dpi=96&transparent=true&format=png32&layers=show:${WRIS_LAYERS.RIVERS}&bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&f=image`],
         tileSize: 256
       });
 
-      // --- 3. Map Layers ---
-      m.addLayer({ id: 'wris-basins-layer', type: 'raster', source: 'wris-basins', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.6 } });
-      m.addLayer({ id: 'wris-rivers-layer', type: 'raster', source: 'wris-rivers', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.8 } });
+      // --- 3. GIS Command Layers ---
+      m.addLayer({ id: 'wris-basins-layer', type: 'raster', source: 'wris-basins', paint: { 'raster-opacity': 0.6 } });
+      m.addLayer({ id: 'wris-rivers-layer', type: 'raster', source: 'wris-rivers', paint: { 'raster-opacity': 0.8 } });
 
-      // Cluster Styling
+      // Cluster Styling (Command Palette)
       m.addLayer({
         id: 'clusters', type: 'circle', source: 'stations', filter: ['has', 'point_count'],
         paint: {
@@ -134,22 +134,30 @@ export const LiveMap: React.FC = () => {
         setSelectedStation(props as any);
       });
 
-      m.on('click', 'clusters', (e) => {
-        const features = m.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-        if (!features || !features.length || !features[0].properties) return;
-        
-        const clusterId = features[0].properties.cluster_id;
-        const source = m.getSource('stations') as maplibregl.GeoJSONSource;
-        if (source && source.getClusterExpansionZoom) {
-          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-            if (err || zoom === undefined) return;
-            const geom = features[0].geometry as any;
-            if (geom && geom.coordinates) {
-              m.easeTo({ center: geom.coordinates, zoom });
-            }
-          });
-        }
-      });
+      const mLocal = map.current;
+      if (mLocal) {
+        mLocal.on('click', 'clusters', (e?: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
+          if (!e || !e.point || !mLocal) return;
+          const features = mLocal.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+          const clusterFeature = features && features[0];
+          if (!clusterFeature || !clusterFeature.properties) return;
+          
+          const clusterId = clusterFeature.properties.cluster_id;
+          const source = mLocal.getSource('stations') as maplibregl.GeoJSONSource;
+          
+          if (source && typeof source.getClusterExpansionZoom === 'function') {
+            // Explicitly cast to any to resolve argument count mismatch in MapLibre TS definitions
+            (source as any).getClusterExpansionZoom(clusterId, (err: any, zoom?: number) => {
+              if (err || zoom === undefined) return;
+              
+              if (clusterFeature.geometry.type === 'Point') {
+                const coords = clusterFeature.geometry.coordinates as [number, number];
+                mLocal.easeTo({ center: coords, zoom });
+              }
+            });
+          }
+        });
+      }
 
       m.on('mouseenter', 'unclustered-point', () => m.getCanvas().style.cursor = 'crosshair');
       m.on('mouseleave', 'unclustered-point', () => m.getCanvas().style.cursor = '');
@@ -173,27 +181,31 @@ export const LiveMap: React.FC = () => {
     }
   }, [stations, mapLoaded]);
 
+  // Effect: Synchronize HUD Controls
   useEffect(() => {
     const m = map.current;
     if (!m || !mapLoaded) return;
-    m.setLayoutProperty('wris-basins-layer', 'visibility', layers.basins ? 'visible' : 'none');
-    m.setLayoutProperty('wris-rivers-layer', 'visibility', layers.rivers ? 'visible' : 'none');
-  }, [layers, mapLoaded]);
+    m.setLayoutProperty('wris-basins-layer', 'visibility', activeLayers.basins ? 'visible' : 'none');
+    m.setLayoutProperty('wris-rivers-layer', 'visibility', activeLayers.rivers ? 'visible' : 'none');
+    m.setLayoutProperty('unclustered-point', 'visibility', activeLayers.stations ? 'visible' : 'none');
+    m.setLayoutProperty('clusters', 'visibility', activeLayers.stations ? 'visible' : 'none');
+    m.setLayoutProperty('cluster-count', 'visibility', activeLayers.stations ? 'visible' : 'none');
+  }, [activeLayers, mapLoaded]);
 
   return (
     <div className="relative w-full h-full group bg-slate-900 overflow-hidden font-auth cursor-default">
       <div ref={mapContainer} className="absolute inset-0 grayscale-[0.2]" />
       
       {/* HUD: Intelligence Layer Panel */}
-      <div className="absolute top-10 left-10 z-10 flex flex-col gap-1 shadow-[8px_8px_0_rgba(15,23,42,0.1)] border-4 border-slate-900">
+      <div className="absolute top-10 left-10 z-10 flex flex-col gap-1 shadow-[12px_12px_0_rgba(15,23,42,0.1)] border-4 border-slate-900">
         {[
-          { id: 'stations', icon: MapPin, label: 'Sector Gauges', active: layers.stations },
-          { id: 'rivers',  icon: Waves,  label: 'Pipeline Data', active: layers.rivers },
-          { id: 'basins',  icon: SelectionIcon, label: 'Basin Intel', active: layers.basins },
+          { id: 'stations', icon: MapPin, label: 'Sector Gauges', active: activeLayers.stations },
+          { id: 'rivers',  icon: Waves,  label: 'WRIS Rivers', active: activeLayers.rivers },
+          { id: 'basins',  icon: SelectionIcon, label: 'CWC Basins', active: activeLayers.basins },
         ].map(l => (
           <button
             key={l.id}
-            onClick={() => setLayers(prev => ({ ...prev, [l.id]: !(prev as any)[l.id] }))}
+            onClick={() => setActiveLayers(prev => ({ ...prev, [l.id]: !(prev as any)[l.id] }))}
             className={`px-6 py-4 transition-all flex items-center gap-4 bg-white border-b-2 border-slate-100 last:border-b-0 ${
               l.active ? 'text-sky-600 bg-sky-50' : 'text-slate-400 hover:bg-slate-50'
             }`}
@@ -242,8 +254,8 @@ export const LiveMap: React.FC = () => {
           </div>
           <div className="h-0.5 bg-slate-100 my-8" />
           <div className="flex items-center justify-between">
-             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Authorized Source // GDI</span>
-             <Link to="/overview" className="text-sky-500"><Info size={16} weight="bold" /></Link>
+             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Authority // WRIS_REST</span>
+             <Info size={16} weight="bold" />
           </div>
         </div>
       </div>
@@ -253,7 +265,7 @@ export const LiveMap: React.FC = () => {
          <div className="bg-white border-4 border-slate-900 px-6 py-4 flex items-center gap-4 shadow-[8px_8px_0_rgba(15,23,42,0.1)]">
             <div className={`w-3 h-3 ${stationsLoading ? 'bg-amber-500 animate-pulse' : 'bg-sky-500'}`} />
             <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
-              {stationsLoading ? 'Intercepting...' : `${stations.length.toLocaleString()} Synchronized Nodes`}
+              {stationsLoading ? 'Polling Database...' : `${stations.length.toLocaleString()} Authoritative Nodes`}
             </span>
          </div>
       </div>
