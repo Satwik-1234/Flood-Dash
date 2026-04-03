@@ -6,7 +6,7 @@ import { useCWCStations, useIMDWarnings } from '../hooks/useTelemetry';
 import { useIntel } from '../context/IntelContext';
 import { 
   Plus, Minus, Target as TargetIcon, Stack as Layers, Info, List, 
-  Warning, Waves, Globe, MapPin, Drop
+  Warning, Waves, Globe, MapPin, Drop, Selection as SelectionIcon
 } from 'phosphor-react';
 import {
   INDIA_CENTER, INDIA_BOUNDS, WMS_ENDPOINTS, WRIS_LAYERS
@@ -14,8 +14,8 @@ import {
 
 const riskColor = (ratio: number) => {
   if (ratio >= 1.0) return '#EF4444'; // Danger (Red)
-  if (ratio >= 0.8) return '#F59E0B'; // Warning (Amber)
-  if (ratio > 0)    return '#10B981'; // Normal (Green)
+  if (ratio >= 0.8) return '#EAB308'; // Warning (Gold)
+  if (ratio > 0)    return '#0EA5E9'; // Normal (Sky Blue)
   return '#94A3B8'; // Inactive/No data (Slate)
 };
 
@@ -75,7 +75,7 @@ export const LiveMap: React.FC = () => {
     const m = map.current;
 
     m.on('load', () => {
-      // --- 1. National Gauge Source (GeoJSON with Clustering) ---
+      // --- 1. National Gauge Source ---
       m.addSource('stations', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
@@ -84,7 +84,7 @@ export const LiveMap: React.FC = () => {
         clusterRadius: 40
       });
 
-      // --- 2. Official WMS Sources (NRSC/WRIS) ---
+      // --- 2. Official WMS Sources ---
       m.addSource('wris-basins', {
         type: 'raster',
         tiles: [`${WMS_ENDPOINTS.WRIS_BASIN}?service=WMS&request=GetMap&layers=${WRIS_LAYERS.BASINS}&styles=&format=image/png&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}`],
@@ -101,13 +101,13 @@ export const LiveMap: React.FC = () => {
       m.addLayer({ id: 'wris-basins-layer', type: 'raster', source: 'wris-basins', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.6 } });
       m.addLayer({ id: 'wris-rivers-layer', type: 'raster', source: 'wris-rivers', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.8 } });
 
-      // Cluster Styling (Amber glow for clusters)
+      // Cluster Styling
       m.addLayer({
         id: 'clusters', type: 'circle', source: 'stations', filter: ['has', 'point_count'],
         paint: {
-          'circle-color': ['step', ['get', 'point_count'], '#0EA5E9', 100, '#38BDF8', 750, '#7DD3FC'],
+          'circle-color': ['step', ['get', 'point_count'], '#0EA5E9', 100, '#0284C7', 750, '#0369A1'],
           'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
-          'circle-stroke-width': 2, 'circle-stroke-color': 'rgba(255,255,255,0.2)'
+          'circle-stroke-width': 3, 'circle-stroke-color': '#fff'
         }
       });
 
@@ -117,67 +117,62 @@ export const LiveMap: React.FC = () => {
         paint: { 'text-color': '#fff' }
       });
 
-      // Unclustered Points (Synced with danger_level_m)
       m.addLayer({
         id: 'unclustered-point', type: 'circle', source: 'stations', filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': ['get', 'marker-color'],
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4, 12, 10],
-          'circle-stroke-width': 2, 'circle-stroke-color': '#0F172A'
+          'circle-stroke-width': 2, 'circle-stroke-color': '#fff'
         }
       });
 
       // --- 4. Interactivity ---
       m.on('click', 'unclustered-point', (e) => {
-        if (!e.features?.length) return;
+        if (!e.features || !e.features.length) return;
         const props = e.features[0].properties;
+        if (!props) return;
         setSelectedStation(props as any);
       });
 
       m.on('click', 'clusters', (e) => {
         const features = m.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-        if (!features.length || !features[0].properties) return;
+        if (!features || !features.length || !features[0].properties) return;
         
         const clusterId = features[0].properties.cluster_id;
         const source = m.getSource('stations') as maplibregl.GeoJSONSource;
-        if (source) {
+        if (source && source.getClusterExpansionZoom) {
           source.getClusterExpansionZoom(clusterId, (err, zoom) => {
             if (err || zoom === undefined) return;
-            const geometry = features[0].geometry as any;
-            if (geometry && geometry.coordinates) {
-              m.easeTo({ center: geometry.coordinates, zoom });
+            const geom = features[0].geometry as any;
+            if (geom && geom.coordinates) {
+              m.easeTo({ center: geom.coordinates, zoom });
             }
           });
         }
       });
 
-      m.on('mouseenter', 'unclustered-point', () => m.getCanvas().style.cursor = 'pointer');
+      m.on('mouseenter', 'unclustered-point', () => m.getCanvas().style.cursor = 'crosshair');
       m.on('mouseleave', 'unclustered-point', () => m.getCanvas().style.cursor = '');
 
       setMapLoaded(true);
     });
   }, [setSelectedStation]);
 
-  // Effect: Sync Station Data to Map
+  // Effect: Sync Data
   useEffect(() => {
     const m = map.current;
     if (!m || !mapLoaded) return;
-    
     const source = m.getSource('stations') as maplibregl.GeoJSONSource;
     if (source) {
       const features = stations.map(s => ({
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: [s.lon || 0, s.lat || 0] },
-        properties: {
-          ...s,
-          'marker-color': riskColor(s.danger_m > 0 ? (s.current_water_level_m / s.danger_m) : 0)
-        }
+        properties: { ...s, 'marker-color': riskColor(s.danger_m > 0 ? (s.current_water_level_m / s.danger_m) : 0) }
       }));
       source.setData({ type: 'FeatureCollection', features });
     }
   }, [stations, mapLoaded]);
 
-  // Effect: Sync Layer Visibility
   useEffect(() => {
     const m = map.current;
     if (!m || !mapLoaded) return;
@@ -186,84 +181,79 @@ export const LiveMap: React.FC = () => {
   }, [layers, mapLoaded]);
 
   return (
-    <div className="relative w-full h-full group bg-[#020617] overflow-hidden">
-      <div ref={mapContainer} className="absolute inset-0 grayscale-[0.2] brightness-[0.8] contrast-[1.2]" />
+    <div className="relative w-full h-full group bg-slate-900 overflow-hidden font-auth cursor-default">
+      <div ref={mapContainer} className="absolute inset-0 grayscale-[0.2]" />
       
       {/* HUD: Intelligence Layer Panel */}
-      <div className="absolute top-6 left-6 z-10 flex flex-col gap-3">
-        <div className="bg-[#0F172A]/80 backdrop-blur-xl p-2 rounded-2xl border border-slate-700/50 shadow-2xl flex flex-col pointer-events-auto">
-          {[
-            { id: 'stations', icon: MapPin, label: 'Gauges', active: layers.stations },
-            { id: 'rivers',  icon: Waves,  label: 'Rivers', active: layers.rivers },
-            { id: 'basins',  icon: TargetIcon, label: 'Basins', active: layers.basins },
-          ].map(l => (
-            <button
-              key={l.id}
-              onClick={() => setLayers(prev => ({ ...prev, [l.id]: !(prev as any)[l.id] }))}
-              className={`p-3 rounded-xl transition-all flex items-center gap-3 group/btn ${
-                l.active ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-slate-800'
-              }`}
-            >
-              <l.icon size={20} weight={l.active ? 'fill' : 'regular'} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] hidden group-hover:block whitespace-nowrap">
-                {l.label}
-              </span>
-            </button>
-          ))}
-        </div>
+      <div className="absolute top-10 left-10 z-10 flex flex-col gap-1 shadow-[8px_8px_0_rgba(15,23,42,0.1)] border-4 border-slate-900">
+        {[
+          { id: 'stations', icon: MapPin, label: 'Sector Gauges', active: layers.stations },
+          { id: 'rivers',  icon: Waves,  label: 'Pipeline Data', active: layers.rivers },
+          { id: 'basins',  icon: SelectionIcon, label: 'Basin Intel', active: layers.basins },
+        ].map(l => (
+          <button
+            key={l.id}
+            onClick={() => setLayers(prev => ({ ...prev, [l.id]: !(prev as any)[l.id] }))}
+            className={`px-6 py-4 transition-all flex items-center gap-4 bg-white border-b-2 border-slate-100 last:border-b-0 ${
+              l.active ? 'text-sky-600 bg-sky-50' : 'text-slate-400 hover:bg-slate-50'
+            }`}
+          >
+            <l.icon size={20} weight={l.active ? 'fill' : 'bold'} />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{l.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* HUD: Map Controls */}
-      <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-2">
-         <div className="flex flex-col bg-[#0F172A]/80 backdrop-blur p-1 rounded-xl border border-slate-700/50">
-            <button onClick={() => map.current?.zoomIn()} className="p-2 text-slate-400 hover:text-white"><Plus size={18} /></button>
-            <div className="h-[1px] bg-slate-700/50 mx-2" />
-            <button onClick={() => map.current?.zoomOut()} className="p-2 text-slate-400 hover:text-white"><Minus size={18} /></button>
+      <div className="absolute bottom-10 left-10 z-10 flex flex-col gap-4">
+         <div className="flex flex-col bg-white border-4 border-slate-900 shadow-[8px_8px_0_rgba(15,23,42,0.1)]">
+            <button onClick={() => map.current?.zoomIn()} className="p-4 text-slate-900 hover:bg-sky-50 transition-colors border-b-2 border-slate-100"><Plus size={20} weight="bold" /></button>
+            <button onClick={() => map.current?.zoomOut()} className="p-4 text-slate-900 hover:bg-sky-50 transition-colors"><Minus size={20} weight="bold" /></button>
          </div>
          <button 
            onClick={() => map.current?.easeTo({ center: INDIA_CENTER as [number, number], zoom: 5 })}
-           className="p-3 bg-[#0F172A]/80 backdrop-blur rounded-xl border border-slate-700/50 text-slate-400 hover:text-white"
+           className="p-5 bg-white border-4 border-slate-900 text-slate-900 hover:bg-sky-500 hover:text-white transition-all shadow-[8px_8px_0_rgba(15,23,42,0.1)]"
          >
-           <Globe size={18} />
+           <Globe size={24} weight="bold" />
          </button>
       </div>
 
       {/* HUD: Legend */}
-      <div className="absolute bottom-6 right-6 z-10">
-        <div className="bg-[#0F172A]/90 backdrop-blur-xl p-5 rounded-3xl border border-slate-700/50 shadow-2xl w-64 ring-1 ring-white/5">
-          <div className="text-[10px] font-black text-sky-400 uppercase tracking-[0.3em] mb-4">Gaude Thresholds</div>
-          <div className="space-y-3">
+      <div className="absolute bottom-10 right-10 z-10">
+        <div className="bg-white border-4 border-slate-900 p-8 shadow-[12px_12px_0_rgba(15,23,42,0.1)] w-80">
+          <div className="text-[12px] font-black text-slate-900 uppercase tracking-[0.4em] mb-8 border-b-4 border-sky-500 pb-2">Sector Thresholds</div>
+          <div className="space-y-4">
              {[
-               { label: 'Extreme Risk', color: '#EF4444', desc: 'Above Danger' },
-               { label: 'Active Warning', color: '#F59E0B', desc: 'Above Warning' },
-               { label: 'Normal Flow', color: '#10B981', desc: 'Steady Telemetry' },
-               { label: 'Station Idle', color: '#94A3B8', desc: 'Maintenance/Dry' }
+               { label: 'Critical Violation', color: '#EF4444', desc: 'Sector Breach' },
+               { label: 'Warning Active', color: '#EAB308', desc: 'Surge Detected' },
+               { label: 'Nominal Flow', color: '#0EA5E9', desc: 'Secure Telemetry' },
+               { label: 'Idle Node', color: '#94A3B8', desc: 'No Registry' }
              ].map(l => (
-               <div key={l.label} className="group/item cursor-default">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full ring-4 ring-offset-2 ring-offset-slate-900" style={{ background: l.color }} />
-                    <div>
-                      <div className="text-[10px] font-black text-slate-200 uppercase tracking-tight leading-none">{l.label}</div>
-                      <div className="text-[8px] font-bold text-slate-500 uppercase mt-1 opacity-0 group-hover/item:opacity-100 transition-opacity">{l.desc}</div>
+               <div key={l.label} className="group/item">
+                  <div className="flex items-center gap-4">
+                    <div className="w-4 h-4 border-2 border-slate-900" style={{ background: l.color }} />
+                    <div className="flex-1">
+                      <div className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">{l.label}</div>
+                      <div className="text-[8px] font-bold text-slate-400 uppercase mt-1 italic">{l.desc}</div>
                     </div>
                   </div>
                </div>
              ))}
           </div>
-          <div className="h-[1px] bg-slate-800 my-4" />
-          <div className="flex items-center justify-between opacity-50">
-             <span className="text-[8px] font-black text-slate-400 uppercase italic">Source: CWC/WRIS Engine</span>
-             <Info size={12} className="text-slate-500" />
+          <div className="h-0.5 bg-slate-100 my-8" />
+          <div className="flex items-center justify-between">
+             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Authorized Source // GDI</span>
+             <Link to="/overview" className="text-sky-500"><Info size={16} weight="bold" /></Link>
           </div>
         </div>
       </div>
 
-      {/* HUD: Station Count / Meta */}
-      <div className="absolute top-6 right-6 z-10 flex items-center gap-2">
-         <div className="bg-[#0F172A]/80 backdrop-blur-md px-4 py-2 rounded-full border border-slate-700/50 flex items-center gap-3 shadow-2xl ring-1 ring-white/5">
-            <div className={`w-2 h-2 rounded-full ${stationsLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-            <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest">
-              {stationsLoading ? 'Polling Database...' : `${stations.length.toLocaleString()} Active Nodes`}
+      {/* HUD: Registry Count */}
+      <div className="absolute top-10 right-10 z-10">
+         <div className="bg-white border-4 border-slate-900 px-6 py-4 flex items-center gap-4 shadow-[8px_8px_0_rgba(15,23,42,0.1)]">
+            <div className={`w-3 h-3 ${stationsLoading ? 'bg-amber-500 animate-pulse' : 'bg-sky-500'}`} />
+            <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
+              {stationsLoading ? 'Intercepting...' : `${stations.length.toLocaleString()} Synchronized Nodes`}
             </span>
          </div>
       </div>
@@ -277,3 +267,5 @@ export const LiveMap: React.FC = () => {
     </div>
   );
 };
+
+export default LiveMap;

@@ -22,14 +22,16 @@ export const GEO_LAYERS = {
   INDIA_BASINS:     `${BASE}geo/india_basins.geojson`,
 } as const;
 
+// ─── GIS SECURITY & FALLBACKS ───────────────────────────────
 export const WMS_ENDPOINTS = {
   BHUVAN_BASE:      'https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms',
   BHUVAN_RASTER:    'https://bhuvan-ras2.nrsc.gov.in/cgi-bin/',
-  WRIS_ADMIN:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Admin_subinfo_a/MapServer/WMSServer',
-  WRIS_BASIN:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Basin/MapServer/WMSServer',
-  WRIS_WATER:       'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/SWB/MapServer/WMSServer',
-  WRIS_DAMS:        'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/WRP/MapServer/WMSServer',
-  WRIS_STATIONS:    'http://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/FloodForecasting/MapServer/WMSServer',
+  // Note: WRIS servers typically do not support HTTPS. Falling back to local GeoJSON.
+  WRIS_ADMIN:       'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Admin_subinfo_a/MapServer/WMSServer',
+  WRIS_BASIN:       'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/Basin/MapServer/WMSServer',
+  WRIS_WATER:       'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/SWB/MapServer/WMSServer',
+  WRIS_DAMS:        'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/WRP/MapServer/WMSServer',
+  WRIS_STATIONS:    'https://india-wris.nrsc.gov.in/arcgis/services/SubInfoSysLCC/FloodForecasting/MapServer/WMSServer',
 } as const;
 
 export const WRIS_LAYERS = {

@@ -2,107 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* ─── AUTHORITARIAN PALETTE (Sky Blue, White, Gold) ────────────────── */
+  --auth-sky:       #0ea5e9;   /* Command Primary */
+  --auth-gold:      #eab308;   /* Warning/Alert Accent */
+  --auth-white:      #f8fafc;   /* Data Matrix White */
+  --auth-slate:     #020617;   /* Deep Command Background */
+  --auth-surface:   #0f172a;   /* Card Surface */
+  --auth-border:    rgba(255, 255, 255, 0.1);
+  --auth-glow:      rgba(14, 165, 233, 0.3);
+}
+
 @layer base {
-  :root {
-    /* ─── BACKGROUNDS (SUK Dashboard Style) ────────────────── */
-    --bg-cream:     #faf9f6;   /* Page background */
-    --bg-white:     #ffffff;   /* Card / panel */
-    --bg-surface:   #f4f1eb;   /* Sidebar, subtle areas */
-    --bg-surface-2: #eae7df;   /* Hover, badges */
-
-    /* ─── BORDERS ─────────────────────────────────────── */
-    --border-light: #ede9e1;
-    --border-default: #ddd9d0;
-    --border-strong:  #c2bcaf;
-    --border-forest:  #1e4d3a;
-
-    /* ─── TEXT ────────────────────────────────────────── */
-    --text-dark:    #1a1a1a;   /* Primary Headings */
-    --text-body:    #3a3530;   /* Standard text */
-    --text-muted:   #7a7268;   /* Secondary text */
-    --text-accent:  #2d6b51;   /* Active states */
-    
-    /* ─── SUK BRAND COLORS ────────────────────────────── */
-    --suk-forest:      #1e4d3a;
-    --suk-forest-mid:  #2d6b51;
-    --suk-forest-pale: #f0f5f1;
-    --suk-amber:       #b5651d;
-    --suk-fire:        #c0392b;   /* Alerts */
-    --suk-river:       #2980b9;
-
-    /* ─── RISK LEVELS (Adapting Pravhatattva Risk to Light UI) */
-    --risk-0:  #f0f5f1;  --risk-0-text: #2d6b51;  --risk-0-border: #a8d5b8;
-    --risk-1:  #e8f5e9;  --risk-1-text: #2e7d32;  --risk-1-border: #81c784;
-    --risk-2:  #fff3e0;  --risk-2-text: #ef6c00;  --risk-2-border: #ffb74d;
-    --risk-3:  #ffe0b2;  --risk-3-text: #e65100;  --risk-3-border: #ff9800;
-    --risk-4:  #fce4e4;  --risk-4-text: #c0392b;  --risk-4-border: #e57373;
-    --risk-5:  #ffcdd2;  --risk-5-text: #b71c1c;  --risk-5-border: #ef5350;
-
-    --risk-urban: #f3e5f5;  --risk-urban-text: #7b1fa2;  --risk-urban-border: #ba68c8;
-
-    /* Gap-filled data */
-    --estimated-bg:   #fff3e0;
-    --estimated-border: #ffcc80;
-    --estimated-text:  #ef6c00;
-
-    /* ─── RIVER VISUALIZATION ─────────────────────────── */
-    --river-low:      #5dade2;
-    --river-normal:   #2980b9;
-    --river-warning:  #e67e22;
-    --river-danger:   #c0392b;
-    --river-extreme:  #922b21;
-
-    /* ─── SPACING SYSTEM ──────────────────────────────── */
-    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
-    --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px;
-
-    /* ─── RADII ────────────────────────────────────────── */
-    --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
-
-    /* ─── ELEVATION ───────────────────────────────────── */
-    --shadow-panel:   0 2px 8px rgba(30,77,58,0.06);
-    --shadow-popup:   0 8px 24px rgba(30,77,58,0.12);
-    --shadow-tooltip: 0 4px 12px rgba(30,77,58,0.08);
+  body {
+    @apply bg-deep-slate text-auth-white antialiased selection:bg-sky-500/30 font-sans;
+    background-color: var(--auth-slate);
   }
 }
 
 @layer components {
-  /* Inherit SUK Design System Ambient Styles */
-  .btn-outline {
-    background: transparent;
-    border: 1px solid var(--suk-forest);
-    color: var(--suk-forest);
-    transition: all 0.2s;
+  /* High-Contrast Command Cards */
+  .auth-card {
+    background: var(--auth-surface);
+    border: 1px solid var(--auth-border);
+    border-radius: 24px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.5);
   }
-  .btn-outline:hover {
-    background: var(--suk-forest-pale);
+  
+  .auth-header {
+    @apply text-[10px] font-black uppercase tracking-[0.3em] text-sky-400;
+  }
+  
+  .auth-value {
+    @apply text-4xl font-black tracking-tighter text-white tabular-nums;
+  }
+
+  /* Telemetry Status Gauges */
+  .status-pulse {
+    @apply w-2 h-2 rounded-full animate-pulse;
+  }
+  
+  .status-nominal { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+  .status-warning { background-color: var(--auth-gold); box-shadow: 0 0 10px var(--auth-gold); }
+  .status-critical { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
+
+  /* Authoritarian Typography */
+  .font-auth {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   /* Ambient Map Animations */
-  @keyframes river-pulse {
-    0%, 100% { opacity: 0.7; }
-    50%       { opacity: 1.0; }
+  @keyframes scan-line {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
   }
-  @keyframes flow-dash {
-    to { stroke-dashoffset: -40; }
-  }
-  @keyframes risk-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
-    50%       { box-shadow: 0 0 12px 3px rgba(192, 57, 43, 0.2); }
-  }
-  
-  .river-animated { animation: river-pulse 3s infinite ease-in-out; }
-  .flow-line { animation: flow-dash 1s linear infinite; }
-  .risk-pulsing { animation: risk-pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1); }
-
-  @media (prefers-reduced-motion: reduce) {
-    .river-animated, .flow-line, .risk-pulsing { animation: none !important; }
+  .map-scan {
+    @apply absolute inset-0 pointer-events-none opacity-[0.03];
+    background: linear-gradient(to bottom, transparent, var(--auth-sky), transparent);
+    animation: scan-line 4s linear infinite;
   }
 }
 
-/* Base Body Styles */
-body {
-  background: var(--bg-cream);
-  color: var(--text-body);
-  font-family: var(--font-body);
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--auth-border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--auth-sky);
 }

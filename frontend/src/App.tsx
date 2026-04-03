@@ -7,7 +7,7 @@ import { useRealtimeTelemetry } from './hooks/useWebSocket';
 import { Overview }     from './pages/Overview';
 import { AlertCenter }  from './pages/AlertCenter';
 
-// Lazy load — only load when user navigates there
+// Lazy load
 const LiveMap         = lazy(() => import('./pages/LiveMap').then(m => ({ default: m.LiveMap })));
 const MLAnalysis      = lazy(() => import('./pages/MLAnalysis').then(m => ({ default: m.MLAnalysis })));
 const RiverForecast   = lazy(() => import('./pages/RiverForecast').then(m => ({ default: m.RiverForecast })));
@@ -19,20 +19,25 @@ const AboutPage       = lazy(() => import('./pages/AboutPage').then(m => ({ defa
 const DataSources     = lazy(() => import('./pages/DataSources').then(m => ({ default: m.DataSources })));
 
 const PageSkeleton = () => (
-  <div className="flex items-center justify-center w-full h-full bg-bg-cream">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 rounded-full border-2 border-suk-forest border-t-transparent animate-spin" />
-      <p className="font-ui text-sm text-text-muted">Loading…</p>
+  <div className="flex items-center justify-center w-full h-full bg-[#F8FAFC]">
+    <div className="flex flex-col items-center gap-6">
+      <div className="flex items-center gap-2">
+         <div className="w-3 h-3 bg-sky-500 animate-ping" />
+         <div className="w-3 h-3 bg-sky-600 animate-ping delay-75" />
+         <div className="w-3 h-3 bg-sky-700 animate-ping delay-150" />
+      </div>
+      <p className="font-auth text-[10px] font-black text-slate-400 uppercase tracking-[0.5em]">Synchronizing Registry // ➲</p>
     </div>
   </div>
 );
 
 const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center w-full h-full p-8">
-    <div className="text-center space-y-4 max-w-lg">
-      <h1 className="font-display text-4xl text-text-dark tracking-wide">{title}</h1>
-      <p className="font-ui text-text-muted text-base border border-border-default bg-bg-white p-4 rounded-xl shadow-panel">
-        Under construction.
+  <div className="flex items-center justify-center w-full h-full p-20 bg-[#F8FAFC]">
+    <div className="text-center space-y-8 max-w-2xl border-4 border-slate-900 bg-white p-16 shadow-[16px_16px_0_rgba(15,23,42,0.1)]">
+      <h1 className="font-auth text-6xl font-black text-slate-900 tracking-tighter uppercase">{title}</h1>
+      <p className="font-auth text-slate-500 text-xs uppercase tracking-widest leading-loose">
+        Node is currently in an uninitialized state within the national grid. 
+        Authorization protocols are pending.
       </p>
     </div>
   </div>
@@ -58,7 +63,7 @@ function App() {
             <Route path="about"  element={<Suspense fallback={<PageSkeleton />}><AboutPage /></Suspense>} />
             <Route path="status" element={<Suspense fallback={<PageSkeleton />}><DataSources /></Suspense>} />
             <Route path="dist"   element={<Suspense fallback={<PageSkeleton />}><DistrictDrilldown /></Suspense>} />
-            <Route path="*"      element={<PlaceholderPage title="404 — Not Found" />} />
+            <Route path="*"      element={<PlaceholderPage title="404 // NODE UNREACHABLE" />} />
           </Route>
         </Routes>
       </BrowserRouter>
