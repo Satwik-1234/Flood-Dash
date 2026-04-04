@@ -147,7 +147,7 @@ const LiveMap: React.FC = () => {
     if (!map.current) return;
     activeMarkers.forEach(m => m.remove());
     const newMarkers = markers
-      .filter((_, i) => i % 5 === 0)
+      .filter((s, i) => s.status !== 'ok' || i % 8 === 0)
       .map(s => {
         const el = document.createElement('div');
         el.className = `station-marker w-2 h-2 rounded-full border border-white/20 shadow-lg ${

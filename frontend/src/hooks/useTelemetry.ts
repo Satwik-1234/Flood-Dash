@@ -198,9 +198,8 @@ export const useCWCStationCatalog = () =>
   useQuery<CWCStationMeta[]>({
     queryKey: ['cwc-catalog'],
     queryFn: async () => {
-      const resp = await fetch(`${BASE}cwc_stations_catalog.json`);
-      if (!resp.ok) return [];
-      return resp.json();
+      const data = await mjson('mock/cwc_stations_catalog.json') as CWCStationMeta[];
+      return Array.isArray(data) ? data : [];
     },
     staleTime: 3600000,
   });
@@ -215,9 +214,8 @@ export const useHydrograph = (stationCode: string | null) =>
     queryKey: ['hydrograph', stationCode],
     queryFn: async () => {
       if (!stationCode) return [];
-      const resp = await fetch(`${BASE}cwc_hydrographs.json`);
-      if (!resp.ok) return [];
-      const data = await resp.json();
+      const data = await mjson('mock/cwc_hydrographs.json') as any;
+      if (!data || typeof data !== 'object') return [];
       return data[stationCode] || [];
     },
     enabled: !!stationCode,
