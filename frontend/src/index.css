@@ -2,122 +2,234 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── PRAVHATATTVA DESIGN SYSTEM v5.0 ───────────────────────────────────────
+   Dark Engineering Command Center
+   Inspired by Bloomberg Terminal × Emergency Operations Center
+   ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  /* ─── AUTHORITARIAN PALETTE (Sky Blue, White, Gold) ────────────────── */
-  --auth-sky:       #0ea5e9;   /* Command Primary */
-  --auth-gold:      #eab308;   /* Warning/Alert Accent */
-  --auth-white:     #f8fafc;   /* Data Matrix White */
-  --auth-slate:     #020617;   /* Deep Command Background */
-  --auth-surface:   #0f172a;   /* Card Surface */
-  --auth-border:    rgba(255, 255, 255, 0.1);
-  --auth-glow:      rgba(14, 165, 233, 0.3);
+  /* ── Base Backgrounds ──────────────────────────────────────── */
+  --bg-base:      #030712;   /* Page background — almost-black navy */
+  --bg-s1:        #0E1726;   /* Surface level 1 — cards, panels */
+  --bg-s2:        #152236;   /* Surface level 2 — elevated */
+  --bg-s3:        #1C2E46;   /* Surface level 3 — hover states */
 
-  /* ─── DESIGN TOKENS (Mapping for UI Redesign) ─────────────────────── */
-  --bg-cream:       #f8fafc;
-  --bg-white:       #ffffff;
-  --bg-surface:     #f1f5f9;
-  --bg-surface-2:   #e2e8f0;
+  /* ── Accent Colors ─────────────────────────────────────────── */
+  --blue:         #3B82F6;
+  --blue-dim:     #1D4ED8;
+  --cyan:         #22D3EE;
+  --cyan-dim:     #0891B2;
 
-  --border-light:   #e2e8f0;
-  --border-default: #cbd5e1;
-  --border-strong:  #94a3b8;
-  --border-forest:  #0ea5e9;
+  /* ── Alert Colors ──────────────────────────────────────────── */
+  --ok:           #10B981;
+  --warn:         #F59E0B;
+  --danger:       #EF4444;
+  --extreme:      #7F1D1D;
 
-  --text-dark:      #0f172a;
-  --text-body:      #334155;
-  --text-muted:     #64748b;
-  --text-accent:    #0ea5e9;
+  /* ── Text Colors ───────────────────────────────────────────── */
+  --t1:           #F1F5F9;   /* Primary text */
+  --t2:           #94A3B8;   /* Secondary / muted */
+  --t3:           #475569;   /* Placeholder / disabled */
 
-  --suk-forest:     #0ea5e9;
-  --suk-forest-mid: #0284c7;
-  --suk-forest-pale: #e0f2fe;
-  --suk-amber:      #eab308;
-  --suk-fire:       #ef4444;
-  --suk-river:      #3b82f6;
+  /* ── Borders ───────────────────────────────────────────────── */
+  --border:       rgba(255, 255, 255, 0.07);
+  --border-blue:  rgba(59, 130, 246, 0.4);
 
-  --risk-0: #94a3b8; --risk-0-text: #ffffff; --risk-0-border: #94a3b8;
-  --risk-1: #10b981; --risk-1-text: #ffffff; --risk-1-border: #059669;
-  --risk-2: #3b82f6; --risk-2-text: #ffffff; --risk-2-border: #2563eb;
-  --risk-3: #f59e0b; --risk-3-text: #ffffff; --risk-3-border: #d97706;
-  --risk-4: #f97316; --risk-4-text: #ffffff; --risk-4-border: #ea580c;
-  --risk-5: #ef4444; --risk-5-text: #ffffff; --risk-5-border: #dc2626;
-  --risk-urban: #8b5cf6; --risk-urban-text: #ffffff; --risk-urban-border: #7c3aed;
-
-  --estimated-bg: #f8fafc; --estimated-border: #cbd5e1; --estimated-text: #64748b;
-
-  --river-low: #94a3b8; --river-normal: #10b981; --river-warning: #f59e0b; --river-danger: #ef4444; --river-extreme: #7f1d1d;
-
-  --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem; --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem; --sp-12: 3rem;
-
-  --r-sm: 0.125rem; --r-md: 0.375rem; --r-lg: 0.5rem; --r-xl: 0.75rem;
-
-  --shadow-panel: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-popup: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-tooltip: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  /* ── Status Indicator Colors ───────────────────────────────── */
+  --status-ok:    #10B981;
+  --status-warn:  #F59E0B;
+  --status-err:   #EF4444;
+  --status-off:   #475569;
 }
 
 @layer base {
-  body {
-    @apply bg-deep-slate text-auth-white antialiased selection:bg-sky-500/30 font-sans;
-    background-color: var(--auth-slate);
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-base);
+    color: var(--t1);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Mono font for data values */
+  .font-mono, code, pre { font-family: 'JetBrains Mono', monospace; }
+
+  /* Display font for headings */
+  .font-display { font-family: 'Outfit', sans-serif; }
 }
 
 @layer components {
-  /* High-Contrast Command Cards */
-  .auth-card {
-    background: var(--auth-surface);
-    border: 1px solid var(--auth-border);
-    border-radius: 24px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.5);
-  }
-  
-  .auth-header {
-    @apply text-[10px] font-black uppercase tracking-[0.3em] text-sky-400;
-  }
-  
-  .auth-value {
-    @apply text-4xl font-black tracking-tighter text-white tabular-nums;
+
+  /* ── Glass Card ────────────────────────────────────────────── */
+  .card {
+    background: var(--bg-s1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
   }
 
-  /* Telemetry Status Gauges */
-  .status-pulse {
-    @apply w-2 h-2 rounded-full animate-pulse;
-  }
-  
-  .status-nominal { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
-  .status-warning { background-color: var(--auth-gold); box-shadow: 0 0 10px var(--auth-gold); }
-  .status-critical { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
-
-  /* Authoritarian Typography */
-  .font-auth {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  .card-elevated {
+    background: var(--bg-s2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
   }
 
-  /* Ambient Map Animations */
-  @keyframes scan-line {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(100%); }
+  /* ── Status Pill ───────────────────────────────────────────── */
+  .status-ok     { background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.3); }
+  .status-warn   { background: rgba(245,158,11,0.1); color: #F59E0B; border: 1px solid rgba(245,158,11,0.3); }
+  .status-danger { background: rgba(239,68,68,0.1);  color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+  .status-off    { background: rgba(71,85,105,0.1);  color: #475569; border: 1px solid rgba(71,85,105,0.3); }
+
+  /* ── Data Table ────────────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
   }
-  .map-scan {
-    @apply absolute inset-0 pointer-events-none opacity-[0.03];
-    background: linear-gradient(to bottom, transparent, var(--auth-sky), transparent);
-    animation: scan-line 4s linear infinite;
+
+  .data-table th {
+    background: var(--bg-s2);
+    color: var(--t3);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .data-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--t1);
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:hover { background: var(--bg-s2); }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Section Header ────────────────────────────────────────── */
+  .section-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--t3);
+  }
+
+  /* ── KPI Card ──────────────────────────────────────────────── */
+  .kpi-card {
+    background: var(--bg-s1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.2s;
+  }
+  .kpi-card:hover { border-color: var(--border-blue); }
+
+  .kpi-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    tabular-nums: tabular-nums;
+  }
+
+  .kpi-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--t3);
+  }
+
+  /* ── Pulse Dot ─────────────────────────────────────────────── */
+  .pulse-ok   { background: #10B981; box-shadow: 0 0 6px #10B981; animation: pulse 2s infinite; }
+  .pulse-warn { background: #F59E0B; box-shadow: 0 0 6px #F59E0B; animation: pulse 1.5s infinite; }
+  .pulse-err  { background: #EF4444; box-shadow: 0 0 6px #EF4444; animation: pulse 1s infinite; }
+  .pulse-off  { background: #475569; }
+
+  /* ── Terminal ──────────────────────────────────────────────── */
+  .terminal {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #00FF41;
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    background: var(--bg-s2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .terminal-body {
+    padding: 16px;
+    overflow-y: auto;
+    line-height: 1.6;
   }
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 4px;
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--t3); }
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-::-webkit-scrollbar-thumb {
-  background: var(--auth-border);
-  border-radius: 10px;
+
+.animate-fadeIn { animation: fadeIn 0.25s ease-out; }
+
+/* ── MapLibre overrides ─────────────────────────────────────── */
+.maplibregl-popup-content {
+  background: var(--bg-s2) !important;
+  border: 1px solid var(--border-blue) !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  color: var(--t1) !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--auth-sky);
+
+.maplibregl-popup-tip {
+  border-top-color: var(--bg-s2) !important;
+}
+
+.maplibregl-ctrl-group {
+  background: var(--bg-s1) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.maplibregl-ctrl-group button {
+  color: var(--t2) !important;
 }

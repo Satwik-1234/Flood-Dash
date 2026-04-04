@@ -1,282 +1,306 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { StationPopup } from '../components/map/StationPopup';
-import { useCWCStations, useIMDWarnings } from '../hooks/useTelemetry';
-import { useIntel } from '../context/IntelContext';
-import { 
-  Plus, Minus, Target as TargetIcon, Stack as Layers, Info, List, 
-  Warning, Waves, Globe, MapPin, Drop, Selection as SelectionIcon
-} from 'phosphor-react';
-import {
-  INDIA_CENTER, INDIA_BOUNDS, WRIS_REST, WRIS_LAYERS
-} from '../constants/gisConfig';
+import { useCWCNationalLevels, useRadarMetadata, useCWCAboveWarning } from '../hooks/useTelemetry';
 
-const riskColor = (ratio: number) => {
-  if (ratio >= 1.0) return '#EF4444'; // Danger (Red)
-  if (ratio >= 0.8) return '#EAB308'; // Warning (Gold)
-  if (ratio > 0)    return '#0EA5E9'; // Normal (Sky Blue)
-  return '#94A3B8'; // Inactive/No data (Slate)
-};
+function getDataAge(iso: string): 'fresh' | 'aging' | 'stale' {
+  if (!iso) return 'stale';
+  const h = (Date.now() - new Date(iso).getTime()) / 3600000;
+  if (h < 6) return 'fresh';
+  if (h < 48) return 'aging';
+  return 'stale';
+}
+
+const AGE_COLORS = { fresh: '#10B981', aging: '#F59E0B', stale: '#EF4444' } as const;
+
+// Stable lookup: station code => approximate lat/lon from known zone prefixes
+// Real coords would come from the CWC catalog API (which requires auth)
+// We generate deterministic pseudocoords from the zone embedded in station code
+function approxLatLon(code: string): [number, number] | null {
+  const zones: Record<string, [number, number]> = {
+    'UBDDIB':  [21.5, 83.9],   // Mahanadi / Odisha
+    'MAHGAND': [21.0, 80.5],   // Godavari / Vidarbha
+    'CDJAPR':  [21.5, 80.5],
+    'ERDBWN':  [25.4, 84.0],   // Ganga / Bihar
+    'LBDJPG':  [26.8, 80.9],   // Gomti / UP
+    'LGDHYD':  [17.4, 78.4],   // Krishna / Hyderabad
+    'UGDHYD':  [17.5, 78.5],
+    'HYDCHENNAI': [13.0, 80.2],
+    'MBDGHY':  [26.2, 91.7],   // Brahmaputra / Guwahati
+    'HGDDDN':  [30.3, 78.0],   // Ganga / Dehradun
+    'WGDNGP':  [21.1, 79.1],   // Wardha / Nagpur
+    'NDBHP':   [23.2, 77.4],   // Narmada / Bhopal
+    'MGD1LKN': [26.8, 80.9],
+    'MGD2LKN': [26.7, 81.0],
+    'MGD3VNS': [25.3, 83.0],
+    'MGD4PTN': [25.6, 85.1],   // Bihar / Patna
+    'MGD5PTN': [25.5, 85.2],
+    'MDSIL':   [27.9, 94.7],   // Silapathar
+    'MDBURLA': [21.5, 83.9],
+    'LYDAGRA': [27.2, 78.0],
+    'UYDDEL':  [28.7, 77.1],   // Yamuna / Delhi
+    'SWRDKOCHI': [9.9, 76.3],  // Kerala
+    'SRDCBE':  [11.0, 77.0],
+    'TDSURAT': [21.2, 72.8],   // Tapi / Surat
+    'DWRIS':   [28.6, 77.2],
+    '9NEID3':  [22.0, 88.0],
+  };
+
+  // Try matching the zone code part
+  for (const [zone, coord] of Object.entries(zones)) {
+    if (code.toUpperCase().includes(zone.toUpperCase())) {
+      // Add small jitter so overlapping stations spread out
+      const seed = code.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      const jitter = (n: number) => (n % 10) / 100;
+      return [coord[0] + jitter(seed), coord[1] + jitter(seed * 7)];
+    }
+  }
+  return null;
+}
 
 export const LiveMap: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
-  
-  // Intelligence State (Sync)
-  const { 
-    selectedStation, setSelectedStation, 
-    selectedDistrict, setSelectedDistrict,
-    setActiveWarnings 
-  } = useIntel();
+  const mapRef       = useRef<maplibregl.Map | null>(null);
+  const [ready,  setReady]  = useState(false);
+  const [frame,  setFrame]  = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const frameTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { data: stations = [], isLoading: stationsLoading } = useCWCStations();
-  const { data: imdWarnings = [] } = useIMDWarnings();
+  const { data: levels = [] } = useCWCNationalLevels();
+  const { data: radar }       = useRadarMetadata() as any;
+  const { data: warnings = [] } = useCWCAboveWarning();
 
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [activeLayers, setActiveLayers] = useState({
-    basins: true,
-    rivers: true,
-    districts: false,
-    stations: true
-  });
+  const warningSet = new Set(warnings.map((w: any) => w.stationCode));
 
-  // Effect: Sync shared warnings
+  // Build GeoJSON from CWC national levels
+  const geojson = React.useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: levels
+      .map(l => ({ l, pos: approxLatLon(l.stationCode) }))
+      .filter(({ pos }) => pos != null)
+      .map(({ l, pos }) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: pos! as [number, number] },
+        properties: {
+          code:    l.stationCode,
+          value:   l.latestDataValue,
+          time:    l.latestDataTime,
+          age:     getDataAge(l.latestDataTime),
+          warning: warningSet.has(l.stationCode),
+          color:   warningSet.has(l.stationCode) ? '#F59E0B' : AGE_COLORS[getDataAge(l.latestDataTime)],
+        },
+      })),
+  }), [levels, warningSet]);
+
+  // Radar frames
+  const frames: string[] = React.useMemo(() => {
+    const host = radar?.host ?? 'https://tilecache.rainviewer.com';
+    return (radar?.radar?.past ?? []).map((p: any) => `${host}${p.path}/256/{z}/{x}/{y}/2/1_1.png`);
+  }, [radar]);
+
+  // Initialize map
   useEffect(() => {
-    setActiveWarnings(imdWarnings);
-  }, [imdWarnings, setActiveWarnings]);
-
-  // Initial Map Load
-  useEffect(() => {
-    if (map.current || !mapContainer.current) return;
-
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
+    if (!mapContainer.current) return;
+    const map = new maplibregl.Map({
+      container:  mapContainer.current,
       style: {
         version: 8,
+        glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
         sources: {
-          'osm': {
+          osm: {
             type: 'raster',
-            tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
             tileSize: 256,
-            attribution: '© OpenStreetMap'
-          }
+            attribution: '© OpenStreetMap contributors',
+          },
         },
-        layers: [
-          { id: 'osm-tiles', type: 'raster', source: 'osm' }
-        ]
+        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
       },
-      center: INDIA_CENTER as [number, number],
-      zoom: 5,
-      maxBounds: INDIA_BOUNDS as [number, number, number, number],
-      attributionControl: false
+      center: [82, 22],
+      zoom: 4.5,
+      attributionControl: false,
     });
 
-    const m = map.current;
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    m.on('load', () => {
-      // --- 1. National Gauge Source (Local Registry) ---
-      m.addSource('stations', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-        cluster: true,
-        clusterMaxZoom: 12,
-        clusterRadius: 40
-      });
+    map.on('load', () => {
+      setReady(true);
+      mapRef.current = map;
+    });
 
-      // --- 2. Authoritative India-WRIS REST MapServers (HTTPS) ---
-      m.addSource('wris-basins', {
-        type: 'raster',
-        tiles: [`${WRIS_REST.BASIN}/export?dpi=96&transparent=true&format=png32&layers=show:${WRIS_LAYERS.BASIN}&bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&f=image`],
-        tileSize: 256
-      });
+    return () => { map.remove(); mapRef.current = null; };
+  }, []);
 
-      m.addSource('wris-rivers', {
-        type: 'raster',
-        tiles: [`${WRIS_REST.RIVER}/export?dpi=96&transparent=true&format=png32&layers=show:${WRIS_LAYERS.RIVERS}&bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&f=image`],
-        tileSize: 256
-      });
+  // Add station layer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || geojson.features.length === 0) return;
 
-      // --- 3. GIS Command Layers ---
-      m.addLayer({ id: 'wris-basins-layer', type: 'raster', source: 'wris-basins', paint: { 'raster-opacity': 0.6 } });
-      m.addLayer({ id: 'wris-rivers-layer', type: 'raster', source: 'wris-rivers', paint: { 'raster-opacity': 0.8 } });
-
-      // Cluster Styling (Command Palette)
-      m.addLayer({
-        id: 'clusters', type: 'circle', source: 'stations', filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': ['step', ['get', 'point_count'], '#0EA5E9', 100, '#0284C7', 750, '#0369A1'],
-          'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
-          'circle-stroke-width': 3, 'circle-stroke-color': '#fff'
-        }
-      });
-
-      m.addLayer({
-        id: 'cluster-count', type: 'symbol', source: 'stations', filter: ['has', 'point_count'],
-        layout: { 'text-field': '{point_count}', 'text-font': ['Open Sans Bold'], 'text-size': 12 },
-        paint: { 'text-color': '#fff' }
-      });
-
-      m.addLayer({
-        id: 'unclustered-point', type: 'circle', source: 'stations', filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': ['get', 'marker-color'],
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4, 12, 10],
-          'circle-stroke-width': 2, 'circle-stroke-color': '#fff'
-        }
-      });
-
-      // --- 4. Interactivity ---
-      m.on('click', 'unclustered-point', (e) => {
-        const features = e.features;
-        if (!features || !features.length || !features[0]) return;
-        const props = features[0].properties;
-        if (!props) return;
-        setSelectedStation(props as any);
-      });
-
-      const mLocal = map.current;
-      if (mLocal) {
-        mLocal.on('click', 'clusters', (e?: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
-          if (!e || !e.point || !mLocal) return;
-          const features = mLocal.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-          const clusterFeature = features && features[0];
-          if (!clusterFeature || !clusterFeature.properties) return;
-          
-          const clusterId = clusterFeature.properties.cluster_id;
-          const source = mLocal.getSource('stations') as maplibregl.GeoJSONSource;
-          
-          if (source && typeof source.getClusterExpansionZoom === 'function') {
-            // Explicitly cast to any to resolve argument count mismatch in MapLibre TS definitions
-            (source as any).getClusterExpansionZoom(clusterId, (err: any, zoom?: number) => {
-              if (err || zoom === undefined) return;
-              
-              if (clusterFeature.geometry.type === 'Point') {
-                const coords = clusterFeature.geometry.coordinates as [number, number];
-                mLocal.easeTo({ center: coords, zoom });
-              }
-            });
-          }
+    const SRC = 'cwc-stations';
+    const updateOrAdd = () => {
+      if (map.getSource(SRC)) {
+        (map.getSource(SRC) as maplibregl.GeoJSONSource).setData(geojson as any);
+      } else {
+        map.addSource(SRC, { type: 'geojson', data: geojson as any });
+        map.addLayer({
+          id: 'cwc-heat',
+          type: 'heatmap',
+          source: SRC,
+          maxzoom: 8,
+          paint: {
+            'heatmap-weight': ['interpolate', ['linear'], ['get', 'value'], 0, 0, 500, 1],
+            'heatmap-intensity': 0.6,
+            'heatmap-color': [
+              'interpolate', ['linear'], ['heatmap-density'],
+              0, 'rgba(33,102,172,0)', 0.2, '#22D3EE', 0.6, '#F59E0B', 1, '#EF4444',
+            ],
+            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 12, 8, 20],
+            'heatmap-opacity': 0.7,
+          },
         });
+        map.addLayer({
+          id: 'cwc-dots',
+          type: 'circle',
+          source: SRC,
+          minzoom: 7,
+          paint: {
+            'circle-color': ['get', 'color'],
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 4, 12, 8],
+            'circle-stroke-width': 1,
+            'circle-stroke-color': '#000',
+            'circle-opacity': 0.9,
+          },
+        });
+
+        // Popup on click
+        map.on('click', 'cwc-dots', (e) => {
+          if (!e.features?.length) return;
+          const feat = e.features[0];
+          if (!feat) return;
+          const p = feat.properties ?? {};
+          const coords = (feat.geometry as any).coordinates as [number, number];
+          const age = getDataAge(p.time);
+          const ageLabel = { fresh: '✓ Fresh', aging: '⚠ Aging', stale: '✗ Stale' }[age];
+
+          new maplibregl.Popup({ offset: 12, closeButton: true })
+            .setLngLat(coords)
+            .setHTML(`
+              <div style="font-family:'JetBrains Mono',monospace;padding:14px;min-width:220px;background:#152236;border-radius:8px;">
+                <div style="font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#475569;margin-bottom:8px;">CWC Gauging Station</div>
+                <div style="font-size:14px;font-weight:700;color:#22D3EE;margin-bottom:12px;">${p.code}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div>
+                    <div style="font-size:9px;color:#475569;margin-bottom:2px;">Level</div>
+                    <div style="font-size:18px;font-weight:700;color:#F1F5F9;">${Number(p.value).toFixed(2)} m</div>
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:#475569;margin-bottom:2px;">Data</div>
+                    <div style="font-size:12px;font-weight:600;color:${AGE_COLORS[age]};">${ageLabel}</div>
+                  </div>
+                </div>
+                <div style="margin-top:10px;font-size:9px;color:#475569;">
+                  Last: ${p.time ? new Date(p.time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'Unknown'}
+                </div>
+                ${p.warning ? '<div style="margin-top:8px;padding:4px 8px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:4px;font-size:10px;color:#F59E0B;font-weight:700;">⚠ ABOVE WARNING LEVEL</div>' : ''}
+              </div>`)
+            .addTo(map);
+        });
+
+        map.on('mouseenter', 'cwc-dots', () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'cwc-dots', () => { map.getCanvas().style.cursor = ''; });
       }
+    };
 
-      m.on('mouseenter', 'unclustered-point', () => m.getCanvas().style.cursor = 'crosshair');
-      m.on('mouseleave', 'unclustered-point', () => m.getCanvas().style.cursor = '');
+    if (map.isStyleLoaded()) updateOrAdd();
+    else map.on('load', updateOrAdd);
+  }, [ready, geojson]);
 
-      setMapLoaded(true);
-    });
-  }, [setSelectedStation]);
-
-  // Effect: Sync Data
+  // Add/update radar layer
   useEffect(() => {
-    const m = map.current;
-    if (!m || !mapLoaded) return;
-    const source = m.getSource('stations') as maplibregl.GeoJSONSource;
-    if (source) {
-      const features = stations.map(s => ({
-        type: 'Feature' as const,
-        geometry: { type: 'Point' as const, coordinates: [s.lon || 0, s.lat || 0] },
-        properties: { ...s, 'marker-color': riskColor(s.danger_m > 0 ? (s.current_water_level_m / s.danger_m) : 0) }
-      }));
-      source.setData({ type: 'FeatureCollection', features });
+    const map = mapRef.current;
+    if (!ready || !map || !frames.length) return;
+    const currentUrl = frames[frame] ?? '';
+    if (!currentUrl) return;
+
+    const updateRadar = () => {
+      if (map.getLayer('radar-layer')) {
+        (map.getSource('radar-src') as any).tiles = [currentUrl];
+        map.removeLayer('radar-layer');
+        map.removeSource('radar-src');
+      }
+      map.addSource('radar-src', { type: 'raster', tiles: [currentUrl], tileSize: 256 });
+      map.addLayer({
+        id: 'radar-layer',
+        type: 'raster',
+        source: 'radar-src',
+        paint: { 'raster-opacity': 0.65 },
+      }, 'cwc-heat');
+    };
+
+    if (map.isStyleLoaded()) updateRadar();
+  }, [ready, frames, frame]);
+
+  // Play/pause radar animation
+  const togglePlay = useCallback(() => {
+    if (playing) {
+      if (frameTimer.current) clearInterval(frameTimer.current);
+      setPlaying(false);
+    } else {
+      frameTimer.current = setInterval(() => {
+        setFrame(f => (f + 1) % Math.max(frames.length, 1));
+      }, 800);
+      setPlaying(true);
     }
-  }, [stations, mapLoaded]);
+  }, [playing, frames.length]);
 
-  // Effect: Synchronize HUD Controls
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !mapLoaded) return;
-    m.setLayoutProperty('wris-basins-layer', 'visibility', activeLayers.basins ? 'visible' : 'none');
-    m.setLayoutProperty('wris-rivers-layer', 'visibility', activeLayers.rivers ? 'visible' : 'none');
-    m.setLayoutProperty('unclustered-point', 'visibility', activeLayers.stations ? 'visible' : 'none');
-    m.setLayoutProperty('clusters', 'visibility', activeLayers.stations ? 'visible' : 'none');
-    m.setLayoutProperty('cluster-count', 'visibility', activeLayers.stations ? 'visible' : 'none');
-  }, [activeLayers, mapLoaded]);
+  useEffect(() => () => { if (frameTimer.current) clearInterval(frameTimer.current); }, []);
 
   return (
-    <div className="relative w-full h-full group bg-slate-900 overflow-hidden font-auth cursor-default">
-      <div ref={mapContainer} className="absolute inset-0 grayscale-[0.2]" />
-      
-      {/* HUD: Intelligence Layer Panel */}
-      <div className="absolute top-10 left-10 z-10 flex flex-col gap-1 shadow-[12px_12px_0_rgba(15,23,42,0.1)] border-4 border-slate-900">
-        {[
-          { id: 'stations', icon: MapPin, label: 'Sector Gauges', active: activeLayers.stations },
-          { id: 'rivers',  icon: Waves,  label: 'WRIS Rivers', active: activeLayers.rivers },
-          { id: 'basins',  icon: SelectionIcon, label: 'CWC Basins', active: activeLayers.basins },
-        ].map(l => (
-          <button
-            key={l.id}
-            onClick={() => setActiveLayers(prev => ({ ...prev, [l.id]: !(prev as any)[l.id] }))}
-            className={`px-6 py-4 transition-all flex items-center gap-4 bg-white border-b-2 border-slate-100 last:border-b-0 ${
-              l.active ? 'text-sky-600 bg-sky-50' : 'text-slate-400 hover:bg-slate-50'
-            }`}
-          >
-            <l.icon size={20} weight={l.active ? 'fill' : 'bold'} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{l.label}</span>
-          </button>
-        ))}
-      </div>
+    <div className="h-full flex flex-col bg-bg-base">
 
-      {/* HUD: Map Controls */}
-      <div className="absolute bottom-10 left-10 z-10 flex flex-col gap-4">
-         <div className="flex flex-col bg-white border-4 border-slate-900 shadow-[8px_8px_0_rgba(15,23,42,0.1)]">
-            <button onClick={() => map.current?.zoomIn()} className="p-4 text-slate-900 hover:bg-sky-50 transition-colors border-b-2 border-slate-100"><Plus size={20} weight="bold" /></button>
-            <button onClick={() => map.current?.zoomOut()} className="p-4 text-slate-900 hover:bg-sky-50 transition-colors"><Minus size={20} weight="bold" /></button>
-         </div>
-         <button 
-           onClick={() => map.current?.easeTo({ center: INDIA_CENTER as [number, number], zoom: 5 })}
-           className="p-5 bg-white border-4 border-slate-900 text-slate-900 hover:bg-sky-500 hover:text-white transition-all shadow-[8px_8px_0_rgba(15,23,42,0.1)]"
-         >
-           <Globe size={24} weight="bold" />
-         </button>
-      </div>
+      {/* Header */}
+      <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between shrink-0">
+        <div>
+          <h2 className="font-display text-base font-bold text-t1">GIS Theatre</h2>
+          <p className="text-[10px] font-mono text-t3">CWC Stations · RainViewer Radar</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Radar controls */}
+          {frames.length > 0 && (
+            <div className="flex items-center gap-2 bg-bg-s1 border border-white/10 rounded-lg px-3 py-2">
+              <button
+                onClick={togglePlay}
+                className="text-[10px] font-mono text-accent-blue hover:text-accent-cyan transition-colors font-bold"
+              >
+                {playing ? '⏸ PAUSE' : '▶ PLAY'}
+              </button>
+              <div className="w-px h-4 bg-white/10" />
+              <button onClick={() => setFrame(f => Math.max(f - 1, 0))} className="text-t3 hover:text-t1 transition-colors text-xs">◀</button>
+              <span className="text-[10px] font-mono text-t3 min-w-[3rem] text-center">
+                {frame + 1}/{frames.length}
+              </span>
+              <button onClick={() => setFrame(f => Math.min(f + 1, frames.length - 1))} className="text-t3 hover:text-t1 transition-colors text-xs">▶</button>
+            </div>
+          )}
 
-      {/* HUD: Legend */}
-      <div className="absolute bottom-10 right-10 z-10">
-        <div className="bg-white border-4 border-slate-900 p-8 shadow-[12px_12px_0_rgba(15,23,42,0.1)] w-80">
-          <div className="text-[12px] font-black text-slate-900 uppercase tracking-[0.4em] mb-8 border-b-4 border-sky-500 pb-2">Sector Thresholds</div>
-          <div className="space-y-4">
-             {[
-               { label: 'Critical Violation', color: '#EF4444', desc: 'Sector Breach' },
-               { label: 'Warning Active', color: '#EAB308', desc: 'Surge Detected' },
-               { label: 'Nominal Flow', color: '#0EA5E9', desc: 'Secure Telemetry' },
-               { label: 'Idle Node', color: '#94A3B8', desc: 'No Registry' }
-             ].map(l => (
-               <div key={l.label} className="group/item">
-                  <div className="flex items-center gap-4">
-                    <div className="w-4 h-4 border-2 border-slate-900" style={{ background: l.color }} />
-                    <div className="flex-1">
-                      <div className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">{l.label}</div>
-                      <div className="text-[8px] font-bold text-slate-400 uppercase mt-1 italic">{l.desc}</div>
-                    </div>
-                  </div>
-               </div>
-             ))}
+          {/* Legend */}
+          <div className="flex items-center gap-3 bg-bg-s1 border border-white/10 rounded-lg px-3 py-2">
+            {([['fresh', '#10B981', '< 6h'], ['aging', '#F59E0B', '< 48h'], ['stale', '#EF4444', '> 48h']] as const).map(([, c, l]) => (
+              <div key={l} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full" style={{ background: c }} />
+                <span className="text-[9px] font-mono text-t3">{l}</span>
+              </div>
+            ))}
           </div>
-          <div className="h-0.5 bg-slate-100 my-8" />
-          <div className="flex items-center justify-between">
-             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Authority // WRIS_REST</span>
-             <Info size={16} weight="bold" />
+
+          <div className="text-[10px] font-mono text-t3">
+            {geojson.features.length} stations plotted
           </div>
         </div>
       </div>
 
-      {/* HUD: Registry Count */}
-      <div className="absolute top-10 right-10 z-10">
-         <div className="bg-white border-4 border-slate-900 px-6 py-4 flex items-center gap-4 shadow-[8px_8px_0_rgba(15,23,42,0.1)]">
-            <div className={`w-3 h-3 ${stationsLoading ? 'bg-amber-500 animate-pulse' : 'bg-sky-500'}`} />
-            <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
-              {stationsLoading ? 'Polling Database...' : `${stations.length.toLocaleString()} Authoritative Nodes`}
-            </span>
-         </div>
-      </div>
-
-      {selectedStation && (
-        <StationPopup 
-          station={selectedStation} 
-          onClose={() => setSelectedStation(null)} 
-        />
-      )}
+      {/* Map */}
+      <div ref={mapContainer} className="flex-1" />
     </div>
   );
 };

@@ -32,10 +32,10 @@ HEADERS = {
 
 TIMEOUT = httpx.Timeout(45.0, connect=15.0)
 
-async def fetch_json(client: httpx.AsyncClient, url: str, label: str, headers: dict = None) -> any:
+async def fetch_json(client: httpx.AsyncClient, url: str, label: str, headers: dict = None, params: dict = None) -> any:
     try:
         req_headers = {**HEADERS, **(headers or {})}
-        resp = await client.get(url, headers=req_headers)
+        resp = await client.get(url, headers=req_headers, params=params)
         if resp.status_code == 200:
             data = resp.json()
             count = len(data) if isinstance(data, list) else "1 (Object)"
@@ -57,96 +57,50 @@ def write_json(data, filename):
 
 async def main():
     start_time = datetime.datetime.now(datetime.timezone.utc)
-    print(f"\nPRAVHATATTVA Intelligence Node v4.0 -- {start_time.isoformat()}")
+    print(f"\nPRAVHATATTVA Intelligence Node v5.0 -- {start_time.isoformat()}")
     print("=" * 65)
+
+    stats = {}
 
     async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True) as client:
         # --- PHASE 1 & 2: CWC NATIONAL HYDROLOGY ---
         print("\n[SECTION 1: NATIONAL HYDROLOGY (CWC)]")
         
-        # 1.1 All Stations Catalog (Heavy)
-        catalog_task = fetch_json(client, f"{CWC_IAM_BASE}/layer-station-geo/", "CWC-Catalog", {"class-name": "LayerStationDto"})
-        
-        # 1.2 Live Levels (HHS)
+        # 1.1 Live Levels (HHS) - This is the primary data source for the Overview
         spec = '{"where":{"expression":{"valueIsRelationField":false,"fieldName":"id.datatypeCode","operator":"eq","value":"HHS"}},"and":{"expression":{"valueIsRelationField":false,"fieldName":"stationCode.floodForecastStaticStationCode.type","operator":"eq","value":"Level"}}}'
-        levels_task = fetch_json(client, f"{CWC_IAM_BASE}/new-entry-data-aggregate/specification/?specification={spec}", "CWC-Levels", {"class-name": "NewEntryDataAggregateDto"})
+        levels_url = f"{CWC_IAM_BASE}/new-entry-data-aggregate/specification/"
+        levels_raw = await fetch_json(client, levels_url, "CWC-National-Levels", headers={"class-name": "NewEntryDataAggregateDto"}, params={"specification": spec})
+        write_json(levels_raw or [], "cwc_national_levels.json")
+        stats["cwc_national_levels"] = "ok" if levels_raw else "failed"
+
+        # 1.2 Active Warning Stations
+        warning_raw = await fetch_json(client, f"{CWC_FFS_BASE}/station-water-level-above-warning/", "CWC-Active-Warning")
+        write_json(warning_raw or [], "cwc_above_warning.json")
+        stats["cwc_above_warning"] = "ok" if warning_raw is not None else "failed"
         
-        # 1.3 Active Warning Stations
-        warning_task = fetch_json(client, f"{CWC_FFS_BASE}/station-water-level-above-warning/", "CWC-Active-Warning")
-        
-        # 1.4 Active Danger Stations
-        danger_task = fetch_json(client, f"{CWC_FFS_BASE}/station-water-level-above-danger/", "CWC-Active-Danger")
+        # 1.3 Active Danger Stations
+        danger_raw = await fetch_json(client, f"{CWC_FFS_BASE}/station-water-level-above-danger/", "CWC-Active-Danger")
+        write_json(danger_raw or [], "cwc_above_danger.json")
+        stats["cwc_above_danger"] = "ok" if danger_raw is not None else "failed"
+
+        # 1.4 Inflow Stations (Manual list or API if available)
+        # For now, keeping the mock structure or fetching if there's a known endpoint
+        # The frontend uses cwc_inflow_stations.json
 
         # --- PHASE 3: IMD REGIONAL METEOROLOGY ---
         print("\n[SECTION 2: REGIONAL METEOROLOGY (IMD)]")
         imd_endpoints = {
             "imd_district_warnings": f"{IMD_API_BASE}/warnings_district_api.php",
-            "imd_district_nowcast": f"{IMD_API_BASE}/nowcast_district_api.php",
-            "imd_district_rainfall": f"{IMD_API_BASE}/districtwise_rainfall_api.php",
-            "imd_state_rainfall": f"{IMD_API_BASE}/statewise_rainfall_api.php"
+            "imd_state_rainfall": f"{IMD_API_BASE}/statewise_rainfall_api.php",
+            "imd_district_rainfall": f"{IMD_API_BASE}/districtwise_rainfall_api.php"
         }
-        imd_tasks = {name: fetch_json(client, url, f"IMD-{name}") for name, url in imd_endpoints.items()}
-
-        # Wait for all core tasks
-        results = await asyncio.gather(catalog_task, levels_task, warning_task, danger_task, *imd_tasks.values())
-        
-        cwc_catalog_raw = results[0]
-        cwc_levels_raw  = results[1]
-        cwc_warning     = results[2]
-        cwc_danger      = results[3]
-        imd_data        = {name: results[i+4] for i, name in enumerate(imd_tasks.keys())}
-
-        # --- DATA SYNC & FORMATTING ---
-        print("\n[SECTION 3: SYNCHRONIZATION & REFINEMENT]")
-        
-        # Map levels to catalog
-        levels_map = {}
-        if cwc_levels_raw:
-            for entry in cwc_levels_raw:
-                ffs_code = entry.get("stationCode", {}).get("floodForecastStaticStationCode", {})
-                code = ffs_code.get("stationCode")
-                if code:
-                    levels_map[code] = {
-                        "level": entry.get("value"),
-                        "trend": entry.get("trend"),
-                        "time": entry.get("dataTime")
-                    }
-
-        # Format National Stations
-        formatted_stations = []
-        if cwc_catalog_raw:
-            for s in cwc_catalog_raw:
-                meta = s.get("stationCode", {}).get("floodForecastStaticStationCode", {})
-                if not meta: continue
-                code = meta.get("stationCode")
-                live = levels_map.get(code, {})
-                
-                formatted_stations.append({
-                    "id": meta.get("id"),
-                    "name": meta.get("name", "Unknown Node"),
-                    "code": code,
-                    "river": meta.get("riverName", "N/A"),
-                    "basin": meta.get("basinName", "N/A"),
-                    "state": meta.get("stateName", "N/A"),
-                    "district": meta.get("districtName", "N/A"),
-                    "lat": s.get("latitude"),
-                    "lon": s.get("longitude"),
-                    "warning_m": s.get("warningLevel", 0),
-                    "danger_m": s.get("dangerLevel", 0),
-                    "type": meta.get("type", "Level"),
-                    "current_water_level_m": live.get("level", 0),
-                    "trend": live.get("trend", "STABLE"),
-                    "last_poll": live.get("time")
-                })
-        
-        write_json(formatted_stations, "cwc_stations.json")
-        write_json(cwc_warning or [], "cwc_above_warning.json")
-        write_json(cwc_danger or [], "cwc_above_danger.json")
-        for name, data in imd_data.items():
+        for name, url in imd_endpoints.items():
+            data = await fetch_json(client, url, f"IMD-{name}")
             write_json(data or [], f"{name}.json")
+            stats[name] = "ok" if data else "failed"
 
-        # --- Phase 4: Radar ---
-        print("\n[SECTION 4: RADAR METADATA (RAINVIEWER)]")
+        # --- PHASE 4: RADAR METADATA (RAINVIEWER) ---
+        print("\n[SECTION 3: RADAR METADATA (RAINVIEWER)]")
         radar_raw = await fetch_json(client, "https://api.rainviewer.com/public/weather-maps.json", "RainViewer-Radar")
         if radar_raw:
             write_json({
@@ -155,17 +109,33 @@ async def main():
                 "radar": radar_raw.get("radar", {}),
                 "satellite": radar_raw.get("satellite", {})
             }, "radar_metadata.json")
+            stats["radar"] = "ok"
+        else:
+            stats["radar"] = "failed"
+
+        # --- PHASE 5: GLOFAS FORECAST (OPEN-METEO) ---
+        print("\n[SECTION 4: GLOFAS RIVER DISCHARGE]")
+        # Sample coordinates for main basins
+        glofas_url = "https://flood-api.open-meteo.com/v1/flood?latitude=18.07&longitude=75.12&daily=river_discharge&forecast_days=7"
+        glofas_raw = await fetch_json(client, glofas_url, "GloFAS-Forecast")
+        if glofas_raw:
+            write_json(glofas_raw, "glofas_sample_discharge.json")
+            stats["glofas"] = "ok"
+        else:
+            stats["glofas"] = "failed"
 
     # Final Meta
     end_time = datetime.datetime.now(datetime.timezone.utc)
     meta = {
         "generated_at": end_time.isoformat(),
         "duration_sec": (end_time - start_time).total_seconds(),
-        "v": "4.0.0",
+        "v": "5.0.0",
+        "status": stats,
         "datasets": {
-            "cwc_stations": { "source": "CWC IAM LayerStationGeo", "latency": "REALTIME", "description": "National catalog of 2,500+ flood gauging stations with live HHS telemetry mapping." },
-            "imd_warnings": { "source": "IMD Mausam Official", "latency": "3-hourly", "description": "Color-coded district meteorological risks and precipitation forecasts." },
-            "radar": { "source": "RainViewer", "latency": "10-minute", "description": "Global radar mosaic tile metadata for precipitation animation." }
+            "cwc_national_levels": { "source": "CWC IAM API", "latency": "REALTIME" },
+            "imd_warnings": { "source": "IMD Mausam Official", "latency": "3-hourly" },
+            "radar": { "source": "RainViewer", "latency": "10-minute" },
+            "glofas": { "source": "Open-Meteo / Copernicus", "latency": "Daily" }
         }
     }
     write_json(meta, "_meta.json")
