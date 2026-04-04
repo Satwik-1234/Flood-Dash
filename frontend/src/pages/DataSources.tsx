@@ -29,3 +29,5 @@ export const DataSources: React.FC = () => {
     </div>
   );
 };
+
+export default DataSources;

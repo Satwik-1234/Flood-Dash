@@ -128,8 +128,9 @@ export const LiveMap: React.FC = () => {
 
       // --- 4. Interactivity ---
       m.on('click', 'unclustered-point', (e) => {
-        if (!e.features || !e.features.length) return;
-        const props = e.features[0].properties;
+        const features = e.features;
+        if (!features || !features.length || !features[0]) return;
+        const props = features[0].properties;
         if (!props) return;
         setSelectedStation(props as any);
       });

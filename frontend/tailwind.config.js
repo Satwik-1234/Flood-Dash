@@ -7,6 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        'deep-slate': 'var(--auth-slate)',
+        'auth-white': 'var(--auth-white)',
+        'auth-sky':   'var(--auth-sky)',
+        'auth-gold':  'var(--auth-gold)',
+        'auth-surface': 'var(--auth-surface)',
         bg: {
           cream: 'var(--bg-cream)',
           white: 'var(--bg-white)',
