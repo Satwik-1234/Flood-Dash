@@ -12,14 +12,28 @@ import {
 import { 
   useCWCLiveLevels, 
   useCWCAboveWarning, 
-  useDataMeta 
-} from '../../hooks/useTelemetry';
+  useDataMeta,
+  useCWCStationCatalog,
+  CWCStationMeta
+} from '../hooks/useTelemetry';
 import { clsx } from 'clsx';
+import { useMemo } from 'react';
 
 const Overview: React.FC = () => {
-  const { data: levels = [] } = useCWCLiveLevels();
-  const { data: warnings = [] } = useCWCAboveWarning();
-  const { data: meta } = useDataMeta();
+  const { data: stations = [] }          = useCWCStationCatalog();
+  const { data: levels = [] }            = useCWCLiveLevels();
+  const { data: warnings = [] }          = useCWCAboveWarning();
+  const { data: meta }                   = useDataMeta();
+
+  // Merge Metadata for Display
+  const mergedLevels = useMemo(() => {
+    const catalogMap = new Map<string, CWCStationMeta>(stations.map(s => [s.code, s]));
+    return levels.map(l => ({
+      ...l,
+      stationName: catalogMap.get(l.stationCode)?.name || l.stationCode,
+      riverName: catalogMap.get(l.stationCode)?.river || 'N/A'
+    }));
+  }, [levels, stations]);
 
   const stats = [
     { label: 'Active Sensors', value: levels.length, icon: Target, color: 'text-accent-cyan' },
@@ -90,10 +104,10 @@ const Overview: React.FC = () => {
                  </tr>
                </thead>
                <tbody>
-                 {levels.slice(0, 10).map((l: any) => (
+                 {mergedLevels.slice(0, 10).map((l: any) => (
                    <tr key={l.stationCode} className="hover:bg-white/5 transition-colors cursor-pointer group">
-                      <td className="font-bold text-white tracking-tight">{l.stationName || l.stationCode}</td>
-                      <td className="text-t2 font-medium">{l.riverName || 'National'}</td>
+                      <td className="font-bold text-white tracking-tight">{l.stationName}</td>
+                      <td className="text-t2 font-medium">{l.riverName}</td>
                       <td>
                         <span className="font-mono-data text-accent-blue font-bold">{l.latestDataValue?.toFixed(2)}</span>
                         <span className="text-[9px] text-t3 ml-1">m</span>

@@ -17,9 +17,9 @@ import {
   useCWCLiveLevels, 
   useHydrograph,
   useIMDDistrictWarnings
-} from '../../hooks/useTelemetry';
+} from '../hooks/useTelemetry';
 import { clsx } from 'clsx';
-import Hydrograph from '../charts/Hydrograph';
+import Hydrograph from '../components/charts/Hydrograph';
 
 const LiveMap: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);

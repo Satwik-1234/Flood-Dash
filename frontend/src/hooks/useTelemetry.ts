@@ -85,13 +85,14 @@ export const useCWCAboveDanger = () =>
 
 // ── Reservoir Analysis ────────────────────────────────────────────────────────
 export interface Reservoir {
-  station_code: string;
-  station_name: string;
+  stationCode: string;
+  stationName: string;
   river: string;
   state: string;
   lat: number;
   lon: number;
   fill_pct: number;
+  storage_tmc: number;
   current_level_m: number;
   inflow_cumecs: number;
   outflow_cumecs: number;
@@ -104,7 +105,20 @@ export const useReservoirs = () =>
     queryFn: async () => {
       const raw = await mjson('mock/cwc_inflow_stations.json') as any[];
       if (!Array.isArray(raw)) return [];
-      return raw as Reservoir[];
+      return raw.map((r: any) => ({
+        stationCode: r.station_code ?? '',
+        stationName: r.station_name ?? '',
+        river: r.river ?? '',
+        state: r.state ?? '',
+        lat: Number(r.lat ?? 0),
+        lon: Number(r.lon ?? 0),
+        fill_pct: Number(r.fill_pct ?? 0),
+        storage_tmc: Number(r.storage_tmc ?? 0),
+        current_level_m: Number(r.current_level_m ?? 0),
+        inflow_cumecs: Number(r.inflow_cumecs ?? 0),
+        outflow_cumecs: Number(r.outflow_cumecs ?? 0),
+        observed_at: r.observed_at ?? '',
+      }));
     },
     staleTime: 3 * 60 * 60 * 1000,
   });

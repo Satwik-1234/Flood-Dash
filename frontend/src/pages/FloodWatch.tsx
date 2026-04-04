@@ -7,17 +7,21 @@ import {
   Layers,
   Activity,
   Filter,
-  ArrowUpRight
+  ArrowUpRight,
+  Waves
 } from 'lucide-react';
 import { 
   useCWCLiveLevels, 
   useCWCAboveWarning, 
-  useHydrograph 
+  useHydrograph,
+  useCWCStationCatalog
 } from '../hooks/useTelemetry';
+import { CWCStationMeta } from '../hooks/useTelemetry';
 import { clsx } from 'clsx';
 import Hydrograph from '../components/charts/Hydrograph';
 
 const FloodWatch: React.FC = () => {
+  const { data: stations = [] }          = useCWCStationCatalog();
   const { data: levels = [], isLoading } = useCWCLiveLevels();
   const { data: warnings = [] }          = useCWCAboveWarning();
   
@@ -27,8 +31,23 @@ const FloodWatch: React.FC = () => {
 
   const warningSet = useMemo(() => new Set(warnings.map(w => w.stationCode)), [warnings]);
 
+  // Merge Live Levels with Station Metadata
+  const mergedData = useMemo(() => {
+    const catalogMap = new Map<string, CWCStationMeta>(stations.map(s => [s.code, s]));
+    return levels.map(l => {
+      const meta = catalogMap.get(l.stationCode);
+      return {
+        ...l,
+        stationName: meta?.name || l.stationCode,
+        riverName: meta?.river || 'N/A',
+        warning_m: meta?.warning_m || 0,
+        danger_m: meta?.danger_m || 0
+      };
+    });
+  }, [levels, stations]);
+
   const filtered = useMemo(() => {
-    let data = levels;
+    let data = mergedData;
     if (search) data = data.filter(l => 
       l.stationCode.toLowerCase().includes(search.toLowerCase()) || 
       l.stationName?.toLowerCase().includes(search.toLowerCase())
@@ -39,9 +58,9 @@ const FloodWatch: React.FC = () => {
       const bW = warningSet.has(b.stationCode) ? 0 : 1;
       return aW - bW;
     });
-  }, [levels, search, filter, warningSet]);
+  }, [mergedData, search, filter, warningSet]);
 
-  const selectedStation = selected ? levels.find(l => l.stationCode === selected) : null;
+  const selectedStation = selected ? mergedData.find(l => l.stationCode === selected) : null;
 
   return (
     <div className="flex-1 flex flex-col bg-bg-deep overflow-hidden">
