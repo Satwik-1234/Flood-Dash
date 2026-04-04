@@ -16,21 +16,21 @@ const Sidebar: React.FC = () => {
   const { data: meta } = useDataMeta();
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'COMMAND' },
-    { to: '/map', icon: MapIcon, label: 'GIS THEATRE' },
-    { to: '/flood-watch', icon: Waves, label: 'RIVER WATCH' },
-    { to: '/reservoir', icon: Droplets, label: 'RESERVOIR' },
-    { to: '/imd', icon: CloudRain, label: 'WEATHER' },
-    { to: '/system', icon: Terminal, label: 'SYSTEM' },
+    { to: '/', icon: LayoutDashboard, label: 'SUMMARY' },
+    { to: '/map', icon: MapIcon, label: 'SPATIAL ANALYSIS' },
+    { to: '/flood-watch', icon: Waves, label: 'HYDRO TELEMETRY' },
+    { to: '/reservoir', icon: Droplets, label: 'RESERVOIR DATA' },
+    { to: '/imd', icon: CloudRain, label: 'METEO INTEL' },
+    { to: '/system', icon: Terminal, label: 'DATA PIPELINE' },
   ];
 
   return (
     <div className="nav-island">
       <div className="flex flex-col items-center mb-6 pt-2">
-        <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 mb-2">
-          <Activity className="w-5 h-5 text-accent-cyan" />
+        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 mb-2">
+          <Activity className="w-5 h-5 text-accent-cyan opacity-80" />
         </div>
-        <div className="w-1 h-1 rounded-full bg-accent-cyan pulse-cyan" />
+        <div className="w-1.5 h-1.5 rounded-full bg-accent-cyan/40" />
       </div>
 
       <nav className="flex flex-col gap-3">
@@ -60,13 +60,13 @@ const Sidebar: React.FC = () => {
       </nav>
 
       <div className="mt-auto pb-4 flex flex-col items-center gap-4">
-        <div className="text-[9px] font-mono text-t3 -rotate-90 origin-center whitespace-nowrap py-4 tracking-[0.3em]">
-          NODE VR-05
+        <div className="text-[9px] font-mono text-t3 -rotate-90 origin-center whitespace-nowrap py-4 tracking-[0.3em] opacity-40">
+          PROJECT PRAVHATATTVA
         </div>
         <div 
           className={clsx(
             "w-1.5 h-1.5 rounded-full transition-colors duration-500",
-            meta?.status === 'error' ? 'bg-accent-red shadow-[0_0_8px_#ef4444]' : 'bg-accent-cyan shadow-[0_0_8px_#22d3ee]'
+            meta?.status === 'error' ? 'bg-accent-red shadow-[0_0_8px_#ef4444]' : 'bg-accent-cyan/60'
           )}
         />
       </div>

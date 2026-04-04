@@ -16,27 +16,27 @@ const ReservoirMonitor: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-bg-deep overflow-hidden">
-      {/* Tactical Header */}
+      {/* Analytics Header */}
       <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-surface-base">
         <div>
           <div className="flex items-center gap-2 mb-1">
-             <Droplets className="w-4 h-4 text-accent-cyan" />
-             <span className="text-[10px] font-bold tracking-[0.2em] text-t3 uppercase">Reservoir Telemetry: SYNCED</span>
+             <Droplets className="w-4 h-4 text-accent-cyan/80" />
+             <span className="text-[10px] font-bold tracking-[0.2em] text-t3 uppercase">Analytical Insight: SYNCED</span>
           </div>
-          <h1 className="heading-display text-3xl text-white">National Reservoirs</h1>
+          <h1 className="heading-display text-3xl text-white">Reservoir Data</h1>
         </div>
         <div className="flex items-center gap-4">
            <div className="px-4 py-2 glass-panel border border-white/10 rounded-xl text-[10px] font-bold tracking-widest text-t3 uppercase">
-             {stations.length} Monitored Dams
+             {stations.length} Monitoring Nodes
            </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stations.length > 0 ? stations.map((s: any, idx) => (
+          {stations.length > 0 ? stations.map((s: any, idx: number) => (
             <div 
-              key={idx} 
+              key={s.stationCode || idx} 
               className="glass-card p-6 flex flex-col gap-4 border-l-4 border-l-accent-cyan group cursor-pointer transition-all hover:scale-[1.02] hover:bg-white/5"
             >
                <div className="flex items-center justify-between">

@@ -30,21 +30,21 @@ const Overview: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-y-auto bg-deep-slate p-8 animate-fadeIn">
-      {/* Header Intelligence Banner */}
+      {/* Header Insights Banner */}
       <div className="flex items-end justify-between mb-12">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-accent-cyan pulse-cyan" />
-            <span className="text-[10px] font-bold tracking-[0.3em] text-t3 uppercase">System Intelligence Operational</span>
+            <div className="w-2 h-2 rounded-full bg-accent-cyan/60" />
+            <span className="text-[10px] font-bold tracking-[0.3em] text-t3 uppercase">Regional Data Streams Active</span>
           </div>
-          <h1 className="heading-display text-5xl text-white">National Dashboard</h1>
+          <h1 className="heading-display text-5xl text-white">Hydrological Insights</h1>
         </div>
         <div className="text-right">
           <div className="flex items-center gap-2 text-t3 font-mono text-[10px] mb-1">
-            <Clock className="w-3 h-3" />
-            <span>EST: {meta?.generated_at ? new Date(meta.generated_at).toLocaleTimeString() : 'N/A'}</span>
+            <Clock className="w-3 h-3 opacity-60" />
+            <span>LAST SYNC: {meta?.generated_at ? new Date(meta.generated_at).toLocaleTimeString() : 'N/A'}</span>
           </div>
-          <div className="text-[10px] font-bold text-accent-cyan tracking-widest uppercase">Node: VR-India-01</div>
+          <div className="text-[10px] font-bold text-accent-cyan/80 tracking-widest uppercase">Project Pravhatattva v5.0</div>
         </div>
       </div>
 
@@ -68,14 +68,14 @@ const Overview: React.FC = () => {
 
       {/* Dual Column Intelligence */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Live Warning Feed */}
+        {/* Regional Warning Observer */}
         <div className="lg:col-span-2 glass-panel rounded-3xl p-6 flex flex-col min-h-[400px]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Waves className="w-5 h-5 text-accent-cyan" />
-              <h3 className="heading-display text-lg font-bold text-white">Hydrological Alerts</h3>
+              <Waves className="w-5 h-5 text-accent-cyan/80" />
+              <h3 className="heading-display text-lg font-bold text-white">Active Anomalies</h3>
             </div>
-            <button className="text-[10px] font-bold text-t3 hover:text-accent-cyan transition-colors uppercase tracking-widest">View Theatre map</button>
+            <button className="text-[10px] font-bold text-t3 hover:text-accent-cyan transition-colors uppercase tracking-widest">Explore Spatial Map</button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -129,15 +129,15 @@ const Overview: React.FC = () => {
         {/* Global Pipeline Health */}
         <div className="glass-panel rounded-3xl p-6 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
-            <Activity className="w-5 h-5 text-accent-blue" />
-            <h3 className="heading-display text-lg font-bold text-white">Automation Health</h3>
+            <Activity className="w-5 h-5 text-accent-blue/80" />
+            <h3 className="heading-display text-lg font-bold text-white">Pipeline Status</h3>
           </div>
 
           <div className="space-y-6 flex-1">
              {[
-               { label: 'CWC FFS API', status: 'online', load: '12ms' },
+               { label: 'CWC TELEMETRY', status: 'online', load: '12ms' },
                { label: 'IMD SECTOR-4', status: 'maintenance', load: '---' },
-               { label: 'GH-ACTIONS STACK', status: 'online', load: '0.4s' },
+               { label: 'CLOUD PERSISTENCE', status: 'online', load: '0.4s' },
                { label: 'RADAR GRID', status: 'online', load: '24ms' },
              ].map((n, i) => (
                <div key={i} className="flex flex-col gap-2 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all">
@@ -162,9 +162,9 @@ const Overview: React.FC = () => {
           </div>
 
           <div className="mt-8 p-4 rounded-2xl bg-accent-blue/10 border border-accent-blue/20">
-             <div className="text-[9px] font-bold text-accent-blue tracking-[0.2em] uppercase mb-2">Network Topology</div>
+             <div className="text-[9px] font-bold text-accent-blue tracking-[0.2em] uppercase mb-2">Project Architecture</div>
              <p className="text-[11px] text-t2 leading-relaxed">
-               All hydrological nodes are synchronized via the Pravhatattva Zero-Server pipeline. Last global sync was successful.
+               Pravhatattva is an open-source hydrological intelligence tool. All data nodes are synchronized via a zero-server distributed pipeline.
              </p>
           </div>
         </div>

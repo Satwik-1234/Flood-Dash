@@ -3,11 +3,11 @@ import {
   Terminal as TerminalIcon, 
   Cpu, 
   Database, 
-  Globe, 
+  CloudRain, 
   Activity,
   Zap,
   Server,
-  CloudZap
+  Globe
 } from 'lucide-react';
 import { useDataMeta } from '../hooks/useTelemetry';
 import { clsx } from 'clsx';
@@ -30,11 +30,13 @@ const SystemMonitor: React.FC = () => {
     let i = 0;
     const itv = setInterval(() => {
       if (i < baseLogs.length) {
-        setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${baseLogs[i]}`]);
+        setLogs(prevLogs => [...prevLogs, `[${new Date().toLocaleTimeString()}] ${baseLogs[i]}`]);
         i++;
       } else {
-        setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] HEARTBEAT: NODE_INTERNAL_SYNC_OK`]);
-        if (prev.length > 20) prev.shift();
+        setLogs(prevLogs => {
+          const next = [...prevLogs, `[${new Date().toLocaleTimeString()}] HEARTBEAT: NODE_INTERNAL_SYNC_OK`];
+          return next.slice(-20);
+        });
       }
     }, 2000);
     return () => clearInterval(itv);
@@ -42,24 +44,24 @@ const SystemMonitor: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-bg-deep overflow-hidden">
-      {/* Tactical Header */}
+      {/* Analytics Header */}
       <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-surface-base">
         <div>
           <div className="flex items-center gap-2 mb-1">
-             <Server className="w-4 h-4 text-accent-blue" />
-             <span className="text-[10px] font-bold tracking-[0.2em] text-t3 uppercase">Infrastructure Intelligence: STABLE</span>
+             <Server className="w-4 h-4 text-accent-blue/80" />
+             <span className="text-[10px] font-bold tracking-[0.2em] text-t3 uppercase">Pipeline Architecture: STABLE</span>
           </div>
-          <h1 className="heading-display text-3xl text-white">System Monitor</h1>
+          <h1 className="heading-display text-3xl text-white">Project Logs</h1>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Terminal Block */}
+        {/* Log Viewer Block */}
         <div className="lg:col-span-2 flex flex-col h-[600px]">
            <div className="flex items-center gap-2 mb-4 px-2">
-              <TerminalIcon className="w-4 h-4 text-accent-cyan" />
-              <span className="text-[10px] font-bold text-t2 tracking-widest uppercase">Process Console (v5.0)</span>
+              <TerminalIcon className="w-4 h-4 text-accent-cyan/60" />
+              <span className="text-[10px] font-bold text-t2 tracking-widest uppercase">Execution Stream</span>
            </div>
            <div className="flex-1 bg-black/60 rounded-3xl p-6 font-mono text-[11px] text-accent-blue border border-white/5 overflow-y-auto shadow-2xl">
               {logs.map((log, idx) => (
@@ -117,11 +119,11 @@ const SystemMonitor: React.FC = () => {
 
            <div className="mt-auto glass-card p-6 bg-accent-blue/10 border-accent-blue/20">
               <div className="flex items-center gap-2 mb-2">
-                 <CloudZap className="w-4 h-4 text-accent-blue" />
-                 <span className="text-[10px] font-bold text-accent-blue tracking-widest uppercase">Automation Active</span>
+                 <Zap className="w-4 h-4 text-accent-blue" />
+                 <span className="text-[10px] font-bold text-accent-blue tracking-widest uppercase">Data Flow Active</span>
               </div>
               <p className="text-[11px] text-t2 leading-relaxed italic">
-                 Pipeline runs every 15 minutes via GitHub Actions. Current state is synchronized with remote repository.
+                 Analysis pipeline runs every 15 minutes via GitHub Actions. State is synchronized with the open-source repository.
               </p>
            </div>
         </div>

@@ -1,7 +1,6 @@
 /**
  * PRAVHATATTVA v5.0 — Telemetry Hooks
- * All data read from /mock/*.json (written by GitHub Actions scraper)
- * Browser NEVER calls CWC/IMD APIs directly — CORS would block it.
+ * All data read from /mock/*.json or direct project root.
  */
 import { useQuery } from '@tanstack/react-query';
 
@@ -19,7 +18,7 @@ async function mjson(path: string): Promise<unknown> {
   }
 }
 
-// ── CWC National Gauge Levels (12K+ records) ────────────────────────────────
+// ── CWC National Gauge Levels ──────────────────────────────────────────────
 export interface CWCLevel {
   stationCode: string;
   latestDataTime: string;
@@ -42,7 +41,9 @@ export const useCWCNationalLevels = () =>
     refetchInterval: 15 * 60 * 1000,
   });
 
-// ── CWC Above Warning (active alerts) ───────────────────────────────────────
+export const useCWCLiveLevels = useCWCNationalLevels;
+
+// ── CWC Above Warning / Danger ───────────────────────────────────────────────
 export interface CWCWarning {
   stationCode: string;
   status: string;
@@ -64,7 +65,6 @@ export const useCWCAboveWarning = () =>
       }));
     },
     staleTime: 10 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
   });
 
 export const useCWCAboveDanger = () =>
@@ -83,7 +83,7 @@ export const useCWCAboveDanger = () =>
     staleTime: 10 * 60 * 1000,
   });
 
-// ── CWC Inflow / Reservoir Stations ─────────────────────────────────────────
+// ── Reservoir Analysis ────────────────────────────────────────────────────────
 export interface Reservoir {
   station_code: string;
   station_name: string;
@@ -109,6 +109,8 @@ export const useReservoirs = () =>
     staleTime: 3 * 60 * 60 * 1000,
   });
 
+export const useCWCInflowStations = useReservoirs;
+
 // ── IMD District Warnings ────────────────────────────────────────────────────
 export const useIMDWarnings = () =>
   useQuery<any[]>({
@@ -120,6 +122,8 @@ export const useIMDWarnings = () =>
     staleTime: 30 * 60 * 1000,
   });
 
+export const useIMDDistrictWarnings = useIMDWarnings;
+
 export const useIMDStateRainfall = () =>
   useQuery<any[]>({
     queryKey: ['imd-state-rainfall'],
@@ -130,7 +134,7 @@ export const useIMDStateRainfall = () =>
     staleTime: 30 * 60 * 1000,
   });
 
-// ── GloFAS River Discharge ───────────────────────────────────────────────────
+// ── GloFAS Forecast Discharge ────────────────────────────────────────────────
 export const useGloFAS = () =>
   useQuery<any>({
     queryKey: ['glofas'],
@@ -141,7 +145,7 @@ export const useGloFAS = () =>
     staleTime: 6 * 60 * 60 * 1000,
   });
 
-// ── Radar Metadata (RainViewer) ──────────────────────────────────────────────
+// ── Radar Metadata ───────────────────────────────────────────────────────────
 export const useRadarMetadata = () =>
   useQuery<any>({
     queryKey: ['radar-metadata'],
@@ -160,11 +164,9 @@ export const useRadarMetadata = () =>
         };
       } catch { return null; }
     },
-    refetchInterval: 10 * 60 * 1000,
   });
 
-// ─── NEW HOOKS FOR GIS & TRENDS ──────────────────────────────────────────────
-
+// ── GIS Context & Historical Trends ──────────────────────────────────────────
 export interface CWCStationMeta {
   code: string;
   name: string;
@@ -178,25 +180,24 @@ export interface CWCStationMeta {
   type: string;
 }
 
-export const useCWCStationCatalog = () => {
-  return useQuery<CWCStationMeta[]>({
+export const useCWCStationCatalog = () =>
+  useQuery<CWCStationMeta[]>({
     queryKey: ['cwc-catalog'],
     queryFn: async () => {
       const resp = await fetch(`${BASE}cwc_stations_catalog.json`);
       if (!resp.ok) return [];
       return resp.json();
     },
-    staleTime: 3600000, // 1 hour
+    staleTime: 3600000,
   });
-};
 
 export interface HydrographPoint {
   time: string;
   value: number;
 }
 
-export const useHydrograph = (stationCode: string | null) => {
-  return useQuery<HydrographPoint[]>({
+export const useHydrograph = (stationCode: string | null) =>
+  useQuery<HydrographPoint[]>({
     queryKey: ['hydrograph', stationCode],
     queryFn: async () => {
       if (!stationCode) return [];
@@ -207,9 +208,8 @@ export const useHydrograph = (stationCode: string | null) => {
     },
     enabled: !!stationCode,
   });
-};
 
-// ── Pipeline Metadata ────────────────────────────────────────────────────────
+// ── Project Metadata ─────────────────────────────────────────────────────────
 export const useDataMeta = () =>
   useQuery<any>({
     queryKey: ['data-meta'],
@@ -217,5 +217,4 @@ export const useDataMeta = () =>
       const raw = await mjson('mock/_meta.json');
       return raw ?? null;
     },
-    refetchInterval: 5 * 60 * 1000,
   });
