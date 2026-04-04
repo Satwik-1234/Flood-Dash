@@ -16,8 +16,14 @@ export const DatasetIntelligence: React.FC = () => {
   const { data: meta } = useQuery<DatasetMeta>({
     queryKey: ['data-meta'],
     queryFn: async () => {
-      const res = await fetch(`${import.meta.env.BASE_URL || '/'}mock/_meta.json`);
-      return res.json();
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL || '/'}mock/_meta.json`);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (err) {
+        console.error('Data Meta Error:', err);
+        return null;
+      }
     }
   });
 

@@ -47,7 +47,7 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 function AppContent() {
   useRealtimeTelemetry(); // Connect WebSocket for live data push
   return (
-    <BrowserRouter basename={(import.meta as any).env.PROD ? "/Flood-Dash/" : "/"}>
+    <BrowserRouter basename={(import.meta as any).env.PROD ? "/Flood-Dash" : "/"}>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Overview />} />
