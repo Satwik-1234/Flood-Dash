@@ -9,22 +9,23 @@ export default {
         mono:    ['JetBrains Mono', 'Consolas', 'monospace'],
       },
       colors: {
-        // Base
-        'bg-base':  '#030712',
-        'bg-s1':    '#0E1726',
-        'bg-s2':    '#152236',
-        'bg-s3':    '#1C2E46',
-        // Accents
-        'accent-blue':  '#3B82F6',
-        'accent-cyan':  '#22D3EE',
-        // Alerts
-        'c-ok':     '#10B981',
-        'c-warn':   '#F59E0B',
-        'c-danger': '#EF4444',
-        // Text
-        't1':       '#F1F5F9',
-        't2':       '#94A3B8',
-        't3':       '#475569',
+        // Base Palette
+        'bg-deep':      '#020617',
+        'surface-base': 'rgba(15, 23, 42, 0.6)',
+        
+        // Brand Accents
+        'accent-blue':  '#3b82f6',
+        'accent-cyan':  '#22d3ee',
+        'accent-amber': '#f59e0b',
+        'accent-red':   '#ef4444',
+        
+        // Status
+        'ok':           '#10b981',
+        
+        // Typography
+        't1':           '#f8fafc',
+        't2':           '#94a3b8',
+        't3':           '#475569',
       },
       animation: {
         'pulse-slow': 'pulse 3s ease-in-out infinite',
