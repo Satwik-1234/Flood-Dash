@@ -163,6 +163,52 @@ export const useRadarMetadata = () =>
     refetchInterval: 10 * 60 * 1000,
   });
 
+// ─── NEW HOOKS FOR GIS & TRENDS ──────────────────────────────────────────────
+
+export interface CWCStationMeta {
+  code: string;
+  name: string;
+  river: string;
+  basin: string;
+  state: string;
+  lat: number;
+  lon: number;
+  warning_m: number;
+  danger_m: number;
+  type: string;
+}
+
+export const useCWCStationCatalog = () => {
+  return useQuery<CWCStationMeta[]>({
+    queryKey: ['cwc-catalog'],
+    queryFn: async () => {
+      const resp = await fetch(`${BASE}cwc_stations_catalog.json`);
+      if (!resp.ok) return [];
+      return resp.json();
+    },
+    staleTime: 3600000, // 1 hour
+  });
+};
+
+export interface HydrographPoint {
+  time: string;
+  value: number;
+}
+
+export const useHydrograph = (stationCode: string | null) => {
+  return useQuery<HydrographPoint[]>({
+    queryKey: ['hydrograph', stationCode],
+    queryFn: async () => {
+      if (!stationCode) return [];
+      const resp = await fetch(`${BASE}cwc_hydrographs.json`);
+      if (!resp.ok) return [];
+      const data = await resp.json();
+      return data[stationCode] || [];
+    },
+    enabled: !!stationCode,
+  });
+};
+
 // ── Pipeline Metadata ────────────────────────────────────────────────────────
 export const useDataMeta = () =>
   useQuery<any>({

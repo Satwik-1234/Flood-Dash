@@ -1,240 +1,218 @@
 import React, { useState, useMemo } from 'react';
-import { MagnifyingGlass, Warning, ArrowUp, ArrowDown, Minus } from 'phosphor-react';
-import { useCWCNationalLevels, useCWCAboveWarning, useCWCAboveDanger, useGloFAS } from '../hooks/useTelemetry';
+import { 
+  Search, 
+  AlertTriangle, 
+  ChevronRight, 
+  Info,
+  Layers,
+  Activity,
+  Filter,
+  ArrowUpRight
+} from 'lucide-react';
+import { 
+  useCWCLiveLevels, 
+  useCWCAboveWarning, 
+  useHydrograph 
+} from '../hooks/useTelemetry';
+import { clsx } from 'clsx';
+import Hydrograph from '../components/charts/Hydrograph';
 
-function timeAgo(iso: string) {
-  if (!iso) return '—';
-  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m`;
-  const h = Math.floor(mins / 60);
-  if (h < 24) return `${h}h`;
-  return `${Math.floor(h / 24)}d`;
-}
-
-function getAge(iso: string): 'fresh' | 'aging' | 'stale' {
-  if (!iso) return 'stale';
-  const h = (Date.now() - new Date(iso).getTime()) / 3600000;
-  if (h < 6) return 'fresh';
-  if (h < 48) return 'aging';
-  return 'stale';
-}
-
-export const FloodWatch: React.FC = () => {
-  const { data: levels = [], isLoading } = useCWCNationalLevels();
+const FloodWatch: React.FC = () => {
+  const { data: levels = [], isLoading } = useCWCLiveLevels();
   const { data: warnings = [] }          = useCWCAboveWarning();
-  const { data: danger = [] }            = useCWCAboveDanger();
-  const { data: glofas }                 = useGloFAS() as any;
+  
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'warning' | 'danger' | 'fresh' | 'stale'>('all');
+  const [filter, setFilter] = useState<'all' | 'warning' | 'alert'>('all');
   const [selected, setSelected] = useState<string | null>(null);
 
   const warningSet = useMemo(() => new Set(warnings.map(w => w.stationCode)), [warnings]);
-  const dangerSet  = useMemo(() => new Set(danger.map(w => w.stationCode)),  [danger]);
 
   const filtered = useMemo(() => {
     let data = levels;
-    if (search) data = data.filter(l => l.stationCode.toLowerCase().includes(search.toLowerCase()));
+    if (search) data = data.filter(l => 
+      l.stationCode.toLowerCase().includes(search.toLowerCase()) || 
+      l.stationName?.toLowerCase().includes(search.toLowerCase())
+    );
     if (filter === 'warning') data = data.filter(l => warningSet.has(l.stationCode));
-    if (filter === 'danger')  data = data.filter(l => dangerSet.has(l.stationCode));
-    if (filter === 'fresh')   data = data.filter(l => getAge(l.latestDataTime) === 'fresh');
-    if (filter === 'stale')   data = data.filter(l => getAge(l.latestDataTime) === 'stale');
     return [...data].sort((a, b) => {
-      // Sort: danger > warning > rest
-      const aD = dangerSet.has(a.stationCode) ? 0 : warningSet.has(a.stationCode) ? 1 : 2;
-      const bD = dangerSet.has(b.stationCode) ? 0 : warningSet.has(b.stationCode) ? 1 : 2;
-      if (aD !== bD) return aD - bD;
-      return new Date(b.latestDataTime).getTime() - new Date(a.latestDataTime).getTime();
+      const aW = warningSet.has(a.stationCode) ? 0 : 1;
+      const bW = warningSet.has(b.stationCode) ? 0 : 1;
+      return aW - bW;
     });
-  }, [levels, search, filter, warningSet, dangerSet]);
+  }, [levels, search, filter, warningSet]);
 
   const selectedStation = selected ? levels.find(l => l.stationCode === selected) : null;
-  const glofasDays: string[] = glofas?.daily?.time ?? [];
-  const glofasQ: number[]    = glofas?.daily?.river_discharge ?? [];
 
   return (
-    <div className="h-full flex flex-col bg-bg-base overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-3 border-b border-white/5 shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-base font-bold text-t1">River & Flood Watch</h2>
-            <p className="text-[10px] font-mono text-t3">
-              {isLoading ? 'Loading…' : `${levels.length.toLocaleString()} CWC stations · ${warnings.length} above warning · ${danger.length} above danger`}
-            </p>
+    <div className="flex-1 flex flex-col bg-bg-deep overflow-hidden">
+      {/* Tactical Header */}
+      <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-surface-base">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+             <Waves className="w-4 h-4 text-accent-cyan" />
+             <span className="text-[10px] font-bold tracking-[0.2em] text-t3 uppercase">Telemetry Stream: ACTIVE</span>
           </div>
-          {(warnings.length > 0 || danger.length > 0) && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-950/40 border border-red-800/50 rounded-lg">
-              <Warning size={14} className="text-c-danger animate-pulse" />
-              <span className="text-[11px] font-bold text-c-danger">{danger.length} DANGER · {warnings.length} WARNING</span>
-            </div>
-          )}
+          <h1 className="heading-display text-3xl text-white">River Watch</h1>
         </div>
-
-        {/* Filters */}
-        <div className="flex items-center gap-2 mt-3">
-          <div className="relative">
-            <MagnifyingGlass size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-t3" />
-            <input
-              type="text"
-              placeholder="Search station code…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-bg-s1 border border-white/10 rounded text-[11px] font-mono text-t1 placeholder-t3 focus:outline-none focus:border-accent-blue/50 w-48 transition-colors"
-            />
-          </div>
-          {([ ['all', 'All'], ['warning', `⚠ Warning (${warnings.length})`], ['danger', `🔴 Danger (${danger.length})`], ['fresh', 'Fresh'], ['stale', 'Stale'] ] as const).map(([v, l]) => (
-            <button
-              key={v}
-              onClick={() => setFilter(v)}
-              className={`px-3 py-1.5 rounded text-[10px] font-mono transition-all border ${
-                filter === v
-                  ? 'bg-accent-blue/20 text-accent-blue border-accent-blue/40'
-                  : 'text-t3 border-white/10 hover:border-white/20 hover:text-t2'
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-          <span className="ml-auto text-[10px] font-mono text-t3">{filtered.length} results</span>
+        
+        <div className="flex items-center gap-4">
+           {/* Search & Filter Island */}
+           <div className="flex items-center gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-t3" />
+                <input 
+                  type="text" 
+                  placeholder="Filter stations..."
+                  className="bg-transparent pl-9 pr-4 py-2 text-xs font-medium text-white focus:outline-none w-48"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="w-[1px] h-6 bg-white/10 mx-1" />
+              <button 
+                onClick={() => setFilter(filter === 'all' ? 'warning' : 'all')}
+                className={clsx(
+                  "px-4 py-2 rounded-xl text-[10px] font-bold tracking-widest transition-all",
+                  filter === 'warning' ? "bg-accent-amber/20 text-accent-amber border border-accent-amber/30" : "text-t3 hover:text-white"
+                )}
+              >
+                {filter === 'warning' ? 'CRITICAL ONLY' : 'ALL NODES'}
+              </button>
+           </div>
         </div>
       </div>
 
-      {/* Main: Table + Detail Panel */}
-      <div className="flex-1 min-h-0 flex overflow-hidden">
-
-        {/* Station Table */}
-        <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-[11px] font-mono text-t3 animate-pulse">Loading {0} CWC records…</p>
-            </div>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Station Code</th>
-                  <th className="text-right">Level (m)</th>
-                  <th>Last Reading</th>
-                  <th>Data Age</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(l => {
-                  const isDanger  = dangerSet.has(l.stationCode);
-                  const isWarning = warningSet.has(l.stationCode);
-                  const age       = getAge(l.latestDataTime);
-                  const isSelected = selected === l.stationCode;
-
-                  return (
-                    <tr
-                      key={l.stationCode}
-                      onClick={() => setSelected(isSelected ? null : l.stationCode)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected  ? 'bg-accent-blue/20 border-l-2 border-accent-blue' :
-                        isDanger    ? 'bg-red-950/30 hover:bg-red-950/40' :
-                        isWarning   ? 'bg-amber-950/20 hover:bg-amber-950/30' :
-                        'hover:bg-bg-s2'
-                      }`}
-                    >
-                      <td>
-                        {isDanger ? (
-                          <span className="px-2 py-0.5 rounded text-[9px] font-bold status-danger">DANGER</span>
-                        ) : isWarning ? (
-                          <span className="px-2 py-0.5 rounded text-[9px] font-bold status-warn">WARN</span>
-                        ) : (
-                          <span className="w-2 h-2 rounded-full inline-block" style={{ background: age === 'fresh' ? '#10B981' : age === 'aging' ? '#F59E0B' : '#EF4444' }} />
-                        )}
-                      </td>
-                      <td>
-                        <span className="font-mono text-[11px] text-accent-cyan">{l.stationCode}</span>
-                      </td>
-                      <td className="text-right">
-                        <span className={`font-mono text-[13px] font-bold ${isDanger ? 'text-c-danger' : isWarning ? 'text-c-warn' : 'text-t1'}`}>
-                          {l.latestDataValue.toFixed(2)}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="font-mono text-[10px] text-t3">{timeAgo(l.latestDataTime)}</span>
-                      </td>
-                      <td>
-                        <span className={`text-[10px] font-mono capitalize ${age === 'fresh' ? 'text-c-ok' : age === 'aging' ? 'text-c-warn' : 'text-c-danger'}`}>
-                          {age}
-                        </span>
-                      </td>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Table View */}
+        <div className="flex-1 overflow-y-auto p-8">
+           <div className="glass-panel rounded-3xl overflow-hidden border-white/5">
+              <table className="data-table">
+                 <thead>
+                    <tr>
+                       <th>Ident</th>
+                       <th>Sensor Location</th>
+                       <th>Basin</th>
+                       <th className="text-right">Level</th>
+                       <th>Status</th>
+                       <th className="w-12"></th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+                 </thead>
+                 <tbody>
+                    {filtered.map(l => (
+                      <tr 
+                        key={l.stationCode} 
+                        onClick={() => setSelected(l.stationCode)}
+                        className={clsx(
+                          "cursor-pointer transition-all duration-200 group",
+                          selected === l.stationCode ? "bg-accent-blue/10" : "hover:bg-white/5",
+                          warningSet.has(l.stationCode) && "bg-accent-amber/5"
+                        )}
+                      >
+                         <td className="font-mono text-[11px] text-accent-cyan">{l.stationCode}</td>
+                         <td className="font-bold text-white tracking-tight">{l.stationName || 'Gauging Station'}</td>
+                         <td className="text-t2 text-[11px]">{l.riverName || 'National Basin'}</td>
+                         <td className="text-right">
+                            <span className={clsx(
+                              "font-mono-data text-base font-bold",
+                              warningSet.has(l.stationCode) ? "text-accent-amber" : "text-white"
+                            )}>{l.latestDataValue?.toFixed(2)}</span>
+                            <span className="text-[9px] text-t3 ml-1 font-mono">m</span>
+                         </td>
+                         <td>
+                            <div className="flex items-center gap-2">
+                               <div className={clsx(
+                                 "w-1.5 h-1.5 rounded-full",
+                                 warningSet.has(l.stationCode) ? "bg-accent-amber pulse-cyan" : "bg-ok"
+                               )} />
+                               <span className={clsx(
+                                 "text-[10px] font-bold tracking-widest uppercase",
+                                 warningSet.has(l.stationCode) ? "text-accent-amber" : "text-ok"
+                               )}>{warningSet.has(l.stationCode) ? 'Warning' : 'Stable'}</span>
+                            </div>
+                         </td>
+                         <td>
+                            <ArrowUpRight className="w-4 h-4 text-t3 opacity-0 group-hover:opacity-100 transition-all" />
+                         </td>
+                      </tr>
+                    ))}
+                 </tbody>
+              </table>
+           </div>
         </div>
 
-        {/* Detail Panel */}
+        {/* Intelligence Side-Panel */}
         {selectedStation && (
-          <div className="w-72 border-l border-white/5 bg-bg-s1 flex flex-col overflow-y-auto shrink-0 animate-fadeIn">
-            <div className="px-4 py-3 border-b border-white/5">
-              <p className="section-label mb-1">Station Detail</p>
-              <p className="font-mono text-sm font-bold text-accent-cyan">{selectedStation.stationCode}</p>
-            </div>
-
-            <div className="px-4 py-4 space-y-4">
-              <div>
-                <p className="section-label mb-2">Current Level</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display text-4xl font-bold text-t1">{selectedStation.latestDataValue.toFixed(2)}</span>
-                  <span className="text-lg text-t3">m</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="section-label mb-2">Alert Status</p>
-                {dangerSet.has(selectedStation.stationCode) ? (
-                  <span className="px-3 py-1 rounded text-xs font-bold status-danger">ABOVE DANGER LEVEL</span>
-                ) : warningSet.has(selectedStation.stationCode) ? (
-                  <span className="px-3 py-1 rounded text-xs font-bold status-warn">ABOVE WARNING LEVEL</span>
-                ) : (
-                  <span className="px-3 py-1 rounded text-xs font-bold status-ok">NORMAL</span>
-                )}
-              </div>
-
-              <div>
-                <p className="section-label mb-2">Last Reading</p>
-                <p className="font-mono text-[11px] text-t2">
-                  {selectedStation.latestDataTime
-                    ? new Date(selectedStation.latestDataTime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
-                    : 'Unknown'}
-                </p>
-              </div>
-
-              {/* GloFAS mini-chart */}
-              {glofasDays.length > 0 && (
-                <div>
-                  <p className="section-label mb-2">GloFAS 7-Day Forecast</p>
-                  <div className="space-y-1">
-                    {glofasDays.map((day: string, i: number) => {
-                      const q = glofasQ[i] ?? 0;
-                      const max = Math.max(...glofasQ, 1);
-                      return (
-                        <div key={day} className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] text-t3 w-16">{day.slice(5)}</span>
-                          <div className="flex-1 h-3 bg-bg-s2 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-accent-blue/50 rounded-full transition-all"
-                              style={{ width: `${(q / max) * 100}%` }}
-                            />
-                          </div>
-                          <span className="font-mono text-[10px] text-t2 w-14 text-right">{q.toFixed(1)} m³/s</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <StationInspector 
+            station={selectedStation} 
+            isWarning={warningSet.has(selectedStation.stationCode)}
+            onClose={() => setSelected(null)} 
+          />
         )}
+      </div>
+    </div>
+  );
+};
+
+const StationInspector: React.FC<{ station: any; isWarning: boolean; onClose: () => void }> = ({ station, isWarning, onClose }) => {
+  const { data: trend } = useHydrograph(station.stationCode);
+
+  return (
+    <div className="w-[450px] border-l border-white/5 bg-surface-base/80 backdrop-blur-xl p-8 flex flex-col animate-slideInRight">
+      <div className="flex items-center justify-between mb-8">
+         <div className="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/10">
+            <Activity className="w-4 h-4 text-accent-cyan" />
+            <span className="text-[10px] font-bold text-t2 tracking-widest uppercase truncate w-32">NODE {station.stationCode}</span>
+         </div>
+         <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+            <ChevronRight className="w-5 h-5 text-t3" />
+         </button>
+      </div>
+
+      <div className="mb-10">
+         <h2 className="heading-display text-3xl text-white mb-2">{station.stationName || 'Gauging Node'}</h2>
+         <div className="flex items-center gap-4 text-xs text-t3">
+            <span className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" /> {station.riverName || 'River Basin'}</span>
+            <span className="flex items-center gap-1.5"><Info className="w-3.5 h-3.5" /> Telemetry: LIVE</span>
+         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-10">
+         <div className="glass-card p-6 bg-accent-blue/5 border-accent-blue/20">
+            <div className="text-[9px] font-bold text-accent-blue uppercase tracking-widest mb-3">CURRENT FLOW</div>
+            <div className="flex items-baseline gap-2">
+               <span className="text-4xl font-bold text-white font-display">{station.latestDataValue?.toFixed(2)}</span>
+               <span className="text-sm font-mono text-t3">m</span>
+            </div>
+         </div>
+         <div className={clsx(
+           "glass-card p-6",
+           isWarning ? "bg-accent-amber/5 border-accent-amber/30" : "bg-white/5 border-white/10"
+         )}>
+            <div className="text-[9px] font-bold text-t3 uppercase tracking-widest mb-3">24H VARIANCE</div>
+            <div className="flex items-baseline gap-2">
+               <span className="text-4xl font-bold text-white font-display">±0.12</span>
+               <span className="text-sm font-mono text-red-500 text-t3">m</span>
+            </div>
+         </div>
+      </div>
+
+      <div className="flex-1 flex flex-col">
+         <div className="flex items-center justify-between mb-4 px-2">
+            <div className="flex items-center gap-2">
+               <Filter className="w-3.5 h-3.5 text-t3" />
+               <span className="text-[10px] font-bold text-t2 tracking-widest uppercase">24H Hydrograph History</span>
+            </div>
+            <span className="text-[9px] font-mono text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">SYNC: OK</span>
+         </div>
+         <div className="p-4 bg-black/20 rounded-3xl border border-white/5 flex-1 min-h-[250px]">
+           <Hydrograph data={trend || []} height={250} />
+         </div>
+      </div>
+
+      <div className="mt-8 flex gap-3">
+         <button className="flex-1 py-4 bg-accent-blue text-white rounded-2xl text-[10px] font-bold tracking-widest shadow-lg shadow-accent-blue/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            EXPORT TELEMETRY
+         </button>
       </div>
     </div>
   );

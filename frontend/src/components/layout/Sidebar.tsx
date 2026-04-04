@@ -1,135 +1,76 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  ChartBar,
-  MapTrifold,
-  Waves,
-  Database,
-  WarningOctagon,
+import { 
+  LayoutDashboard, 
+  Map as MapIcon, 
+  Waves, 
+  Droplets, 
+  CloudRain, 
   Terminal,
-  Activity,
-  ShieldCheck,
-} from 'phosphor-react';
+  Activity
+} from 'lucide-react';
 import { useDataMeta } from '../../hooks/useTelemetry';
+import { clsx } from 'clsx';
 
-const NAV = [
-  { path: '/',          label: 'Overview',     icon: ChartBar,        end: true as const },
-  { path: '/map',       label: 'GIS Theatre',  icon: MapTrifold },
-  { path: '/flood',     label: 'River Watch',  icon: Waves },
-  { path: '/reservoirs',label: 'Reservoirs',   icon: Database },
-  { path: '/imd',       label: 'IMD / Weather',icon: WarningOctagon },
-  { path: '/monitor',   label: 'System Monitor',icon: Terminal },
-];
+const Sidebar: React.FC = () => {
+  const { data: meta } = useDataMeta();
 
-export const Sidebar: React.FC = () => {
-  const { data: meta } = useDataMeta() as any;
-
-  const getAge = (key: string): 'fresh' | 'aging' | 'stale' => {
-    const t = meta?.generated_at;
-    if (!t) return 'stale';
-    const mins = (Date.now() - new Date(t).getTime()) / 60000;
-    if (mins < 20) return 'fresh';
-    if (mins < 120) return 'aging';
-    return 'stale';
-  };
-
-  const dotColor = { fresh: '#10B981', aging: '#F59E0B', stale: '#EF4444' };
+  const navItems = [
+    { to: '/', icon: LayoutDashboard, label: 'COMMAND' },
+    { to: '/map', icon: MapIcon, label: 'GIS THEATRE' },
+    { to: '/flood-watch', icon: Waves, label: 'RIVER WATCH' },
+    { to: '/reservoir', icon: Droplets, label: 'RESERVOIR' },
+    { to: '/imd', icon: CloudRain, label: 'WEATHER' },
+    { to: '/system', icon: Terminal, label: 'SYSTEM' },
+  ];
 
   return (
-    <aside className="w-56 shrink-0 h-screen flex flex-col border-r border-white/5 bg-bg-s1 select-none">
-
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-accent-blue rounded flex items-center justify-center shrink-0">
-            <ShieldCheck size={16} weight="fill" className="text-white" />
-          </div>
-          <div>
-            <h1 className="font-display text-t1 font-bold text-sm leading-none tracking-tight">
-              PRAVHATATTVA
-            </h1>
-            <p className="text-[9px] text-t3 font-mono mt-0.5 tracking-widest">FLOOD COMMAND v5</p>
-          </div>
+    <div className="nav-island">
+      <div className="flex flex-col items-center mb-6 pt-2">
+        <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 mb-2">
+          <Activity className="w-5 h-5 text-accent-cyan" />
         </div>
+        <div className="w-1 h-1 rounded-full bg-accent-cyan pulse-cyan" />
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2">
-        <p className="section-label px-3 mb-3">Modules</p>
-        <ul className="space-y-0.5">
-          {NAV.map((item) => (
-            <li key={item.path}>
-              <NavLink
-                to={item.path}
-                end={item.end ?? false}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-medium transition-all ${
-                    isActive
-                      ? 'bg-accent-blue/15 text-accent-blue border border-accent-blue/20'
-                      : 'text-t2 hover:text-t1 hover:bg-bg-s2 border border-transparent'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <item.icon
-                      size={16}
-                      weight={isActive ? 'fill' : 'regular'}
-                      className={isActive ? 'text-accent-blue' : 'text-t3'}
-                    />
-                    <span className="font-sans tracking-wide">{item.label}</span>
-                  </>
-                )}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+      <nav className="flex flex-col gap-3">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) => clsx(
+              'nav-item group relative transition-all duration-200',
+              isActive && 'active'
+            )}
+          >
+            <item.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+            
+            {/* Tooltip */}
+            <div className="absolute left-16 px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[1000] font-bold tracking-widest shadow-xl">
+              {item.label}
+            </div>
+            
+            {/* Active Indicator Halo */}
+            <div className={clsx(
+              "absolute inset-0 rounded-xl transition-opacity duration-300 pointer-events-none",
+              "bg-accent-blue/5 opacity-0 group-[.active]:opacity-100"
+            )} />
+          </NavLink>
+        ))}
       </nav>
 
-      {/* Data Status */}
-      <div className="px-4 py-4 border-t border-white/5 space-y-3">
-        <p className="section-label mb-2">Pipeline</p>
-        {[
-          { key: 'cwc', label: 'CWC Telemetry' },
-          { key: 'imd', label: 'IMD Grid' },
-          { key: 'radar', label: 'Radar' },
-        ].map(s => {
-          const age = getAge(s.key);
-          return (
-            <div key={s.key} className="flex items-center justify-between">
-              <span className="text-[10px] font-mono text-t3">{s.label}</span>
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: dotColor[age], boxShadow: age !== 'stale' ? `0 0 4px ${dotColor[age]}` : 'none' }}
-                />
-                <span className="text-[9px] font-mono text-t3 capitalize">{age}</span>
-              </div>
-            </div>
-          );
-        })}
-
-        {meta && (
-          <div className="pt-2 border-t border-white/5">
-            <p className="text-[9px] font-mono text-t3">
-              Last sync: {new Date(meta.generated_at).toLocaleTimeString('en-IN', {
-                hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata'
-              })} IST
-            </p>
-          </div>
-        )}
-
-        <div className="pt-2 border-t border-white/5 flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-bg-s2 border border-white/10 flex items-center justify-center">
-            <Activity size={12} className="text-accent-cyan" />
-          </div>
-          <div>
-            <p className="text-[10px] font-sans text-t1 font-semibold leading-none">S. L. UDUPI</p>
-            <p className="text-[8px] font-mono text-t3 mt-0.5">OPERATOR // CCCSS 2026</p>
-          </div>
+      <div className="mt-auto pb-4 flex flex-col items-center gap-4">
+        <div className="text-[9px] font-mono text-t3 -rotate-90 origin-center whitespace-nowrap py-4 tracking-[0.3em]">
+          NODE VR-05
         </div>
+        <div 
+          className={clsx(
+            "w-1.5 h-1.5 rounded-full transition-colors duration-500",
+            meta?.status === 'error' ? 'bg-accent-red shadow-[0_0_8px_#ef4444]' : 'bg-accent-cyan shadow-[0_0_8px_#22d3ee]'
+          )}
+        />
       </div>
-    </aside>
+    </div>
   );
 };
 

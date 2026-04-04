@@ -1,235 +1,162 @@
+:root {
+  /* ──── Core Palette — Deep Tactical System ──── */
+  --bg-deep:     #020617;
+  --bg-surface:  rgba(15, 23, 42, 0.6);
+  --bg-card:     #0f172a;
+  
+  --accent-cyan:  #22d3ee;
+  --accent-blue:  #3b82f6;
+  --accent-amber: #f59e0b;
+  --accent-red:   #ef4444;
+  
+  --t1: #f8fafc;
+  --t2: #94a3b8;
+  --t3: #475569;
+  
+  --glass-blur:     blur(12px) saturate(180%);
+  --glass-border:   1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow:   0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  /* Brand Typography */
+  --font-display: 'Outfit', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── PRAVHATATTVA DESIGN SYSTEM v5.0 ───────────────────────────────────────
-   Dark Engineering Command Center
-   Inspired by Bloomberg Terminal × Emergency Operations Center
-   ─────────────────────────────────────────────────────────────────────────── */
-
-:root {
-  /* ── Base Backgrounds ──────────────────────────────────────── */
-  --bg-base:      #030712;   /* Page background — almost-black navy */
-  --bg-s1:        #0E1726;   /* Surface level 1 — cards, panels */
-  --bg-s2:        #152236;   /* Surface level 2 — elevated */
-  --bg-s3:        #1C2E46;   /* Surface level 3 — hover states */
-
-  /* ── Accent Colors ─────────────────────────────────────────── */
-  --blue:         #3B82F6;
-  --blue-dim:     #1D4ED8;
-  --cyan:         #22D3EE;
-  --cyan-dim:     #0891B2;
-
-  /* ── Alert Colors ──────────────────────────────────────────── */
-  --ok:           #10B981;
-  --warn:         #F59E0B;
-  --danger:       #EF4444;
-  --extreme:      #7F1D1D;
-
-  /* ── Text Colors ───────────────────────────────────────────── */
-  --t1:           #F1F5F9;   /* Primary text */
-  --t2:           #94A3B8;   /* Secondary / muted */
-  --t3:           #475569;   /* Placeholder / disabled */
-
-  /* ── Borders ───────────────────────────────────────────────── */
-  --border:       rgba(255, 255, 255, 0.07);
-  --border-blue:  rgba(59, 130, 246, 0.4);
-
-  /* ── Status Indicator Colors ───────────────────────────────── */
-  --status-ok:    #10B981;
-  --status-warn:  #F59E0B;
-  --status-err:   #EF4444;
-  --status-off:   #475569;
-}
-
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
-
+  
   html, body, #root {
     height: 100%;
     margin: 0;
     padding: 0;
-  }
-
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: var(--bg-base);
-    color: var(--t1);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Mono font for data values */
-  .font-mono, code, pre { font-family: 'JetBrains Mono', monospace; }
-
-  /* Display font for headings */
-  .font-display { font-family: 'Outfit', sans-serif; }
-}
-
-@layer components {
-
-  /* ── Glass Card ────────────────────────────────────────────── */
-  .card {
-    background: var(--bg-s1);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-
-  .card-elevated {
-    background: var(--bg-s2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-
-  /* ── Status Pill ───────────────────────────────────────────── */
-  .status-ok     { background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.3); }
-  .status-warn   { background: rgba(245,158,11,0.1); color: #F59E0B; border: 1px solid rgba(245,158,11,0.3); }
-  .status-danger { background: rgba(239,68,68,0.1);  color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
-  .status-off    { background: rgba(71,85,105,0.1);  color: #475569; border: 1px solid rgba(71,85,105,0.3); }
-
-  /* ── Data Table ────────────────────────────────────────────── */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-  }
-
-  .data-table th {
-    background: var(--bg-s2);
-    color: var(--t3);
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  .data-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
-    color: var(--t1);
-    vertical-align: middle;
-  }
-
-  .data-table tbody tr:hover { background: var(--bg-s2); }
-  .data-table tbody tr:last-child td { border-bottom: none; }
-
-  /* ── Section Header ────────────────────────────────────────── */
-  .section-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--t3);
-  }
-
-  /* ── KPI Card ──────────────────────────────────────────────── */
-  .kpi-card {
-    background: var(--bg-s1);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    transition: border-color 0.2s;
-  }
-  .kpi-card:hover { border-color: var(--border-blue); }
-
-  .kpi-value {
-    font-family: 'Outfit', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1;
-    tabular-nums: tabular-nums;
-  }
-
-  .kpi-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--t3);
-  }
-
-  /* ── Pulse Dot ─────────────────────────────────────────────── */
-  .pulse-ok   { background: #10B981; box-shadow: 0 0 6px #10B981; animation: pulse 2s infinite; }
-  .pulse-warn { background: #F59E0B; box-shadow: 0 0 6px #F59E0B; animation: pulse 1.5s infinite; }
-  .pulse-err  { background: #EF4444; box-shadow: 0 0 6px #EF4444; animation: pulse 1s infinite; }
-  .pulse-off  { background: #475569; }
-
-  /* ── Terminal ──────────────────────────────────────────────── */
-  .terminal {
-    background: #000;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #00FF41;
     overflow: hidden;
   }
 
-  .terminal-header {
-    background: var(--bg-s2);
-    border-bottom: 1px solid var(--border);
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .terminal-body {
-    padding: 16px;
-    overflow-y: auto;
-    line-height: 1.6;
+  body {
+    background-color: var(--bg-deep);
+    color: var(--t1);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--t3); }
+@layer components {
+  /* ──── Glassmorphism 2.0 ──── */
+  .glass-panel {
+    background: var(--bg-surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
 
-/* ── Animations ─────────────────────────────────────────────── */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  .glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(51, 65, 85, 0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* ──── Typography ──── */
+  .font-display { font-family: var(--font-display); }
+  .font-mono { font-family: var(--font-mono); }
+  .font-mono-data { 
+    font-family: var(--font-mono); 
+    font-variant-numeric: tabular-nums; 
+  }
+
+  /* ──── Tactical Navigation ──── */
+  .nav-island {
+    @apply fixed left-4 top-1/2 -translate-y-1/2 z-[100] flex flex-col gap-2 p-2 glass-panel rounded-2xl;
+  }
+
+  .nav-item {
+    @apply flex items-center justify-center w-12 h-12 rounded-xl text-t2 transition-all hover:bg-white/10 hover:text-white;
+  }
+
+  .nav-item.active {
+    @apply bg-accent-blue/20 text-accent-blue border border-accent-blue/30;
+  }
+
+  /* ──── Data Visualization ──── */
+  .telemetry-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4;
+  }
+
+  .kpi-card {
+    @apply p-6 glass-card border-l-4 border-l-accent-blue;
+  }
+
+  .kpi-value {
+    @apply text-4xl font-bold tracking-tight text-white mb-1 font-display;
+  }
+
+  .kpi-label {
+    @apply text-[10px] uppercase tracking-[0.2em] font-bold text-t3;
+  }
+
+  /* ──── GIS Components ──── */
+  .map-layer-ctrl {
+    @apply fixed top-4 right-4 z-[100] w-64 glass-panel rounded-2xl p-4;
+  }
+
+  .layer-toggle {
+    @apply flex items-center justify-between py-2 cursor-pointer border-b border-white/5 last:border-0;
+  }
+
+  .indicator-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  /* ──── Professional Scrollbar ──── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Animations */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-.animate-fadeIn { animation: fadeIn 0.25s ease-out; }
+.animate-slideInRight {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-/* ── MapLibre overrides ─────────────────────────────────────── */
+@keyframes pulse-cyan {
+  0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+}
+
+.pulse-cyan {
+  animation: pulse-cyan 2s infinite;
+}
+
+/* MapLibre Overrides */
 .maplibregl-popup-content {
-  background: var(--bg-s2) !important;
-  border: 1px solid var(--border-blue) !important;
-  border-radius: 8px !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
   padding: 0 !important;
-  color: var(--t1) !important;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5) !important;
 }
 
 .maplibregl-popup-tip {
-  border-top-color: var(--bg-s2) !important;
-}
-
-.maplibregl-ctrl-group {
-  background: var(--bg-s1) !important;
-  border: 1px solid var(--border) !important;
-}
-
-.maplibregl-ctrl-group button {
-  color: var(--t2) !important;
+  display: none;
 }

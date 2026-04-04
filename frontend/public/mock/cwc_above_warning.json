@@ -2,6 +2,14 @@
   {
     "@class": "com.eptisa.dto.StationWaterLevelAboveWarningDto",
     "id": 1,
+    "stationCode": "022-mgd4ptn",
+    "status": "WARNING",
+    "trend": null,
+    "value": 74.28
+  },
+  {
+    "@class": "com.eptisa.dto.StationWaterLevelAboveWarningDto",
+    "id": 2,
     "stationCode": "011-UBDDIB",
     "status": "WARNING",
     "trend": null,
@@ -9,7 +17,7 @@
   },
   {
     "@class": "com.eptisa.dto.StationWaterLevelAboveWarningDto",
-    "id": 2,
+    "id": 3,
     "stationCode": "013-UBDDIB",
     "status": "WARNING",
     "trend": null,
