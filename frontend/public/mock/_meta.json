@@ -1,33 +1,40 @@
 {
-  "generated_at": "2026-04-15T06:16:20.006494+00:00",
-  "duration_sec": 62.921891,
-  "v": "5.0.0",
-  "status": {
-    "cwc_stations_catalog": "failed",
-    "cwc_national_levels": "failed",
-    "cwc_hydrographs": "failed",
-    "imd_district_warnings": "failed",
-    "imd_state_rainfall": "failed",
-    "imd_district_rainfall": "failed",
-    "radar": "ok",
-    "glofas": "ok"
-  },
-  "datasets": {
-    "cwc_national_levels": {
-      "source": "CWC IAM API",
-      "latency": "REALTIME"
+  "generated_at": "2026-04-15T08:00:23Z",
+  "scraper_version": "3.0.0",
+  "strategy": "regional-first: CWC FFS + IMD + soil moisture only",
+  "sources": {
+    "cwc_above_warning": {
+      "status": "empty",
+      "records": 0,
+      "last_fetch": "2026-04-15T08:00:23Z",
+      "note": "Real CWC FFS \u2014 replaces GloFAS proxy"
+    },
+    "cwc_inflow_stations": {
+      "status": "empty",
+      "records": 0,
+      "last_fetch": "2026-04-15T08:00:23Z"
     },
     "imd_warnings": {
-      "source": "IMD Mausam Official",
-      "latency": "3-hourly"
+      "status": "mock",
+      "records": 2,
+      "last_fetch": "2026-04-15T08:00:23Z",
+      "whitelist_pending": true
+    },
+    "soil_moisture": {
+      "status": "ok",
+      "records": 7,
+      "last_fetch": "2026-04-15T08:00:23Z",
+      "note": "Only Open-Meteo data kept \u2014 no IMD substitute for soil moisture"
     },
     "radar": {
-      "source": "RainViewer",
-      "latency": "10-minute"
-    },
-    "glofas": {
-      "source": "Open-Meteo / Copernicus",
-      "latency": "Daily"
+      "status": "ok",
+      "past_frames": 13,
+      "nowcast_frames": 0,
+      "last_fetch": "2026-04-15T08:00:23Z"
     }
-  }
+  },
+  "removed": [
+    "GloFAS global discharge proxy",
+    "Open-Meteo rainfall (replaced by IMD)"
+  ]
 }
