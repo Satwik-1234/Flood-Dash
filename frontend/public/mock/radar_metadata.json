@@ -1,39 +1,8 @@
 {
-  "generated_at": "2026-05-06T15:50:47Z",
+  "generated": 1778087448,
+  "host": "https://tilecache.rainviewer.com",
   "radar": {
     "past": [
-      {
-        "time": 1778075400,
-        "path": "/v2/radar/8b67c3c5a85e"
-      },
-      {
-        "time": 1778076000,
-        "path": "/v2/radar/b5e7e885ad8b"
-      },
-      {
-        "time": 1778076600,
-        "path": "/v2/radar/5a20215edb43"
-      },
-      {
-        "time": 1778077200,
-        "path": "/v2/radar/a568b21249db"
-      },
-      {
-        "time": 1778077800,
-        "path": "/v2/radar/4a4fef04d55c"
-      },
-      {
-        "time": 1778078400,
-        "path": "/v2/radar/aa3a5dae9337"
-      },
-      {
-        "time": 1778079000,
-        "path": "/v2/radar/4595795f8884"
-      },
-      {
-        "time": 1778079600,
-        "path": "/v2/radar/46babd42cd83"
-      },
       {
         "time": 1778080200,
         "path": "/v2/radar/c2dc656bbb23"
@@ -53,13 +22,43 @@
       {
         "time": 1778082600,
         "path": "/v2/radar/6812ba48c474"
+      },
+      {
+        "time": 1778083200,
+        "path": "/v2/radar/2eb8de181e3e"
+      },
+      {
+        "time": 1778083800,
+        "path": "/v2/radar/769d0ff28abe"
+      },
+      {
+        "time": 1778084400,
+        "path": "/v2/radar/766997f4f95e"
+      },
+      {
+        "time": 1778085000,
+        "path": "/v2/radar/c8797a2c7455"
+      },
+      {
+        "time": 1778085600,
+        "path": "/v2/radar/e3bb82ce8e3c"
+      },
+      {
+        "time": 1778086200,
+        "path": "/v2/radar/16b33295279e"
+      },
+      {
+        "time": 1778086800,
+        "path": "/v2/radar/0c28801f8328"
+      },
+      {
+        "time": 1778087400,
+        "path": "/v2/radar/e04eb8b3b477"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  },
-  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
-  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
+  }
 }
