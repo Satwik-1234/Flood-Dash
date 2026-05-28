@@ -1,40 +1,7 @@
 {
-  "generated": 1779973173,
-  "host": "https://tilecache.rainviewer.com",
+  "generated_at": "2026-05-28T14:10:04Z",
   "radar": {
     "past": [
-      {
-        "time": 1779965400,
-        "path": "/v2/radar/cfb8bb99b3a0"
-      },
-      {
-        "time": 1779966000,
-        "path": "/v2/radar/469f4246e854"
-      },
-      {
-        "time": 1779966600,
-        "path": "/v2/radar/bca54860537e"
-      },
-      {
-        "time": 1779967200,
-        "path": "/v2/radar/6c8b1f401369"
-      },
-      {
-        "time": 1779967800,
-        "path": "/v2/radar/63dbb2c6d4dc"
-      },
-      {
-        "time": 1779968400,
-        "path": "/v2/radar/7f89b9c4db54"
-      },
-      {
-        "time": 1779969000,
-        "path": "/v2/radar/ccbda274b553"
-      },
-      {
-        "time": 1779969600,
-        "path": "/v2/radar/fb98fe2b60d3"
-      },
       {
         "time": 1779970200,
         "path": "/v2/radar/d7b18add4e4f"
@@ -54,11 +21,45 @@
       {
         "time": 1779972600,
         "path": "/v2/radar/27425197861d"
+      },
+      {
+        "time": 1779973200,
+        "path": "/v2/radar/5604f494c9c9"
+      },
+      {
+        "time": 1779973800,
+        "path": "/v2/radar/9a6d35ced22e"
+      },
+      {
+        "time": 1779974400,
+        "path": "/v2/radar/c9e4d7448a55"
+      },
+      {
+        "time": 1779975000,
+        "path": "/v2/radar/01bc7f04c4c6"
+      },
+      {
+        "time": 1779975600,
+        "path": "/v2/radar/6ed54d815f02"
+      },
+      {
+        "time": 1779976200,
+        "path": "/v2/radar/7959747238b2"
+      },
+      {
+        "time": 1779976800,
+        "path": "/v2/radar/6c95ae8f2b4b"
+      },
+      {
+        "time": 1779977400,
+        "path": "/v2/radar/2bffadc14c21"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  }
+  },
+  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
+  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
 }
