@@ -1,64 +1,41 @@
 {
-  "generated": 1780468962,
-  "host": "https://tilecache.rainviewer.com",
+  "generated_at": "2026-06-03T10:08:35Z",
   "radar": {
     "past": [
       {
-        "time": 1780461600,
-        "path": "/v2/radar/52d038625d31"
+        "time": 1780477200,
+        "path": "/v2/radar/c93d8ec9f267"
       },
       {
-        "time": 1780462200,
-        "path": "/v2/radar/fdf7cd02e151"
+        "time": 1780477800,
+        "path": "/v2/radar/fb335f6e8a12"
       },
       {
-        "time": 1780462800,
-        "path": "/v2/radar/8d9f6b5e479d"
+        "time": 1780478400,
+        "path": "/v2/radar/18af869b712e"
       },
       {
-        "time": 1780463400,
-        "path": "/v2/radar/d9f0c4d83809"
+        "time": 1780479000,
+        "path": "/v2/radar/68168d500f01"
       },
       {
-        "time": 1780464000,
-        "path": "/v2/radar/7b5aa2c705cd"
+        "time": 1780479600,
+        "path": "/v2/radar/223e4fb6b6a6"
       },
       {
-        "time": 1780464600,
-        "path": "/v2/radar/732a95163d36"
+        "time": 1780480200,
+        "path": "/v2/radar/39789beebc45"
       },
       {
-        "time": 1780465200,
-        "path": "/v2/radar/674cfb024afa"
-      },
-      {
-        "time": 1780465800,
-        "path": "/v2/radar/94ea27602cec"
-      },
-      {
-        "time": 1780466400,
-        "path": "/v2/radar/fa4fea1c05c5"
-      },
-      {
-        "time": 1780467000,
-        "path": "/v2/radar/65521c34547c"
-      },
-      {
-        "time": 1780467600,
-        "path": "/v2/radar/6d3fe8c8ab84"
-      },
-      {
-        "time": 1780468200,
-        "path": "/v2/radar/4d4520092e4d"
-      },
-      {
-        "time": 1780468800,
-        "path": "/v2/radar/24907f409600"
+        "time": 1780480800,
+        "path": "/v2/radar/9a62bb4a6435"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  }
+  },
+  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
+  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
 }
