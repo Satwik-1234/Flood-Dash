@@ -1,65 +1,40 @@
 {
-  "generated_at": "2026-06-19T20:17:07Z",
+  "generated": 1781904139,
+  "host": "https://tilecache.rainviewer.com",
   "radar": {
     "past": [
       {
-        "time": 1781878200,
-        "path": "/v2/radar/83a1f04276b9"
+        "time": 1781900400,
+        "path": "/v2/radar/393d808df781"
       },
       {
-        "time": 1781878800,
-        "path": "/v2/radar/b738d2fb7c19"
+        "time": 1781901000,
+        "path": "/v2/radar/9a3fd7700fe3"
       },
       {
-        "time": 1781879400,
-        "path": "/v2/radar/9b64640b8cd1"
+        "time": 1781901600,
+        "path": "/v2/radar/11de0f97a570"
       },
       {
-        "time": 1781880000,
-        "path": "/v2/radar/52de7a9b95c0"
+        "time": 1781902200,
+        "path": "/v2/radar/0ef1662f2832"
       },
       {
-        "time": 1781880600,
-        "path": "/v2/radar/294d5b44e443"
+        "time": 1781902800,
+        "path": "/v2/radar/9d690a46210d"
       },
       {
-        "time": 1781881200,
-        "path": "/v2/radar/0f6487105b6d"
+        "time": 1781903400,
+        "path": "/v2/radar/6fedbd9b8fe3"
       },
       {
-        "time": 1781881800,
-        "path": "/v2/radar/6b8ef4b9a335"
-      },
-      {
-        "time": 1781882400,
-        "path": "/v2/radar/444a0c4e3f2b"
-      },
-      {
-        "time": 1781883000,
-        "path": "/v2/radar/aa27c21785f8"
-      },
-      {
-        "time": 1781883600,
-        "path": "/v2/radar/4a19d97d060f"
-      },
-      {
-        "time": 1781884200,
-        "path": "/v2/radar/26e4fcdc4a08"
-      },
-      {
-        "time": 1781884800,
-        "path": "/v2/radar/0ea2de05564a"
-      },
-      {
-        "time": 1781885400,
-        "path": "/v2/radar/8aa252e0242b"
+        "time": 1781904000,
+        "path": "/v2/radar/dfdac1a6e21f"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  },
-  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
-  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
+  }
 }
