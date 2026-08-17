@@ -1,5 +1,6 @@
 {
-  "generated_at": "2026-08-17T21:31:47Z",
+  "generated": 1787002810,
+  "host": "https://tilecache.rainviewer.com",
   "radar": {
     "past": [
       {
@@ -40,7 +41,7 @@
       },
       {
         "time": 1787000400,
-        "path": "/v2/radar/fc3f546c4d2a"
+        "path": "/v2/radar/c85ed0bb1c0a"
       },
       {
         "time": 1787001000,
@@ -59,7 +60,5 @@
   },
   "satellite": {
     "infrared": []
-  },
-  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
-  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
+  }
 }
