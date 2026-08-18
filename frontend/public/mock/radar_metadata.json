@@ -1,15 +1,8 @@
 {
-  "generated_at": "2026-08-18T06:03:34Z",
+  "generated": 1787034085,
+  "host": "https://tilecache.rainviewer.com",
   "radar": {
     "past": [
-      {
-        "time": 1787025600,
-        "path": "/v2/radar/b620fe8cb7b4"
-      },
-      {
-        "time": 1787026200,
-        "path": "/v2/radar/8edc58733f81"
-      },
       {
         "time": 1787026800,
         "path": "/v2/radar/cba729cd0a1a"
@@ -32,11 +25,11 @@
       },
       {
         "time": 1787029800,
-        "path": "/v2/radar/dea9a8d45df4"
+        "path": "/v2/radar/1eb85549def8"
       },
       {
         "time": 1787030400,
-        "path": "/v2/radar/b466651672cc"
+        "path": "/v2/radar/3c6be799d599"
       },
       {
         "time": 1787031000,
@@ -53,13 +46,19 @@
       {
         "time": 1787032800,
         "path": "/v2/radar/dcf74a215557"
+      },
+      {
+        "time": 1787033400,
+        "path": "/v2/radar/e7abc0799b56"
+      },
+      {
+        "time": 1787034000,
+        "path": "/v2/radar/adcbaa25ab57"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  },
-  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
-  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
+  }
 }
