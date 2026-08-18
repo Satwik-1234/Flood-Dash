@@ -1,32 +1,7 @@
 {
-  "generated": 1787018676,
-  "host": "https://tilecache.rainviewer.com",
+  "generated_at": "2026-08-18T03:02:26Z",
   "radar": {
     "past": [
-      {
-        "time": 1787011200,
-        "path": "/v2/radar/21a7a736457f"
-      },
-      {
-        "time": 1787011800,
-        "path": "/v2/radar/77182d1e9087"
-      },
-      {
-        "time": 1787012400,
-        "path": "/v2/radar/8aed88af1bd0"
-      },
-      {
-        "time": 1787013000,
-        "path": "/v2/radar/203cbc176a3e"
-      },
-      {
-        "time": 1787013600,
-        "path": "/v2/radar/eba17b807787"
-      },
-      {
-        "time": 1787014200,
-        "path": "/v2/radar/c778017e9a2e"
-      },
       {
         "time": 1787014800,
         "path": "/v2/radar/991b942f3fcc"
@@ -37,11 +12,11 @@
       },
       {
         "time": 1787016000,
-        "path": "/v2/radar/7d4d45f5e2ba"
+        "path": "/v2/radar/1e1f0ffbd8e3"
       },
       {
         "time": 1787016600,
-        "path": "/v2/radar/e45262f17229"
+        "path": "/v2/radar/519608e219b1"
       },
       {
         "time": 1787017200,
@@ -54,11 +29,37 @@
       {
         "time": 1787018400,
         "path": "/v2/radar/4c616e83bf82"
+      },
+      {
+        "time": 1787019000,
+        "path": "/v2/radar/db2f0ee55a56"
+      },
+      {
+        "time": 1787019600,
+        "path": "/v2/radar/03f3a26351ab"
+      },
+      {
+        "time": 1787020200,
+        "path": "/v2/radar/c12b8d8428ce"
+      },
+      {
+        "time": 1787020800,
+        "path": "/v2/radar/71f620545038"
+      },
+      {
+        "time": 1787021400,
+        "path": "/v2/radar/4f3fe62041ad"
+      },
+      {
+        "time": 1787022000,
+        "path": "/v2/radar/d98bd71835ff"
       }
     ],
     "nowcast": []
   },
   "satellite": {
     "infrared": []
-  }
+  },
+  "tile_url_template": "https://tilecache.rainviewer.com/v2/radar/{path}/256/{z}/{x}/{y}/2/1_1.png",
+  "sat_url_template": "https://tilecache.rainviewer.com/v2/satellite/infrared/{path}/256/{z}/{x}/{y}/0/0_0.png"
 }
